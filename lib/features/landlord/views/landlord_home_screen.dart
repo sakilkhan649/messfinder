@@ -499,19 +499,18 @@ class _LandlordPostCard extends StatelessWidget {
 
   void _showPostOptionsPopup(BuildContext context) {
     const emeraldTheme = Color(0xFF059669);
-    const darkEmerald = Color(0xFF064E3B);
 
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.fromLTRB(20.w, 12.h, 20.w, 28.h),
+        padding: EdgeInsets.fromLTRB(24.w, 12.h, 24.w, 32.h),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32.r)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 20.r,
-              offset: Offset(0, -4.h),
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 25.r,
+              offset: Offset(0, -5.h),
             ),
           ],
         ),
@@ -521,248 +520,175 @@ class _LandlordPostCard extends StatelessWidget {
           children: [
             Center(
               child: Container(
-                width: 48.w,
-                height: 5.h,
+                width: 40.w,
+                height: 4.h,
                 decoration: BoxDecoration(
                   color: Colors.grey.shade300,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
               ),
             ),
-            SizedBox(height: 18.h),
+            SizedBox(height: 24.h),
 
-            // Mini Preview Banner
+            // Post Title & Info - Simple and clean
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: emeraldTheme.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.home_work_rounded,
+                    color: emeraldTheme,
+                    size: 24.r,
+                  ),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        '৳${post.rent.toInt()} / month',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13.sp,
+                          fontWeight: FontWeight.w500,
+                          color: emeraldTheme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 32.h),
+
+            Text(
+              'Manage Options',
+              style: GoogleFonts.poppins(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textSecondary,
+                letterSpacing: 0.5,
+              ),
+            ),
+            SizedBox(height: 16.h),
+
+            // Edit Option
+            _buildActionTile(
+              icon: Icons.edit_rounded,
+              title: 'Edit Room',
+              subtitle: 'Update room details and photos',
+              color: emeraldTheme,
+              onTap: () {
+                Get.back();
+                Get.to(
+                  () => AddPostScreen(existingPost: post),
+                  transition: Transition.cupertino,
+                );
+              },
+            ),
+
+            SizedBox(height: 12.h),
+
+            // Delete Option
+            _buildActionTile(
+              icon: Icons.delete_outline_rounded,
+              title: 'Delete Room',
+              subtitle: 'Permanently remove this room',
+              color: const Color(0xFFEF4444),
+              onTap: () {
+                Get.back();
+                _confirmDelete();
+              },
+            ),
+            SizedBox(height: 10.h),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    );
+  }
+
+  Widget _buildActionTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          border: Border.all(color: Colors.grey.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10.r,
+              offset: Offset(0, 4.h),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
             Container(
               padding: EdgeInsets.all(12.r),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    emeraldTheme.withValues(alpha: 0.12),
-                    emeraldTheme.withValues(alpha: 0.03),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16.r),
-                border: Border.all(
-                  color: emeraldTheme.withValues(alpha: 0.25),
-                  width: 1,
-                ),
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
               ),
-              child: Row(
+              child: Icon(icon, color: color, size: 22.r),
+            ),
+            SizedBox(width: 16.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(10.r),
-                    decoration: BoxDecoration(
-                      color: emeraldTheme,
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    child: Icon(
-                      Icons.home_work_rounded,
-                      color: Colors.white,
-                      size: 24.r,
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          post.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 15.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 2.h),
-                        Text(
-                          '৳${post.rent.toInt()} / mo  •  ${post.address}',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.sp,
-                            color: AppTheme.textSecondary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                  SizedBox(height: 2.h),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w400,
+                      color: AppTheme.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-
-            SizedBox(height: 20.h),
-            Text(
-              'Manage Room',
-              style: GoogleFonts.poppins(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.textPrimary,
-              ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.grey.shade400,
+              size: 16.r,
             ),
-            SizedBox(height: 12.h),
-
-            // Edit Option Card
-            InkWell(
-              onTap: () {
-                Get.back();
-                Get.to(
-                  () => AddPostScreen(existingPost: post),
-                  transition: Transition.rightToLeft,
-                );
-              },
-              borderRadius: BorderRadius.circular(16.r),
-              child: Container(
-                padding: EdgeInsets.all(14.r),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(
-                    color: emeraldTheme.withValues(alpha: 0.25),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [darkEmerald, emeraldTheme],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: emeraldTheme.withValues(alpha: 0.25),
-                            blurRadius: 8.r,
-                            offset: Offset(0, 3.h),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.edit_rounded,
-                        color: Colors.white,
-                        size: 22.r,
-                      ),
-                    ),
-                    SizedBox(width: 14.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Edit Room',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            'Update rent, seats, or photos',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.sp,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: emeraldTheme,
-                      size: 18.r,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            SizedBox(height: 12.h),
-
-            // Delete Option Card
-            InkWell(
-              onTap: () {
-                Get.back();
-                _confirmDelete();
-              },
-              borderRadius: BorderRadius.circular(16.r),
-              child: Container(
-                padding: EdgeInsets.all(14.r),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7F7),
-                  borderRadius: BorderRadius.circular(16.r),
-                  border: Border.all(
-                    color: AppTheme.errorColor.withValues(alpha: 0.18),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.errorColor.withValues(alpha: 0.25),
-                            blurRadius: 8.r,
-                            offset: Offset(0, 3.h),
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.delete_outline_rounded,
-                        color: Colors.white,
-                        size: 22.r,
-                      ),
-                    ),
-                    SizedBox(width: 14.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Delete Room',
-                            style: GoogleFonts.poppins(
-                              fontSize: 15.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.errorColor,
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            'Remove room from app',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.sp,
-                              color: AppTheme.textSecondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded,
-                      color: AppTheme.errorColor,
-                      size: 18.r,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            SizedBox(height: 6.h),
           ],
         ),
       ),

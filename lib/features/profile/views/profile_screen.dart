@@ -23,83 +23,66 @@ class ProfileScreen extends StatelessWidget {
 
       final isLandlord = activeUser.isLandlord;
       final Color primaryColor = isLandlord
-          ? const Color(0xFF7C3AED) // Royal Purple for Landlord
-          : const Color(0xFF0EA5E9); // Vibrant Sky Blue for Bachelor
+          ? const Color(0xFF059669) // Emerald for Landlord
+          : const Color(0xFF0EA5E9); // Sky Blue for Bachelor
       final Color accentColor = isLandlord
-          ? const Color(0xFF9F67FA)
-          : const Color(0xFF059669); // Emerald accent
+          ? const Color(0xFF10B981)
+          : const Color(0xFF38BDF8);
 
       return Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
+        backgroundColor: const Color(0xFFF8FAFC),
         body: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             // Ultra-Premium Header
             SliverAppBar(
-              expandedHeight: 285.h,
+              expandedHeight: 310.h,
               pinned: true,
               backgroundColor: primaryColor,
               automaticallyImplyLeading: false,
-              actions: [
-                IconButton(
-                  onPressed: () {
-                    Get.to(() => EditProfileScreen(user: activeUser));
-                  },
-                  icon: const Icon(Icons.edit_rounded, color: Colors.white),
-                  tooltip: 'প্রোফাইল সম্পাদনা (Edit Profile)',
-                ),
-                IconButton(
-                  onPressed: () => _showLogoutDialog(),
-                  icon: const Icon(Icons.logout_rounded, color: Colors.white),
-                  tooltip: 'লগআউট',
-                ),
-                SizedBox(width: 8.w),
-              ],
               flexibleSpace: FlexibleSpaceBar(
                 background: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [
-                        primaryColor,
-                        accentColor,
-                      ],
+                      colors: [primaryColor, accentColor],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                   ),
                   child: SafeArea(
                     child: Padding(
-                      padding: EdgeInsets.all(20.r),
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          SizedBox(height: 10.h),
-                          // Avatar with Glow Border
+                          SizedBox(height: 20.h),
+                          // Avatar with Glow
                           Container(
-                            width: 84.r,
-                            height: 84.r,
+                            width: 100.r,
+                            height: 100.r,
                             padding: EdgeInsets.all(4.r),
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.2),
                               border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.6),
+                                color: Colors.white,
                                 width: 3.r,
                               ),
                               boxShadow: [
                                 BoxShadow(
                                   color: Colors.black.withValues(alpha: 0.15),
-                                  blurRadius: 15.r,
-                                  offset: Offset(0, 6.h),
+                                  blurRadius: 20.r,
+                                  offset: Offset(0, 8.h),
                                 ),
                               ],
                             ),
                             child: ClipOval(
-                              child: (activeUser.photoUrl != null &&
+                              child:
+                                  (activeUser.photoUrl != null &&
                                       activeUser.photoUrl!.isNotEmpty)
                                   ? AppImageHelper.buildImage(
                                       activeUser.photoUrl!,
                                       fit: BoxFit.cover,
-                                      width: 76.r,
-                                      height: 76.r,
                                     )
                                   : Container(
                                       color: Colors.white,
@@ -107,110 +90,68 @@ class ProfileScreen extends StatelessWidget {
                                         isLandlord
                                             ? Icons.home_work_rounded
                                             : Icons.person_rounded,
-                                        size: 40.r,
+                                        size: 45.r,
                                         color: primaryColor,
                                       ),
                                     ),
                             ),
                           ),
-                          SizedBox(height: 12.h),
+                          SizedBox(height: 16.h),
 
                           // Name
                           Text(
                             activeUser.name,
                             style: GoogleFonts.poppins(
-                              fontSize: 20.sp,
-                              fontWeight: FontWeight.bold,
+                              fontSize: 22.sp,
+                              fontWeight: FontWeight.w700,
                               color: Colors.white,
+                              letterSpacing: 0.5,
                             ),
                           ),
+                          SizedBox(height: 4.h),
 
                           // Phone
                           if (activeUser.phone.isNotEmpty)
                             Text(
                               activeUser.phone,
                               style: GoogleFonts.poppins(
-                                fontSize: 13.sp,
-                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.9),
                               ),
                             ),
-                          SizedBox(height: 8.h),
+                          SizedBox(height: 12.h),
 
-                          // Verified Approved Capsule
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 14.w, vertical: 5.h),
-                                decoration: BoxDecoration(
+                          // Role Badge
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical: 6.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(30.r),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.verified_rounded,
+                                  size: 16.r,
                                   color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20.r),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.1),
-                                      blurRadius: 8.r,
-                                    ),
-                                  ],
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.verified_rounded,
-                                      size: 16.r,
-                                      color: AppTheme.statusApproved,
-                                    ),
-                                    SizedBox(width: 5.w),
-                                    Text(
-                                      isLandlord
-                                          ? 'বাড়িওয়ালা (Approved ✓)'
-                                          : 'ব্যাচেলর (Approved ✓)',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 10.h),
-
-                          // Edit Profile Capsule Button
-                          GestureDetector(
-                            onTap: () {
-                              Get.to(() => EditProfileScreen(user: activeUser));
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 14.w, vertical: 5.h),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(20.r),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit_rounded,
-                                      size: 14.r, color: Colors.white),
-                                  SizedBox(width: 6.w),
-                                  Text(
-                                    'প্রোফাইল সম্পাদনা করুন',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
+                                SizedBox(width: 6.w),
+                                Text(
+                                  isLandlord
+                                      ? 'Verified Landlord'
+                                      : 'Verified Bachelor',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -224,51 +165,26 @@ class ProfileScreen extends StatelessWidget {
             // Content Below Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.all(20.r),
+                padding: EdgeInsets.all(24.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Quick Stats Row
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: Icons.shield_rounded,
-                            title: 'ভেরিফায়েড',
-                            subtitle: '১০০% বিশ্বস্ত',
-                            color: primaryColor,
-                          ),
-                        ),
-                        SizedBox(width: 12.w),
-                        Expanded(
-                          child: _buildStatCard(
-                            icon: isLandlord
-                                ? Icons.real_estate_agent_rounded
-                                : Icons.favorite_rounded,
-                            title: isLandlord ? 'মালিকানা' : 'সদস্যপদ',
-                            subtitle: 'সক্রিয় অ্যাকাউন্ট',
-                            color: primaryColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 24.h),
-
                     Text(
-                      'অ্যাকাউন্ট ও সেটিংস',
+                      'Account Settings',
                       style: GoogleFonts.poppins(
-                        fontSize: 15.sp,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
                         color: AppTheme.textPrimary,
+                        letterSpacing: 0.3,
                       ),
                     ),
-                    SizedBox(height: 12.h),
+                    SizedBox(height: 16.h),
 
                     // Menu Items
                     _buildMenuItem(
-                      icon: Icons.edit_note_rounded,
-                      title: 'প্রোফাইল সম্পাদনা করুন (Edit Profile)',
-                      subtitle: 'নাম, মোবাইল নম্বর ও ব্যক্তিগত তথ্য আপডেট করুন',
+                      icon: Icons.person_outline_rounded,
+                      title: 'Edit Profile',
+                      subtitle: 'Update your personal details',
                       color: primaryColor,
                       onTap: () {
                         Get.to(() => EditProfileScreen(user: activeUser));
@@ -276,103 +192,71 @@ class ProfileScreen extends StatelessWidget {
                     ),
 
                     _buildMenuItem(
-                      icon: Icons.payment_rounded,
-                      title: 'আমার পেমেন্ট স্ট্যাটাস',
-                      subtitle: 'আপনার পেমেন্ট ভেরিফাই হয়েছে (Approved)',
-                      color: primaryColor,
-                      onTap: () => Get.snackbar(
-                        'পেমেন্ট স্ট্যাটাস',
-                        'আপনার পেমেন্ট ভেরিফাই ও অনুমোদিত আছে ✓',
-                        backgroundColor: AppTheme.statusApproved,
-                        colorText: Colors.white,
-                        snackPosition: SnackPosition.BOTTOM,
-                      ),
-                    ),
-
-                    _buildMenuItem(
                       icon: Icons.swap_horiz_rounded,
-                      title: 'রোল পরিবর্তন করুন',
-                      subtitle: 'বাড়িওয়ালা বা ব্যাচেলর রোলে পরিবর্তন করুন',
+                      title: 'Switch Role',
+                      subtitle: 'Change between Landlord and Bachelor',
                       color: const Color(0xFFF59E0B),
                       onTap: () {
-                        Get.to(() => const RoleSelectionScreen(),
-                            transition: Transition.fadeIn);
+                        Get.to(
+                          () => const RoleSelectionScreen(),
+                          transition: Transition.cupertino,
+                        );
                       },
                     ),
 
                     _buildMenuItem(
-                      icon: Icons.notifications_active_rounded,
-                      title: 'নোটিফিকেশন সেটিংস',
-                      subtitle: 'নতুন মেস বা বুকিংয়ের আপডেট নিয়ন্ত্রণ করুন',
-                      color: primaryColor,
-                      onTap: () => Get.snackbar(
-                        'নোটিফিকেশন',
-                        'নোটিফিকেশন সবসময় সক্রিয় আছে ✓',
-                        backgroundColor: primaryColor,
-                        colorText: Colors.white,
-                        snackPosition: SnackPosition.BOTTOM,
-                      ),
-                    ),
-
-                    _buildMenuItem(
-                      icon: Icons.security_rounded,
-                      title: 'নিরাপত্তা ও প্রাইভেসি',
-                      subtitle: 'পাসওয়ার্ড এবং অ্যাকাউন্টের নিরাপত্তা',
-                      color: primaryColor,
-                      onTap: () => Get.snackbar(
-                        'নিরাপত্তা',
-                        'আপনার অ্যাকাউন্ট ফায়ারবেস দ্বারা সুরক্ষিত ✓',
-                        backgroundColor: primaryColor,
-                        colorText: Colors.white,
-                        snackPosition: SnackPosition.BOTTOM,
-                      ),
-                    ),
-
-                    _buildMenuItem(
-                      icon: Icons.help_outline_rounded,
-                      title: 'সাহায্য ও সাপোর্ট',
-                      subtitle: 'যেকোনো প্রয়োজনে আমাদের সাথে যোগাযোগ করুন',
+                      icon: Icons.headset_mic_rounded,
+                      title: 'Help & Support',
+                      subtitle: 'Get assistance when you need it',
                       color: primaryColor,
                       onTap: () => Get.defaultDialog(
-                        title: 'হেল্পলাইন সাপোর্ট',
+                        title: 'Help & Support',
+                        titleStyle: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18.sp,
+                        ),
                         middleText:
-                            'যেকোনো প্রয়োজনে কল করুন:\n01868569162\nঅথবা ইমেইল করুন:\nsupport@messfinder.com',
-                        textConfirm: 'ঠিক আছে',
+                            'Call us at:\n01868569162\n\nor Email:\nsupport@messfinder.com',
+                        textConfirm: 'Okay',
                         confirmTextColor: Colors.white,
                         buttonColor: primaryColor,
                         onConfirm: () => Get.back(),
+                        radius: 16.r,
+                        contentPadding: EdgeInsets.all(20.w),
                       ),
                     ),
 
-                    SizedBox(height: 24.h),
+                    SizedBox(height: 32.h),
 
                     // Logout Button
                     SizedBox(
                       width: double.infinity,
-                      height: 52.h,
-                      child: OutlinedButton.icon(
+                      height: 56.h,
+                      child: ElevatedButton.icon(
                         onPressed: () => _showLogoutDialog(),
-                        icon: const Icon(Icons.logout_rounded,
-                            color: AppTheme.errorColor),
+                        icon: Icon(
+                          Icons.logout_rounded,
+                          color: Colors.white,
+                          size: 22.r,
+                        ),
                         label: Text(
-                          'অ্যাকাউন্ট থেকে লগআউট করুন',
+                          'Sign Out',
                           style: GoogleFonts.poppins(
                             fontSize: 15.sp,
                             fontWeight: FontWeight.w600,
-                            color: AppTheme.errorColor,
+                            color: Colors.white,
                           ),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          side: const BorderSide(
-                              color: AppTheme.errorColor, width: 1.5),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFEF4444),
+                          elevation: 0,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
+                            borderRadius: BorderRadius.circular(16.r),
                           ),
                         ),
                       ),
                     ),
-
-                    SizedBox(height: 30.h),
+                    SizedBox(height: 40.h),
                   ],
                 ),
               ),
@@ -383,63 +267,6 @@ class ProfileScreen extends StatelessWidget {
     });
   }
 
-  Widget _buildStatCard({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(14.r),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: EdgeInsets.all(10.r),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10.r),
-            ),
-            child: Icon(icon, color: color, size: 22.r),
-          ),
-          SizedBox(width: 12.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: GoogleFonts.poppins(
-                    fontSize: 11.sp,
-                    color: AppTheme.textSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
@@ -448,51 +275,67 @@ class ProfileScreen extends StatelessWidget {
     required VoidCallback onTap,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 16.h),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 8.r,
-            offset: Offset(0, 2.h),
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
           ),
         ],
       ),
       child: Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14.r),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
+        color: Colors.transparent,
+        child: InkWell(
           onTap: onTap,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
-          leading: Container(
-            padding: EdgeInsets.all(10.r),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10.r),
+          borderRadius: BorderRadius.circular(16.r),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12.r),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 24.r),
+                ),
+                SizedBox(width: 16.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 2.h),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w400,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16.r,
+                  color: Colors.grey.shade400,
+                ),
+              ],
             ),
-            child: Icon(icon, color: color, size: 22.r),
-          ),
-          title: Text(
-            title,
-            style: GoogleFonts.poppins(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.w600,
-              color: AppTheme.textPrimary,
-            ),
-          ),
-          subtitle: Text(
-            subtitle,
-            style: GoogleFonts.poppins(
-              fontSize: 11.sp,
-              color: AppTheme.textSecondary,
-            ),
-          ),
-          trailing: Icon(
-            Icons.arrow_forward_ios_rounded,
-            size: 16.r,
-            color: Colors.grey.shade400,
           ),
         ),
       ),
@@ -501,12 +344,20 @@ class ProfileScreen extends StatelessWidget {
 
   void _showLogoutDialog() {
     Get.defaultDialog(
-      title: 'লগআউট',
-      middleText: 'আপনি কি নিশ্চিতভাবে লগআউট করতে চান?',
-      textConfirm: 'হ্যাঁ, লগআউট',
-      textCancel: 'না',
+      title: 'Sign Out',
+      titleStyle: GoogleFonts.poppins(
+        fontWeight: FontWeight.bold,
+        fontSize: 18.sp,
+      ),
+      middleText: 'Are you sure you want to sign out?',
+      middleTextStyle: GoogleFonts.poppins(fontSize: 14.sp),
+      textConfirm: 'Sign Out',
+      textCancel: 'Cancel',
+      cancelTextColor: const Color(0xFFEF4444),
       confirmTextColor: Colors.white,
-      buttonColor: AppTheme.errorColor,
+      buttonColor: const Color(0xFFEF4444),
+      radius: 16.r,
+      contentPadding: EdgeInsets.all(20.w),
       onConfirm: () {
         Get.find<AuthController>().logout();
       },

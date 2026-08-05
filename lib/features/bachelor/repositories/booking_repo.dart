@@ -148,4 +148,17 @@ class BookingRepository {
       throw 'Failed to reject booking: $e';
     }
   }
+
+  // Delete a booking (Landlord or Admin)
+  Future<void> deleteBooking(String bookingId) async {
+    try {
+      await _firestore
+          .collection(ApiConstants.bookingsCollection)
+          .doc(bookingId)
+          .delete();
+      AppLogger.s('Booking deleted: $bookingId', tag: 'BOOKING_REPO');
+    } catch (e) {
+      throw 'Failed to delete booking: $e';
+    }
+  }
 }

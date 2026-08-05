@@ -259,4 +259,26 @@ class TenantLeadsController extends GetxController {
       return matchName || matchPhone;
     }).toList();
   }
+
+  Future<void> deleteLead(String bookingId) async {
+    try {
+      await _bookingRepo.deleteBooking(bookingId);
+      Get.snackbar(
+        'Deleted',
+        'Request has been removed successfully',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFEF4444),
+        colorText: const Color(0xFFFFFFFF),
+        duration: const Duration(seconds: 2),
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to delete request: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFEF4444),
+        colorText: const Color(0xFFFFFFFF),
+      );
+    }
+  }
 }

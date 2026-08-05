@@ -144,15 +144,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
         facilities: _selectedFacilities,
         images: imagesToUse,
       );
+      Get.back();
       postCtrl.updateMessPost(updatedPost);
-      Get.snackbar(
-        'Success',
-        'Room listing updated successfully.',
-        backgroundColor: const Color(0xFF059669),
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
     } else {
+      Get.back();
       postCtrl.addMessPost(
         title: _titleController.text.trim(),
         rent: double.tryParse(_rentController.text.trim()) ?? 4500,
@@ -168,7 +163,6 @@ class _AddPostScreenState extends State<AddPostScreen> {
         trxId: trxId,
       );
     }
-    Get.back();
   }
 
   InputDecoration _buildInputDecoration({

@@ -248,9 +248,51 @@ class TenantLeadsScreen extends StatelessWidget {
                     separatorBuilder: (context, index) =>
                         SizedBox(height: 14.h),
                     itemBuilder: (context, index) {
-                      return _LeadCard(
-                        booking: filteredLeads[index],
-                        controller: controller,
+                      final lead = filteredLeads[index];
+                      return Dismissible(
+                        key: Key(lead.bookingId),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          padding: EdgeInsets.symmetric(horizontal: 20.w),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          alignment: Alignment.centerRight,
+                          child: Icon(
+                            Icons.delete_sweep_rounded,
+                            color: Colors.white,
+                            size: 28.r,
+                          ),
+                        ),
+                        confirmDismiss: (direction) async {
+                          return await Get.defaultDialog<bool>(
+                            title: 'Delete Request',
+                            titleStyle: GoogleFonts.poppins(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18.sp,
+                            ),
+                            middleText: 'Are you sure you want to permanently delete this request?',
+                            middleTextStyle: GoogleFonts.poppins(
+                              fontSize: 14.sp,
+                            ),
+                            textCancel: 'Cancel',
+                            textConfirm: 'Delete',
+                            confirmTextColor: Colors.white,
+                            buttonColor: const Color(0xFFEF4444),
+                            cancelTextColor: const Color(0xFF6B7280),
+                            onConfirm: () => Get.back(result: true),
+                            onCancel: () => Get.back(result: false),
+                            radius: 12.r,
+                          );
+                        },
+                        onDismissed: (direction) {
+                          controller.deleteLead(lead.bookingId);
+                        },
+                        child: _LeadCard(
+                          booking: lead,
+                          controller: controller,
+                        ),
                       );
                     },
                   );

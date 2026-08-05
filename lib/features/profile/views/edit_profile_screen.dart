@@ -53,8 +53,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       }
     } catch (e) {
       Get.snackbar(
-        'ত্রুটি',
-        'গ্যালারি থেকে ছবি লোড করা সম্ভব হয়নি: $e',
+        'Error',
+        'Failed to load image from gallery: $e',
         backgroundColor: AppTheme.errorColor,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -77,258 +77,196 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final isLandlord = widget.user.isLandlord;
     final Color primaryColor = isLandlord
-        ? const Color(0xFF7C3AED) // Royal Purple for Landlord
-        : const Color(0xFF0EA5E9); // Vibrant Sky Blue for Bachelor
+        ? const Color(0xFF059669) // Emerald for Landlord
+        : const Color(0xFF0EA5E9); // Sky Blue for Bachelor
 
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: const Color(0xFFF8FAFC), // Modern sleek background
       appBar: AppBar(
         title: Text(
-          'প্রোফাইল সম্পাদনা করুন',
+          'Edit Profile',
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.w700,
+            fontSize: 18.sp,
             color: Colors.white,
           ),
         ),
         backgroundColor: primaryColor,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(20.r),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
           child: Form(
             key: _formKey,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                SizedBox(height: 10.h),
-                // Avatar with Edit badge (Tappable for Gallery)
+                // Premium Avatar Selector
                 GestureDetector(
                   onTap: _pickImageFromGallery,
-                  child: Center(
-                    child: Stack(
-                      children: [
-                        Container(
-                          width: 110.r,
-                          height: 110.r,
-                          padding: EdgeInsets.all(4.r),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: primaryColor.withValues(alpha: 0.3),
-                              width: 3.r,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 120.r,
+                        height: 120.r,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white,
+                          border: Border.all(
+                            color: primaryColor.withValues(alpha: 0.2),
+                            width: 4.r,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withValues(alpha: 0.15),
+                              blurRadius: 20.r,
+                              offset: Offset(0, 8.h),
                             ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: _selectedImageFile != null
+                              ? Image.file(
+                                  _selectedImageFile!,
+                                  fit: BoxFit.cover,
+                                )
+                              : (widget.user.photoUrl != null &&
+                                      widget.user.photoUrl!.isNotEmpty)
+                                  ? AppImageHelper.buildImage(
+                                      widget.user.photoUrl!,
+                                      fit: BoxFit.cover,
+                                    )
+                                  : Icon(
+                                      isLandlord
+                                          ? Icons.home_work_rounded
+                                          : Icons.person_rounded,
+                                      size: 55.r,
+                                      color: primaryColor.withValues(alpha: 0.5),
+                                    ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(10.r),
+                          decoration: BoxDecoration(
+                            color: primaryColor,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 3.w),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 15.r,
-                                offset: Offset(0, 6.h),
+                                blurRadius: 8.r,
                               ),
                             ],
                           ),
-                          child: ClipOval(
-                            child: _selectedImageFile != null
-                                ? Image.file(
-                                    _selectedImageFile!,
-                                    fit: BoxFit.cover,
-                                    width: 100.r,
-                                    height: 100.r,
-                                  )
-                                : (widget.user.photoUrl != null &&
-                                        widget.user.photoUrl!.isNotEmpty)
-                                    ? AppImageHelper.buildImage(
-                                        widget.user.photoUrl!,
-                                        fit: BoxFit.cover,
-                                        width: 100.r,
-                                        height: 100.r,
-                                      )
-                                    : Container(
-                                        color: primaryColor.withValues(
-                                            alpha: 0.1),
-                                        child: Icon(
-                                          isLandlord
-                                              ? Icons.home_work_rounded
-                                              : Icons.person_rounded,
-                                          size: 50.r,
-                                          color: primaryColor,
-                                        ),
-                                      ),
+                          child: Icon(
+                            Icons.camera_alt_rounded,
+                            size: 18.r,
+                            color: Colors.white,
                           ),
                         ),
-                        Positioned(
-                          bottom: 2.h,
-                          right: 2.w,
-                          child: Container(
-                            padding: EdgeInsets.all(8.r),
-                            decoration: BoxDecoration(
-                              color: primaryColor,
-                              shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: Colors.white, width: 2.w),
-                            ),
-                            child: Icon(
-                              Icons.camera_alt_rounded,
-                              size: 16.r,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
-                SizedBox(height: 8.h),
+                SizedBox(height: 16.h),
                 Text(
-                  'গ্যালারি থেকে ছবি দিতে ক্লিক করুন',
+                  'Tap to change profile picture',
                   style: GoogleFonts.poppins(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.w600,
-                    color: primaryColor,
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade600,
                   ),
                 ),
-                SizedBox(height: 12.h),
+                
+                SizedBox(height: 32.h),
 
-                // Role badge
+                // Form Card
                 Container(
-                  padding:
-                      EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20.r),
-                  ),
-                  child: Text(
-                    isLandlord
-                        ? 'বাড়িওয়ালা (Approved ✓)'
-                        : 'ব্যাচেলর (Approved ✓)',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.bold,
-                      color: primaryColor,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 24.h),
-
-                // Edit Card
-                Container(
-                  padding: EdgeInsets.all(20.r),
+                  padding: EdgeInsets.all(24.r),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.r),
+                    borderRadius: BorderRadius.circular(20.r),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 10.r,
-                        offset: Offset(0, 4.h),
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 15.r,
+                        offset: Offset(0, 5.h),
                       ),
                     ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'আপনার নাম *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
+                      _buildLabel('Full Name'),
                       SizedBox(height: 8.h),
-                      TextFormField(
+                      _buildTextField(
                         controller: _nameController,
-                        decoration: InputDecoration(
-                          hintText: 'আপনার পুরো নাম লিখুন',
-                          prefixIcon: Icon(Icons.person_outline_rounded,
-                              color: primaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty
-                            ? 'নাম লিখুন'
-                            : null,
+                        hint: 'Enter your full name',
+                        icon: Icons.person_outline_rounded,
+                        primaryColor: primaryColor,
+                        validatorMsg: 'Please enter your name',
                       ),
-                      SizedBox(height: 18.h),
+                      SizedBox(height: 20.h),
 
-                      Text(
-                        'মোবাইল নম্বর *',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
+                      _buildLabel('Phone Number'),
                       SizedBox(height: 8.h),
-                      TextFormField(
+                      _buildTextField(
                         controller: _phoneController,
+                        hint: 'e.g. 01700112233',
+                        icon: Icons.phone_outlined,
+                        primaryColor: primaryColor,
                         keyboardType: TextInputType.phone,
-                        decoration: InputDecoration(
-                          hintText: 'যেমন: 01700112233',
-                          prefixIcon:
-                              Icon(Icons.phone_outlined, color: primaryColor),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          filled: true,
-                          fillColor: Colors.grey.shade50,
-                        ),
-                        validator: (v) => v == null || v.trim().isEmpty
-                            ? 'মোবাইল নম্বর লিখুন'
-                            : null,
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'এই নম্বরে ব্যাচেলর বা বাড়িওয়ালা আপনার সাথে যোগাযোগ করতে পারবে',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.sp,
-                          color: AppTheme.textSecondary,
-                        ),
+                        validatorMsg: 'Please enter phone number',
                       ),
                     ],
                   ),
                 ),
+                
                 SizedBox(height: 32.h),
 
                 // Save Button
                 SizedBox(
                   width: double.infinity,
-                  height: 52.h,
+                  height: 56.h,
                   child: Obx(() {
                     final authCtrl = Get.find<AuthController>();
-                    if (authCtrl.isLoading.value) {
-                      return ElevatedButton(
-                        onPressed: null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14.r),
-                          ),
-                        ),
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                        ),
-                      );
-                    }
+                    final isLoading = authCtrl.isLoading.value;
+                    
                     return ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: isLoading ? null : _submit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14.r),
+                          borderRadius: BorderRadius.circular(16.r),
                         ),
                         elevation: 4,
+                        shadowColor: primaryColor.withValues(alpha: 0.4),
                       ),
-                      child: Text(
-                        'পরিবর্তন সংরক্ষণ করুন',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: isLoading
+                          ? SizedBox(
+                              height: 24.r,
+                              width: 24.r,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Text(
+                              'Save Changes',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
                     );
                   }),
                 ),
@@ -340,4 +278,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
+
+  Widget _buildLabel(String text) {
+    return Text(
+      text,
+      style: GoogleFonts.poppins(
+        fontSize: 13.sp,
+        fontWeight: FontWeight.w600,
+        color: AppTheme.textPrimary,
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    required Color primaryColor,
+    required String validatorMsg,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: GoogleFonts.poppins(fontSize: 14.sp, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: primaryColor, size: 22.r),
+        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide.none,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF1F5F9), // Very light sleek slate
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: BorderSide(color: primaryColor, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14.r),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1),
+        ),
+      ),
+      validator: (v) => v == null || v.trim().isEmpty ? validatorMsg : null,
+    );
+  }
 }
+
