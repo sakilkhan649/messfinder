@@ -3,6 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
+import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../core/widgets/premium_payment_dialog.dart';
@@ -84,15 +86,23 @@ class RoomDetailScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _smsLandlord(
+  Future<void> _messageLandlord(
       BuildContext context, bool isUnlocked, bool isPending) async {
     if (isUnlocked) {
-      final phone = post.ownerPhone ?? '01700000000';
-      final Uri url = Uri.parse('sms:$phone');
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url);
+      if (post.ownerUid.isNotEmpty) {
+        final chatController = Get.put(ChatController());
+        final roomId = await chatController.createOrGetChatRoom(
+          post.ownerUid,
+          '',
+          null,
+        );
+        Get.to(() => ChatScreen(
+          chatRoomId: roomId,
+          targetUserId: post.ownerUid,
+          targetUserName: 'Landlord',
+        ));
       } else {
-        Get.snackbar('Error', 'Unable to open SMS');
+        Get.snackbar('Error', 'Landlord ID not found.');
       }
     } else if (isPending) {
       Get.snackbar(
@@ -188,7 +198,9 @@ class RoomDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF0EA5E9);
+    final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
+    final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
+
     final String genderText = post.bachelorType == 'female'
         ? 'Female Only'
         : post.bachelorType == 'both'
@@ -223,7 +235,7 @@ class RoomDetailScreen extends StatelessWidget {
               SliverAppBar(
                 expandedHeight: 280.h,
                 pinned: true,
-                backgroundColor: primaryBlue,
+                backgroundColor: primaryColor,
                 iconTheme: const IconThemeData(color: Colors.white),
                 actions: [
                   Obx(() {
@@ -298,11 +310,11 @@ class RoomDetailScreen extends StatelessWidget {
                           padding: EdgeInsets.symmetric(
                               horizontal: 16.w, vertical: 8.h),
                           decoration: BoxDecoration(
-                            color: primaryBlue,
+                            color: accentColor,
                             borderRadius: BorderRadius.circular(24.r),
                             boxShadow: [
                               BoxShadow(
-                                color: primaryBlue.withValues(alpha: 0.4),
+                                color: accentColor.withValues(alpha: 0.4),
                                 blurRadius: 10.r,
                               ),
                             ],
@@ -327,99 +339,14 @@ class RoomDetailScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12.w, vertical: 5.h),
-                            decoration: BoxDecoration(
-                              color: primaryBlue.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.verified_user_rounded,
-                                    size: 14.r, color: primaryBlue),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  genderText,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: primaryBlue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: 10.w),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12.w, vertical: 5.h),
-                            decoration: BoxDecoration(
-                              color: AppTheme.statusApproved
-                                  .withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.single_bed_rounded,
-                                    size: 14.r, color: AppTheme.statusApproved),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  'Available Seats: ${post.displaySeats}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.statusApproved,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 8.h),
-                      Wrap(
-                        spacing: 8.w,
-                        runSpacing: 8.h,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 12.w, vertical: 5.h),
-                            decoration: BoxDecoration(
-                              color:
-                                  AppTheme.primaryColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(20.r),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.school_rounded,
-                                    size: 14.r, color: AppTheme.primaryColor),
-                                SizedBox(width: 4.w),
-                                Text(
-                                  'Preferred: ${post.preferredTenant}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12.sp,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16.h),
+                      // Title & Location
                       Text(
                         post.title,
                         style: GoogleFonts.poppins(
-                          fontSize: 20.sp,
+                          fontSize: 22.sp,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          color: primaryColor,
+                          height: 1.3,
                         ),
                       ),
                       SizedBox(height: 8.h),
@@ -427,15 +354,123 @@ class RoomDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(Icons.location_on_rounded,
-                              size: 18.r, color: primaryBlue),
+                              size: 18.r, color: accentColor),
                           SizedBox(width: 6.w),
                           Expanded(
                             child: Text(
                               post.address,
                               style: GoogleFonts.poppins(
                                 fontSize: 14.sp,
-                                color: AppTheme.textSecondary,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
                               ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                      
+                      // Tags Group
+                      Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: [
+                          // Gender Tag
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: post.bachelorType.toLowerCase() == 'male'
+                                  ? Colors.blue.withValues(alpha: 0.1)
+                                  : post.bachelorType.toLowerCase() == 'female'
+                                      ? Colors.pink.withValues(alpha: 0.1)
+                                      : Colors.purple.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(
+                                color: post.bachelorType.toLowerCase() == 'male'
+                                    ? Colors.blue.withValues(alpha: 0.3)
+                                    : post.bachelorType.toLowerCase() == 'female'
+                                        ? Colors.pink.withValues(alpha: 0.3)
+                                        : Colors.purple.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  post.bachelorType.toLowerCase() == 'male'
+                                      ? Icons.male_rounded
+                                      : post.bachelorType.toLowerCase() == 'female'
+                                          ? Icons.female_rounded
+                                          : Icons.people_rounded,
+                                  size: 14.r,
+                                  color: post.bachelorType.toLowerCase() == 'male'
+                                      ? Colors.blue.shade700
+                                      : post.bachelorType.toLowerCase() == 'female'
+                                          ? Colors.pink.shade700
+                                          : Colors.purple.shade700,
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  genderText,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: post.bachelorType.toLowerCase() == 'male'
+                                        ? Colors.blue.shade700
+                                        : post.bachelorType.toLowerCase() == 'female'
+                                            ? Colors.pink.shade700
+                                            : Colors.purple.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Seats Tag
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: Colors.green.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.single_bed_rounded, size: 14.r, color: Colors.green.shade700),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  'Seats: ${post.displaySeats}',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.green.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Preferred Tag
+                          Container(
+                            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(color: accentColor.withValues(alpha: 0.3)),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.school_rounded, size: 14.r, color: accentColor),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  post.preferredTenant,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -451,36 +486,29 @@ class RoomDetailScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 12.h),
                       Wrap(
-                        spacing: 10.w,
-                        runSpacing: 10.h,
-                        children: post.facilities.map((facility) {
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: post.facilities.toSet().toList().map((facility) {
                           return Container(
                             padding: EdgeInsets.symmetric(
-                                horizontal: 14.w, vertical: 8.h),
+                                horizontal: 12.w, vertical: 8.h),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(12.r),
-                              border:
-                                  Border.all(color: Colors.grey.shade300),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 4.r,
-                                ),
-                              ],
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.check_circle_rounded,
-                                    size: 16.r, color: primaryBlue),
+                                    size: 14.r, color: primaryColor),
                                 SizedBox(width: 6.w),
                                 Text(
                                   facility,
                                   style: GoogleFonts.poppins(
-                                    fontSize: 13.sp,
+                                    fontSize: 12.sp,
                                     fontWeight: FontWeight.w500,
-                                    color: AppTheme.textPrimary,
+                                    color: Colors.grey.shade800,
                                   ),
                                 ),
                               ],
@@ -511,10 +539,8 @@ class RoomDetailScreen extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 24.r,
-                              backgroundColor:
-                                  primaryBlue.withValues(alpha: 0.1),
-                              child: Icon(Icons.person,
-                                  color: primaryBlue, size: 26.r),
+                              backgroundColor: primaryColor.withValues(alpha: 0.1),
+                              child: Icon(Icons.person, color: primaryColor, size: 26.r),
                             ),
                             SizedBox(width: 14.w),
                             Expanded(
@@ -533,7 +559,7 @@ class RoomDetailScreen extends StatelessWidget {
                                     style: GoogleFonts.poppins(
                                       fontSize: 16.sp,
                                       fontWeight: FontWeight.bold,
-                                      color: AppTheme.textPrimary,
+                                      color: primaryColor,
                                     ),
                                   ),
                                   if (isUnlocked)
@@ -579,15 +605,14 @@ class RoomDetailScreen extends StatelessWidget {
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 8.w, vertical: 2.h),
                                       decoration: BoxDecoration(
-                                        color: primaryBlue
-                                            .withValues(alpha: 0.1),
+                                        color: primaryColor.withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(6.r),
                                       ),
                                       child: Text(
                                         'Pay ৳50 to unlock phone number & book 🔒',
                                         style: GoogleFonts.poppins(
                                           fontSize: 10.sp,
-                                          color: primaryBlue,
+                                          color: primaryColor,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -628,15 +653,15 @@ class RoomDetailScreen extends StatelessWidget {
                     width: 48.h,
                     margin: EdgeInsets.only(right: 8.w),
                     decoration: BoxDecoration(
-                      color: primaryBlue.withValues(alpha: 0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: primaryBlue),
+                      border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
                     ),
                     child: IconButton(
                       onPressed: () =>
                           _callLandlord(context, isUnlocked, isPending),
                       icon: Icon(Icons.call_rounded,
-                          color: primaryBlue, size: 22.r),
+                          color: primaryColor, size: 22.r),
                       tooltip: 'Call Landlord',
                     ),
                   ),
@@ -646,15 +671,15 @@ class RoomDetailScreen extends StatelessWidget {
                     width: 48.h,
                     margin: EdgeInsets.only(right: 10.w),
                     decoration: BoxDecoration(
-                      color: primaryBlue.withValues(alpha: 0.1),
+                      color: primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: primaryBlue),
+                      border: Border.all(color: primaryColor.withValues(alpha: 0.3)),
                     ),
                     child: IconButton(
                       onPressed: () =>
-                          _smsLandlord(context, isUnlocked, isPending),
+                          _messageLandlord(context, isUnlocked, isPending),
                       icon: Icon(Icons.message_rounded,
-                          color: primaryBlue, size: 22.r),
+                          color: primaryColor, size: 22.r),
                       tooltip: 'Send SMS',
                     ),
                   ),
@@ -664,7 +689,7 @@ class RoomDetailScreen extends StatelessWidget {
                       onPressed: () =>
                           _bookRoom(context, isUnlocked, isPending),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: primaryBlue,
+                        backgroundColor: primaryColor,
                         padding: EdgeInsets.symmetric(vertical: 12.h),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12.r),

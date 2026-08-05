@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
+import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/api_constants.dart';
 import '../../auth/controllers/auth_controller.dart';
@@ -14,8 +17,8 @@ class MyBookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const skyBlue = Color(0xFF0EA5E9);
-    const darkBlue = Color(0xFF0369A1);
+    final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
+    final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
 
     final auth = Get.find<AuthController>();
     final uid = auth.currentUser.value?.uid ?? '';
@@ -24,7 +27,7 @@ class MyBookingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: darkBlue,
+        backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(
@@ -49,7 +52,7 @@ class MyBookingsScreen extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
-                      child: CircularProgressIndicator(color: skyBlue));
+                      child: CircularProgressIndicator(color: primaryColor));
                 }
 
                 if (snapshot.hasError) {
@@ -123,15 +126,15 @@ class MyBookingsScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            darkBlue.withValues(alpha: 0.10),
-                            skyBlue.withValues(alpha: 0.05),
+                            primaryColor.withValues(alpha: 0.10),
+                            primaryColor.withValues(alpha: 0.05),
                           ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
                         borderRadius: BorderRadius.circular(16.r),
                         border: Border.all(
-                            color: skyBlue.withValues(alpha: 0.25)),
+                            color: primaryColor.withValues(alpha: 0.25)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,7 +142,7 @@ class MyBookingsScreen extends StatelessWidget {
                           Row(
                             children: [
                               Icon(Icons.book_online_rounded,
-                                  color: skyBlue, size: 22.r),
+                                  color: primaryColor, size: 22.r),
                               SizedBox(width: 10.w),
                               Text(
                                 '${bookings.length} total request${bookings.length == 1 ? '' : 's'}',
@@ -227,8 +230,12 @@ class _BookingCardState extends State<_BookingCard> {
   String _postTitle = '...';
   String _postAddress = '...';
   double _postRent = 0;
+  String _ownerPhone = '';
+  String _ownerName = 'Loading...';
+  String? _ownerPhotoUrl;
+  String _ownerUid = '';
 
-  static const skyBlue = Color(0xFF0EA5E9);
+  final Color primaryColor = const Color(0xFF1E1B4B);
 
   @override
   void initState() {
@@ -244,20 +251,44 @@ class _BookingCardState extends State<_BookingCard> {
           .get();
       if (mounted && doc.exists && doc.data() != null) {
         final data = doc.data()!;
+        
+        String ownerUid = data['ownerUid']?.toString() ?? '';
+        String ownerName = 'Unknown Landlord';
+        String? ownerPhoto;
+        
+        if (ownerUid.isNotEmpty) {
+          final userDoc = await FirebaseFirestore.instance
+              .collection(ApiConstants.usersCollection)
+              .doc(ownerUid)
+              .get();
+          if (userDoc.exists && userDoc.data() != null) {
+            ownerName = userDoc.data()!['name']?.toString() ?? 'Unknown Landlord';
+            ownerPhoto = userDoc.data()!['photoUrl']?.toString();
+          }
+        }
+
         setState(() {
           _postTitle = data['title']?.toString() ?? 'Unknown Room';
           _postAddress = data['address']?.toString() ?? '—';
           _postRent = (data['rent'] ?? 0).toDouble();
+          _ownerPhone = data['ownerPhone']?.toString() ?? '';
+          _ownerName = ownerName;
+          _ownerPhotoUrl = ownerPhoto;
+          _ownerUid = ownerUid;
         });
       } else if (mounted) {
         setState(() {
           _postTitle = 'Room not found';
           _postAddress = '—';
+          _ownerName = 'Unknown';
         });
       }
     } catch (_) {
       if (mounted) {
-        setState(() => _postTitle = 'Room info unavailable');
+        setState(() {
+          _postTitle = 'Room info unavailable';
+          _ownerName = 'Unknown';
+        });
       }
     }
   }
@@ -276,7 +307,7 @@ class _BookingCardState extends State<_BookingCard> {
   Color _statusColor(String status) {
     switch (status.trim().toLowerCase()) {
       case 'approved':
-        return const Color(0xFF059669);
+        return primaryColor;
       case 'rejected':
         return const Color(0xFFEF4444);
       default:
@@ -287,7 +318,7 @@ class _BookingCardState extends State<_BookingCard> {
   Color _statusBg(String status) {
     switch (status.trim().toLowerCase()) {
       case 'approved':
-        return const Color(0xFFD1FAE5);
+        return primaryColor.withValues(alpha: 0.08);
       case 'rejected':
         return const Color(0xFFFEE2E2);
       default:
@@ -304,37 +335,109 @@ class _BookingCardState extends State<_BookingCard> {
     return '${diff.inDays}d ago';
   }
 
+  void _confirmDelete(BuildContext context, String bookingId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(Icons.delete_outline_rounded, color: Colors.red.shade600),
+            SizedBox(width: 8.w),
+            Text('Delete Booking', style: GoogleFonts.poppins(fontSize: 16.sp, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to delete this booking record?',
+          style: GoogleFonts.poppins(fontSize: 14.sp),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancel', style: GoogleFonts.poppins()),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              BookingRepository().deleteBooking(bookingId);
+              Get.snackbar(
+                'Deleted',
+                'Booking record deleted successfully.',
+                snackPosition: SnackPosition.BOTTOM,
+                backgroundColor: Colors.red.shade600,
+                colorText: Colors.white,
+              );
+            },
+            child: Text('Delete', style: GoogleFonts.poppins(color: Colors.red.shade600, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final b = widget.booking;
     final isApproved = b.paymentStatus.trim().toLowerCase() == 'approved';
     final isRejected = b.paymentStatus.trim().toLowerCase() == 'rejected';
 
-    return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14.r,
-            offset: Offset(0, 4.h),
-          ),
-        ],
-        border: Border.all(
-          color: isApproved
-              ? const Color(0xFFA7F3D0)
-              : (isRejected
-                  ? const Color(0xFFFCA5A5)
-                  : const Color(0xFFE2E8F0)),
-          width: isApproved || isRejected ? 1.5 : 1,
+    return Dismissible(
+      key: Key(b.bookingId),
+      direction: DismissDirection.horizontal,
+      onDismissed: (direction) {
+        BookingRepository().deleteBooking(b.bookingId);
+        Get.snackbar(
+          'Deleted',
+          'Booking record removed successfully.',
+          snackPosition: SnackPosition.BOTTOM,
+          backgroundColor: Colors.red.shade600,
+          colorText: Colors.white,
+        );
+      },
+      background: Container(
+        margin: EdgeInsets.only(bottom: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(18.r),
         ),
+        alignment: Alignment.centerLeft,
+        padding: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 28.r),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Status Banner
+      secondaryBackground: Container(
+        margin: EdgeInsets.only(bottom: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.red.shade400,
+          borderRadius: BorderRadius.circular(18.r),
+        ),
+        alignment: Alignment.centerRight,
+        padding: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Icon(Icons.delete_sweep_rounded, color: Colors.white, size: 28.r),
+      ),
+      child: Container(
+        margin: EdgeInsets.only(bottom: 16.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 14.r,
+              offset: Offset(0, 4.h),
+            ),
+          ],
+          border: Border.all(
+            color: isApproved
+                ? primaryColor.withValues(alpha: 0.3)
+                : (isRejected
+                    ? const Color(0xFFFCA5A5)
+                    : const Color(0xFFFDE68A)),
+            width: isApproved || isRejected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Status Banner
           Container(
             width: double.infinity,
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
@@ -358,8 +461,8 @@ class _BookingCardState extends State<_BookingCard> {
                   _timeAgo(b.createdAt),
                   style: GoogleFonts.poppins(
                     fontSize: 11.sp,
-                    color: _statusColor(b.paymentStatus)
-                        .withValues(alpha: 0.7),
+                    color: _statusColor(b.paymentStatus).withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ],
@@ -371,11 +474,55 @@ class _BookingCardState extends State<_BookingCard> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Landlord Info
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18.r,
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage: _ownerPhotoUrl != null && _ownerPhotoUrl!.isNotEmpty
+                          ? NetworkImage(_ownerPhotoUrl!)
+                          : null,
+                      child: _ownerPhotoUrl == null || _ownerPhotoUrl!.isEmpty
+                          ? Icon(Icons.person_rounded, size: 20.r, color: Colors.grey.shade500)
+                          : null,
+                    ),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _ownerName,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            'Landlord',
+                            style: GoogleFonts.poppins(
+                              fontSize: 11.sp,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 12.h),
+                Divider(height: 1, color: const Color(0xFFF1F5F9)),
+                SizedBox(height: 12.h),
+                
                 // Room Title
                 Row(
                   children: [
                     Icon(Icons.home_work_rounded,
-                        size: 18.r, color: skyBlue),
+                        size: 18.r, color: primaryColor),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
@@ -383,7 +530,7 @@ class _BookingCardState extends State<_BookingCard> {
                         style: GoogleFonts.poppins(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
+                          color: primaryColor,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -395,7 +542,7 @@ class _BookingCardState extends State<_BookingCard> {
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
-                          color: skyBlue,
+                          color: primaryColor,
                         ),
                       ),
                   ],
@@ -461,28 +608,95 @@ class _BookingCardState extends State<_BookingCard> {
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(
-                        horizontal: 12.w, vertical: 8.h),
+                        horizontal: 12.w, vertical: 12.h),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFECFDF5),
+                      color: primaryColor.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(10.r),
                       border: Border.all(
-                          color: const Color(0xFFA7F3D0)),
+                          color: primaryColor.withValues(alpha: 0.15)),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.lock_open_rounded,
-                            size: 16.r,
-                            color: const Color(0xFF059669)),
-                        SizedBox(width: 8.w),
-                        Expanded(
-                          child: Text(
-                            '🎉 Your booking is approved! Contact the landlord to confirm your room.',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: const Color(0xFF047857),
+                        Row(
+                          children: [
+                            Icon(Icons.lock_open_rounded,
+                                size: 16.r,
+                                color: primaryColor),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: Text(
+                                '🎉 Your booking is approved!',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: primaryColor,
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
+                        ),
+                        SizedBox(height: 12.h),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  if (_ownerPhone.isEmpty) return;
+                                  final url = Uri.parse('tel:$_ownerPhone');
+                                  if (await canLaunchUrl(url)) {
+                                    await launchUrl(url);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                  ),
+                                ),
+                                icon: Icon(Icons.call_rounded, size: 16.r),
+                                label: FittedBox(child: Text('Call', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+                              ),
+                            ),
+                            SizedBox(width: 8.w),
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  if (_ownerUid.isNotEmpty) {
+                                    final chatController = Get.put(ChatController());
+                                    // Use a loading dialog if needed, but for now just navigate quickly
+                                    final roomId = await chatController.createOrGetChatRoom(
+                                      _ownerUid,
+                                      _ownerName,
+                                      _ownerPhotoUrl,
+                                    );
+                                    Get.to(() => ChatScreen(
+                                      chatRoomId: roomId,
+                                      targetUserId: _ownerUid,
+                                      targetUserName: _ownerName,
+                                    ));
+                                  } else {
+                                    Get.snackbar('Error', 'Landlord ID not found.');
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  foregroundColor: primaryColor,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    side: BorderSide(color: primaryColor),
+                                  ),
+                                ),
+                                icon: Icon(Icons.message_rounded, size: 16.r),
+                                label: FittedBox(child: Text('Message', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -527,6 +741,7 @@ class _BookingCardState extends State<_BookingCard> {
           ),
         ],
       ),
+    ),
     );
   }
 }

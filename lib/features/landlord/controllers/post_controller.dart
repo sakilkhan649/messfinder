@@ -15,6 +15,25 @@ class PostController extends GetxController {
   final RxSet<String> savedPostIds = <String>{}.obs;
   final RxBool isLoading = true.obs;
 
+  // Cache for Landlord Profiles to optimize scrolling
+  final Map<String, Map<String, dynamic>> landlordProfilesCache = {};
+
+  Future<Map<String, dynamic>?> getLandlordProfile(String uid) async {
+    if (landlordProfilesCache.containsKey(uid)) {
+      return landlordProfilesCache[uid];
+    }
+    try {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (doc.exists && doc.data() != null) {
+        landlordProfilesCache[uid] = doc.data() as Map<String, dynamic>;
+        return landlordProfilesCache[uid];
+      }
+    } catch (e) {
+      AppLogger.e('Failed to fetch landlord profile: $e', e, null, 'POST_CTRL');
+    }
+    return null;
+  }
+
   // Filter states for Bachelor Feed
   final RxString selectedGenderFilter =
       'all'.obs; // 'all', 'male', 'female', 'both'
@@ -56,16 +75,35 @@ class PostController extends GetxController {
 
   Future<void> _initPosts() async {
     isLoading.value = true;
-    await _postRepo.seedDemoPostsIfNeeded();
+    try {
+      await _postRepo.seedDemoPostsIfNeeded();
+    } catch (e) {
+      AppLogger.w('Seed demo posts failed/timed out: $e', tag: 'POST_CTRL');
+    }
+    
     _loadSavedPostsFromFirebase();
 
+    bool hasEmitted = false;
+    
     // Listen to all posts
     _postRepo.getAllPostsStream().listen((posts) {
       allPosts.assignAll(posts);
-      isLoading.value = false;
+      if (!hasEmitted) {
+        isLoading.value = false;
+        hasEmitted = true;
+      }
     }, onError: (e) {
       AppLogger.e('পোস্ট স্ট্রিম এরর: $e', e, null, 'POST_CTRL');
       isLoading.value = false;
+      hasEmitted = true;
+    });
+
+    // Fallback if stream takes too long or Play Services is missing
+    Future.delayed(const Duration(seconds: 5), () {
+      if (!hasEmitted) {
+        AppLogger.w('Firestore stream taking too long. Disabling loading spinner.', tag: 'POST_CTRL');
+        isLoading.value = false;
+      }
     });
 
     // If landlord is logged in, listen to their posts

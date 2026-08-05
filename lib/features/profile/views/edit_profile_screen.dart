@@ -54,8 +54,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     } catch (e) {
       Get.snackbar(
         'Error',
-        'Failed to load image from gallery: $e',
-        backgroundColor: AppTheme.errorColor,
+        'Failed to load image from gallery',
+        backgroundColor: Colors.red.shade600,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -78,15 +78,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final isLandlord = widget.user.isLandlord;
     final Color primaryColor = isLandlord
         ? const Color(0xFF059669) // Emerald for Landlord
-        : const Color(0xFF0EA5E9); // Sky Blue for Bachelor
+        : const Color(0xFF1E1B4B); // Deep Indigo for Bachelor
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC), // Modern sleek background
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Edit Profile',
           style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w600,
             fontSize: 18.sp,
             color: Colors.white,
           ),
@@ -98,35 +98,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 20.h),
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // Premium Avatar Selector
+                // Clean Avatar Selector
                 GestureDetector(
                   onTap: _pickImageFromGallery,
                   child: Stack(
+                    clipBehavior: Clip.none,
                     alignment: Alignment.center,
                     children: [
                       Container(
-                        width: 120.r,
-                        height: 120.r,
+                        width: 110.r,
+                        height: 110.r,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
-                          border: Border.all(
-                            color: primaryColor.withValues(alpha: 0.2),
-                            width: 4.r,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: primaryColor.withValues(alpha: 0.15),
-                              blurRadius: 20.r,
-                              offset: Offset(0, 8.h),
-                            ),
-                          ],
+                          color: const Color(0xFFF1F5F9),
                         ),
                         child: ClipOval(
                           child: _selectedImageFile != null
@@ -141,11 +132,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       fit: BoxFit.cover,
                                     )
                                   : Icon(
-                                      isLandlord
-                                          ? Icons.home_work_rounded
-                                          : Icons.person_rounded,
+                                      Icons.person_rounded,
                                       size: 55.r,
-                                      color: primaryColor.withValues(alpha: 0.5),
+                                      color: Colors.grey.shade400,
                                     ),
                         ),
                       ),
@@ -153,21 +142,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         bottom: 0,
                         right: 0,
                         child: Container(
-                          padding: EdgeInsets.all(10.r),
+                          padding: EdgeInsets.all(8.r),
                           decoration: BoxDecoration(
                             color: primaryColor,
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 3.w),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.1),
-                                blurRadius: 8.r,
-                              ),
-                            ],
                           ),
                           child: Icon(
                             Icons.camera_alt_rounded,
-                            size: 18.r,
+                            size: 16.r,
                             color: Colors.white,
                           ),
                         ),
@@ -177,64 +160,50 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 SizedBox(height: 16.h),
                 Text(
-                  'Tap to change profile picture',
+                  'Change Profile Picture',
                   style: GoogleFonts.poppins(
-                    fontSize: 13.sp,
+                    fontSize: 14.sp,
                     fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade600,
+                    color: AppTheme.textSecondary,
                   ),
                 ),
                 
-                SizedBox(height: 32.h),
+                SizedBox(height: 40.h),
 
-                // Form Card
-                Container(
-                  padding: EdgeInsets.all(24.r),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 15.r,
-                        offset: Offset(0, 5.h),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLabel('Full Name'),
-                      SizedBox(height: 8.h),
-                      _buildTextField(
-                        controller: _nameController,
-                        hint: 'Enter your full name',
-                        icon: Icons.person_outline_rounded,
-                        primaryColor: primaryColor,
-                        validatorMsg: 'Please enter your name',
-                      ),
-                      SizedBox(height: 20.h),
+                // Form Fields
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel('Full Name'),
+                    SizedBox(height: 8.h),
+                    _buildTextField(
+                      controller: _nameController,
+                      hint: 'Enter your full name',
+                      icon: Icons.person_outline_rounded,
+                      primaryColor: primaryColor,
+                      validatorMsg: 'Please enter your name',
+                    ),
+                    SizedBox(height: 24.h),
 
-                      _buildLabel('Phone Number'),
-                      SizedBox(height: 8.h),
-                      _buildTextField(
-                        controller: _phoneController,
-                        hint: 'e.g. 01700112233',
-                        icon: Icons.phone_outlined,
-                        primaryColor: primaryColor,
-                        keyboardType: TextInputType.phone,
-                        validatorMsg: 'Please enter phone number',
-                      ),
-                    ],
-                  ),
+                    _buildLabel('Phone Number'),
+                    SizedBox(height: 8.h),
+                    _buildTextField(
+                      controller: _phoneController,
+                      hint: 'e.g. 01700112233',
+                      icon: Icons.phone_outlined,
+                      primaryColor: primaryColor,
+                      keyboardType: TextInputType.phone,
+                      validatorMsg: 'Please enter phone number',
+                    ),
+                  ],
                 ),
                 
-                SizedBox(height: 32.h),
+                SizedBox(height: 48.h),
 
                 // Save Button
                 SizedBox(
                   width: double.infinity,
-                  height: 56.h,
+                  height: 52.h,
                   child: Obx(() {
                     final authCtrl = Get.find<AuthController>();
                     final isLoading = authCtrl.isLoading.value;
@@ -244,10 +213,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.r),
+                          borderRadius: BorderRadius.circular(12.r),
                         ),
-                        elevation: 4,
-                        shadowColor: primaryColor.withValues(alpha: 0.4),
+                        elevation: 0,
                       ),
                       child: isLoading
                           ? SizedBox(
@@ -262,15 +230,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               'Save Changes',
                               style: GoogleFonts.poppins(
                                 fontSize: 16.sp,
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w600,
                                 color: Colors.white,
-                                letterSpacing: 0.5,
                               ),
                             ),
                     );
                   }),
                 ),
-                SizedBox(height: 20.h),
               ],
             ),
           ),
@@ -283,8 +249,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Text(
       text,
       style: GoogleFonts.poppins(
-        fontSize: 13.sp,
-        fontWeight: FontWeight.w600,
+        fontSize: 14.sp,
+        fontWeight: FontWeight.w500,
         color: AppTheme.textPrimary,
       ),
     );
@@ -301,29 +267,32 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      style: GoogleFonts.poppins(fontSize: 14.sp, fontWeight: FontWeight.w500),
+      style: GoogleFonts.poppins(fontSize: 14.sp, fontWeight: FontWeight.w500, color: AppTheme.textPrimary),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.grey.shade400),
-        prefixIcon: Icon(icon, color: primaryColor, size: 22.r),
+        hintStyle: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.grey.shade400),
+        prefixIcon: Icon(icon, color: Colors.grey.shade500, size: 22.r),
         contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
-          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
         ),
-        filled: true,
-        fillColor: const Color(0xFFF1F5F9), // Very light sleek slate
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
           borderSide: BorderSide(color: primaryColor, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14.r),
+          borderRadius: BorderRadius.circular(12.r),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1),
         ),
+        filled: true,
+        fillColor: Colors.white,
       ),
       validator: (v) => v == null || v.trim().isEmpty ? validatorMsg : null,
     );
   }
 }
-

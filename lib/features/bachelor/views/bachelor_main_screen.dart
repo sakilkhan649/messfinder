@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
@@ -7,6 +8,7 @@ import '../../profile/views/profile_screen.dart';
 import 'bachelor_home_screen.dart';
 import 'my_bookings_screen.dart';
 import 'saved_posts_screen.dart';
+import '../../chat/views/chat_list_screen.dart';
 
 class BachelorMainScreen extends StatefulWidget {
   final UserModel user;
@@ -19,25 +21,40 @@ class BachelorMainScreen extends StatefulWidget {
 
 class _BachelorMainScreenState extends State<BachelorMainScreen> {
   int _currentIndex = 0;
+  bool _isBottomNavVisible = true;
 
   @override
   Widget build(BuildContext context) {
-    const primaryBlue = Color(0xFF0EA5E9);
+    const primaryColor = Color(0xFF1E1B4B); // Deep Indigo
 
     final List<Widget> screens = [
       BachelorHomeScreen(user: widget.user),
       const MyBookingsScreen(),
       const SavedPostsScreen(),
-      ProfileScreen(user: widget.user),
+      ChatListScreen(),
     ];
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
+      extendBody: true,
+      body: NotificationListener<UserScrollNotification>(
+        onNotification: (notification) {
+          if (notification.direction == ScrollDirection.reverse) {
+            if (_isBottomNavVisible) setState(() => _isBottomNavVisible = false);
+          } else if (notification.direction == ScrollDirection.forward) {
+            if (!_isBottomNavVisible) setState(() => _isBottomNavVisible = true);
+          }
+          return false;
+        },
+        child: IndexedStack(
+          index: _currentIndex,
+          children: screens,
+        ),
       ),
-      bottomNavigationBar: Container(
+      bottomNavigationBar: AnimatedSlide(
+        duration: const Duration(milliseconds: 300),
+        offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
+        child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
@@ -58,30 +75,31 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                   index: 0,
                   icon: Icons.home_rounded,
                   label: 'Home',
-                  activeColor: primaryBlue,
+                  activeColor: primaryColor,
                 ),
                 _buildNavItem(
                   index: 1,
                   icon: Icons.book_online_rounded,
                   label: 'My Bookings',
-                  activeColor: primaryBlue,
+                  activeColor: primaryColor,
                 ),
                 _buildNavItem(
                   index: 2,
                   icon: Icons.favorite_rounded,
                   label: 'Favorites',
-                  activeColor: primaryBlue,
+                  activeColor: primaryColor,
                 ),
                 _buildNavItem(
                   index: 3,
-                  icon: Icons.person_rounded,
-                  label: 'Profile',
-                  activeColor: primaryBlue,
+                  icon: Icons.chat_rounded,
+                  label: 'Chats',
+                  activeColor: primaryColor,
                 ),
               ],
             ),
           ),
         ),
+      ),
       ),
     );
   }

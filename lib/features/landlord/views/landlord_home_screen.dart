@@ -10,6 +10,7 @@ import '../../auth/models/user_model.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
 import 'add_post_screen.dart';
+import '../../profile/views/profile_screen.dart';
 
 class LandlordHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -31,6 +32,22 @@ class LandlordHomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: darkEmerald,
         elevation: 0,
+        leading: GestureDetector(
+          onTap: () => Get.to(() => ProfileScreen(user: user)),
+          child: Padding(
+            padding: EdgeInsets.only(left: 16.w),
+            child: CircleAvatar(
+              radius: 16.r,
+              backgroundColor: Colors.white.withValues(alpha: 0.2),
+              backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
+                  ? NetworkImage(user.photoUrl!)
+                  : null,
+              child: user.photoUrl == null || user.photoUrl!.isEmpty
+                  ? Icon(Icons.person_rounded, size: 20.r, color: Colors.white)
+                  : null,
+            ),
+          ),
+        ),
         title: Text(
           'Landlord Home',
           style: GoogleFonts.poppins(
@@ -43,8 +60,7 @@ class LandlordHomeScreen extends StatelessWidget {
           IconButton(
             onPressed: () {
               final authCtrl = Get.find<AuthController>();
-              authCtrl.selectedRole.value = AppConstants.roleBachelor;
-              authCtrl.handleNavigation(authCtrl.currentUser.value!);
+              authCtrl.switchRole(AppConstants.roleBachelor);
               Get.snackbar(
                 'Bachelor Mode',
                 'Switched to Seeker view',

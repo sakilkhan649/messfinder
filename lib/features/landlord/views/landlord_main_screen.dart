@@ -6,6 +6,7 @@ import '../../auth/models/user_model.dart';
 import '../../profile/views/profile_screen.dart';
 import 'landlord_home_screen.dart';
 import 'tenant_leads_screen.dart';
+import '../../chat/views/chat_list_screen.dart';
 
 class LandlordMainScreen extends StatefulWidget {
   final UserModel user;
@@ -26,7 +27,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
     final List<Widget> screens = [
       LandlordHomeScreen(user: widget.user),
       const TenantLeadsScreen(),
-      ProfileScreen(user: widget.user),
+      ChatListScreen(),
     ];
 
     return Scaffold(
@@ -66,8 +67,8 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                 ),
                 _buildNavItem(
                   index: 2,
-                  icon: Icons.person_rounded,
-                  label: 'Profile',
+                  icon: Icons.chat_rounded,
+                  label: 'Chats',
                   activeColor: emeraldTheme,
                 ),
               ],

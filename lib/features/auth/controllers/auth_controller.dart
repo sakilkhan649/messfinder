@@ -214,6 +214,33 @@ class AuthController extends GetxController {
     }
   }
 
+  Future<void> switchRole(String newRole) async {
+    final user = currentUser.value;
+    if (user != null && user.role != newRole) {
+      isLoading.value = true;
+      try {
+        selectedRole.value = newRole;
+        UserModel updatedUser = user.copyWith(role: newRole);
+        
+        // Check payment status for the new role
+        if (newRole != AppConstants.roleAdmin) {
+          final payment = await _paymentRepo.getMyPaymentStatus(updatedUser.uid, role: newRole);
+          final bool approvedForThisRole = payment != null && payment.isApproved;
+          updatedUser = updatedUser.copyWith(isPaid: approvedForThisRole);
+        }
+        
+        await _authRepo.saveUserData(updatedUser);
+        currentUser.value = updatedUser;
+        handleNavigation(updatedUser);
+      } catch (e) {
+        ApiChecker.showError('Failed to switch role: $e');
+      } finally {
+        isLoading.value = false;
+      }
+    }
+  }
+
+
   Future<void> updateProfile({
     required String name,
     required String phone,

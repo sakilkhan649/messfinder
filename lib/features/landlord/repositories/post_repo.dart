@@ -184,7 +184,8 @@ class PostRepository {
       final snapshot = await _firestore
           .collection(ApiConstants.postsCollection)
           .limit(1)
-          .get();
+          .get()
+          .timeout(const Duration(seconds: 5));
       if (snapshot.docs.isEmpty) {
         AppLogger.i('No mess posts found, creating demo posts...',
             tag: 'POST_REPO');

@@ -12,6 +12,8 @@ class ApiConstants {
   static const String postsCollection = 'posts';
   static const String paymentsCollection = 'payments';
   static const String bookingsCollection = 'bookings';
+  static const String chatsCollection = 'chats';
+  static const String messagesCollection = 'messages';
 
   // Payment Status Constants
   static const String statusPending = 'pending';
