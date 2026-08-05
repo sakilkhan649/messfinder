@@ -249,4 +249,24 @@ class AuthController extends GetxController {
     Get.offAll(() => const RoleSelectionScreen(),
         transition: Transition.fadeIn);
   }
+
+  Future<void> deleteMyAccount() async {
+    final user = currentUser.value;
+    if (user == null) {
+      ApiChecker.showError('Session expired. Please log in again.');
+      return;
+    }
+    
+    isLoading.value = true;
+    try {
+      await _authRepo.deleteCurrentAccount(user.uid);
+      currentUser.value = null;
+      ApiChecker.showSuccess('Your account has been deleted successfully.');
+      Get.offAll(() => const RoleSelectionScreen(), transition: Transition.fadeIn);
+    } catch (e) {
+      ApiChecker.showError(e.toString());
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

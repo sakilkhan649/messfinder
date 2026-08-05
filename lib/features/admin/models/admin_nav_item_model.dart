@@ -41,6 +41,12 @@ class AdminNavItemModel {
       icon: Icons.people_outline_rounded,
       activeIcon: Icons.people_rounded,
     ),
+    AdminNavItemModel(
+      index: 3,
+      label: 'Profile',
+      icon: Icons.person_outline_rounded,
+      activeIcon: Icons.person_rounded,
+    ),
   ];
 }
 

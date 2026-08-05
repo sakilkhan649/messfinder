@@ -180,4 +180,43 @@ class AuthRepository {
       AppLogger.e('Error logging out: $e', e, stack, 'AUTH_REPO');
     }
   }
+
+  // Delete Current User Account
+  Future<void> deleteCurrentAccount(String uid) async {
+    try {
+      AppLogger.i('Attempting to delete account for UID: $uid', tag: 'AUTH_REPO');
+      
+      // 1. Delete user document from Firestore first
+      await _firestore
+          .collection(ApiConstants.usersCollection)
+          .doc(uid)
+          .delete()
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => throw 'Timeout deleting user data from Firestore.',
+          );
+          
+      // 2. Delete user from Firebase Auth
+      User? user = _auth.currentUser;
+      if (user != null) {
+        await user.delete().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () => throw 'Timeout deleting user from Firebase Authentication.',
+        );
+      } else {
+        throw 'No authenticated user found to delete.';
+      }
+
+      AppLogger.s('Account deleted successfully for UID: $uid', tag: 'AUTH_REPO');
+    } on FirebaseAuthException catch (e, stack) {
+      AppLogger.e('FirebaseAuthException (Delete Account): ${e.code} | ${e.message}', e, stack, 'AUTH_REPO');
+      if (e.code == 'requires-recent-login') {
+        throw 'For security reasons, you must re-authenticate (log out and log back in) before deleting your account.';
+      }
+      throw e.message ?? 'Failed to delete account';
+    } catch (e, stack) {
+      AppLogger.e('Failed to delete account: $e', e, stack, 'AUTH_REPO');
+      throw 'Failed to delete account: $e';
+    }
+  }
 }

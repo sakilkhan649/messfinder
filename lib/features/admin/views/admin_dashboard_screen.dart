@@ -9,6 +9,7 @@ import 'utils/admin_colors.dart';
 import 'tabs/admin_overview_tab.dart';
 import 'tabs/admin_requests_tab.dart';
 import 'tabs/admin_users_tab.dart';
+import 'tabs/admin_profile_tab.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MAIN SCAFFOLD (MVC PATTERN)]
@@ -47,6 +48,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             AdminOverviewTab(controller: _adminController),
             AdminRequestsTab(controller: _adminController),
             AdminUsersTab(controller: _adminController),
+            AdminProfileTab(),
           ],
         );
       }),
