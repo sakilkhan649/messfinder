@@ -32,7 +32,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   void initState() {
     super.initState();
     // GetX Controller রেজিস্ট্রেশন
-    _adminController = Get.put(AdminController());
+    _adminController = Get.find<AdminController>();
   }
 
   @override

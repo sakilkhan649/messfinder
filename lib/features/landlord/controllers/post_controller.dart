@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../core/utils/firebase_storage_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
@@ -282,6 +283,21 @@ class PostController extends GetxController {
 
     try {
       isLoading.value = true;
+      
+      final storageService = FirebaseStorageService();
+      final List<String> finalImageUrls = [];
+      
+      for (String path in images) {
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          finalImageUrls.add(path);
+        } else {
+          final url = await storageService.uploadPostImage(path);
+          if (url != null) {
+            finalImageUrls.add(url);
+          }
+        }
+      }
+
       final newPost = PostModel(
         postId: '',
         ownerUid: user.uid,
@@ -293,11 +309,11 @@ class PostController extends GetxController {
         address: address,
         latitude: 23.8103,
         longitude: 90.4125,
-        images: images.isEmpty
+        images: finalImageUrls.isEmpty
             ? [
                 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
               ]
-            : images,
+            : finalImageUrls,
         seatCount: seatCount,
         seatDescription: seatDescription,
         bachelorType: bachelorType,
@@ -326,7 +342,23 @@ class PostController extends GetxController {
   Future<void> updateMessPost(PostModel updatedPost) async {
     try {
       isLoading.value = true;
-      await _postRepo.updatePost(updatedPost);
+      
+      final storageService = FirebaseStorageService();
+      final List<String> finalImageUrls = [];
+      
+      for (String path in updatedPost.images) {
+        if (path.startsWith('http://') || path.startsWith('https://')) {
+          finalImageUrls.add(path);
+        } else {
+          final url = await storageService.uploadPostImage(path);
+          if (url != null) {
+            finalImageUrls.add(url);
+          }
+        }
+      }
+      
+      final finalPost = updatedPost.copyWith(images: finalImageUrls);
+      await _postRepo.updatePost(finalPost);
       ApiChecker.showSuccess('Room listing updated successfully! 🎉');
     } catch (e) {
       ApiChecker.showError(e.toString());

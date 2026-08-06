@@ -18,7 +18,6 @@ class MyBookingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
-    final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
 
     final auth = Get.find<AuthController>();
     final uid = auth.currentUser.value?.uid ?? '';
@@ -335,44 +334,6 @@ class _BookingCardState extends State<_BookingCard> {
     return '${diff.inDays}d ago';
   }
 
-  void _confirmDelete(BuildContext context, String bookingId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Row(
-          children: [
-            Icon(Icons.delete_outline_rounded, color: Colors.red.shade600),
-            SizedBox(width: 8.w),
-            Text('Delete Booking', style: GoogleFonts.poppins(fontSize: 16.sp, fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to delete this booking record?',
-          style: GoogleFonts.poppins(fontSize: 14.sp),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancel', style: GoogleFonts.poppins()),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              BookingRepository().deleteBooking(bookingId);
-              Get.snackbar(
-                'Deleted',
-                'Booking record deleted successfully.',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: Colors.red.shade600,
-                colorText: Colors.white,
-              );
-            },
-            child: Text('Delete', style: GoogleFonts.poppins(color: Colors.red.shade600, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -666,7 +627,7 @@ class _BookingCardState extends State<_BookingCard> {
                               child: ElevatedButton.icon(
                                 onPressed: () async {
                                   if (_ownerUid.isNotEmpty) {
-                                    final chatController = Get.put(ChatController());
+                                    final chatController = Get.find<ChatController>();
                                     // Use a loading dialog if needed, but for now just navigate quickly
                                     final roomId = await chatController.createOrGetChatRoom(
                                       _ownerUid,

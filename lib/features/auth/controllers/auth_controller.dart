@@ -1,9 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_constants.dart';
+import '../../../core/utils/firebase_storage_service.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../home/views/user_home_screen.dart';
-import '../../payment/repositories/payment_repo.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repo.dart';
 import '../views/login_screen.dart';
@@ -11,7 +13,6 @@ import '../views/role_selection_screen.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepo = AuthRepository();
-  final PaymentRepository _paymentRepo = PaymentRepository();
 
   final RxBool isLoading = false.obs;
   final RxString selectedRole = AppConstants.roleBachelor.obs;
@@ -19,6 +20,10 @@ class AuthController extends GetxController {
 
   final RxBool obscureLoginPassword = true.obs;
   final RxBool obscureSignupPassword = true.obs;
+
+  // Phone Auth state
+  final RxString verificationId = ''.obs;
+  final RxInt resendToken = 0.obs;
 
   void toggleLoginPasswordVisibility() {
     obscureLoginPassword.toggle();
@@ -80,18 +85,9 @@ class AuthController extends GetxController {
             await _authRepo.saveUserData(updatedUser);
           }
 
-          // Always verify real payment approval from payments collection for the SELECTED ROLE
-          // This supports one account being both landlord AND bachelor independently
           if (selectedRole.value != AppConstants.roleAdmin) {
-            final payment = await _paymentRepo.getMyPaymentStatus(
-              updatedUser.uid,
-              role: selectedRole.value,
-            );
-            final bool approvedForThisRole =
-                payment != null && payment.isApproved;
-
-            if (approvedForThisRole != updatedUser.isPaid) {
-              updatedUser = updatedUser.copyWith(isPaid: approvedForThisRole);
+            if (!updatedUser.isPaid) {
+              updatedUser = updatedUser.copyWith(isPaid: true);
               await _authRepo.saveUserData(updatedUser);
             }
           }
@@ -224,9 +220,7 @@ class AuthController extends GetxController {
         
         // Check payment status for the new role
         if (newRole != AppConstants.roleAdmin) {
-          final payment = await _paymentRepo.getMyPaymentStatus(updatedUser.uid, role: newRole);
-          final bool approvedForThisRole = payment != null && payment.isApproved;
-          updatedUser = updatedUser.copyWith(isPaid: approvedForThisRole);
+          updatedUser = updatedUser.copyWith(isPaid: true);
         }
         
         await _authRepo.saveUserData(updatedUser);
@@ -253,10 +247,24 @@ class AuthController extends GetxController {
     }
     try {
       isLoading.value = true;
+      
+      String? finalPhotoUrl = user.photoUrl;
+      if (photoUrl != null && photoUrl.isNotEmpty) {
+        if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
+          finalPhotoUrl = photoUrl;
+        } else {
+          final storageService = FirebaseStorageService();
+          final uploadedUrl = await storageService.uploadPostImage(photoUrl);
+          if (uploadedUrl != null) {
+            finalPhotoUrl = uploadedUrl;
+          }
+        }
+      }
+
       final updatedUser = user.copyWith(
         name: name.trim(),
         phone: phone.trim(),
-        photoUrl: photoUrl ?? user.photoUrl,
+        photoUrl: finalPhotoUrl,
       );
       await _authRepo.saveUserData(updatedUser);
       currentUser.value = updatedUser;
@@ -294,6 +302,116 @@ class AuthController extends GetxController {
       ApiChecker.showError(e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  // ================= PHONE AUTHENTICATION =================
+
+  Future<void> verifyPhoneNumber(String phoneNumber) async {
+    if (phoneNumber.isEmpty) {
+      ApiChecker.checkApi('Please enter a valid phone number');
+      return;
+    }
+    
+    // Auto-prepend +880 if missing and number starts with 01
+    String formattedPhone = phoneNumber.trim();
+    if (formattedPhone.startsWith('01') && formattedPhone.length == 11) {
+      formattedPhone = '+88$formattedPhone';
+    }
+
+    isLoading.value = true;
+    try {
+      await FirebaseAuth.instance.verifyPhoneNumber(
+        phoneNumber: formattedPhone,
+        verificationCompleted: (PhoneAuthCredential credential) async {
+          await _signInWithCredential(credential, formattedPhone);
+        },
+        verificationFailed: (FirebaseAuthException e) {
+          isLoading.value = false;
+          AppLogger.e('Phone Auth Failed: ${e.message}', e, null, 'AUTH_CTRL');
+          ApiChecker.checkApi(e.message ?? 'Verification failed');
+        },
+        codeSent: (String vId, int? token) {
+          verificationId.value = vId;
+          resendToken.value = token ?? 0;
+          isLoading.value = false;
+          ApiChecker.showSuccess('OTP Sent Successfully!');
+          // We will navigate to OtpVerificationScreen from the view, or we can do it here
+          // Get.to(() => OtpVerificationScreen(phone: formattedPhone), transition: Transition.rightToLeft);
+        },
+        codeAutoRetrievalTimeout: (String vId) {
+          verificationId.value = vId;
+        },
+        forceResendingToken: resendToken.value == 0 ? null : resendToken.value,
+      );
+    } catch (e) {
+      isLoading.value = false;
+      ApiChecker.checkApi(e.toString());
+    }
+  }
+
+  Future<void> verifyOTP(String otp, String phone) async {
+    if (otp.isEmpty || otp.length < 6) {
+      ApiChecker.checkApi('Please enter a valid 6-digit OTP');
+      return;
+    }
+    isLoading.value = true;
+    try {
+      final PhoneAuthCredential credential = PhoneAuthProvider.credential(
+        verificationId: verificationId.value,
+        smsCode: otp,
+      );
+      await _signInWithCredential(credential, phone);
+    } catch (e) {
+      isLoading.value = false;
+      ApiChecker.checkApi('Invalid OTP. Please check and try again.');
+    }
+  }
+
+  Future<void> _signInWithCredential(PhoneAuthCredential credential, String phone) async {
+    try {
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(credential);
+      if (userCredential.user != null) {
+        final userData = await _authRepo.getUserData(userCredential.user!.uid);
+        if (userData != null) {
+          // Existing User
+          UserModel updatedUser = userData;
+          if (selectedRole.value != AppConstants.roleAdmin && userData.role != selectedRole.value) {
+            updatedUser = updatedUser.copyWith(role: selectedRole.value);
+            await _authRepo.saveUserData(updatedUser);
+          }
+          
+          if (selectedRole.value != AppConstants.roleAdmin) {
+            if (!updatedUser.isPaid) {
+              updatedUser = updatedUser.copyWith(isPaid: true);
+              await _authRepo.saveUserData(updatedUser);
+            }
+          }
+          
+          currentUser.value = updatedUser;
+          isLoading.value = false;
+          ApiChecker.showSuccess('Welcome back, ${updatedUser.name}!');
+          handleNavigation(updatedUser);
+        } else {
+          // New User
+          final newUser = UserModel(
+            uid: userCredential.user!.uid,
+            name: 'User_${phone.substring(phone.length - 4)}',
+            phone: phone,
+            role: selectedRole.value,
+            isPaid: true,
+            createdAt: DateTime.now(),
+          );
+          await _authRepo.saveUserData(newUser);
+          currentUser.value = newUser;
+          isLoading.value = false;
+          ApiChecker.showSuccess('Account created successfully!');
+          handleNavigation(newUser);
+        }
+      }
+    } catch (e) {
+      isLoading.value = false;
+      ApiChecker.checkApi('Failed to sign in. Please try again.');
     }
   }
 }

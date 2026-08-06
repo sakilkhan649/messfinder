@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
-import '../../profile/views/profile_screen.dart';
+
 import 'bachelor_home_screen.dart';
 import 'my_bookings_screen.dart';
 import 'saved_posts_screen.dart';

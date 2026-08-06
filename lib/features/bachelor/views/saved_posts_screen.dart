@@ -13,10 +13,8 @@ class SavedPostsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Get.put(PostController());
-    final authController = Get.isRegistered<AuthController>()
-        ? Get.find<AuthController>()
-        : Get.put(AuthController());
+    final postController = Get.find<PostController>();
+    final authController = Get.find<AuthController>();
 
     return Obx(() {
       final isLandlord = authController.currentUser.value?.isLandlord ?? false;

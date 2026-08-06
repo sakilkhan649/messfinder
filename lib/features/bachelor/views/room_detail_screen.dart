@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,7 +9,6 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
-import '../../../core/widgets/premium_payment_dialog.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
@@ -19,48 +20,41 @@ class RoomDetailScreen extends StatelessWidget {
 
   const RoomDetailScreen({super.key, required this.post});
 
-  void _requestPaymentAndUnlock(BuildContext context) {
+  void _requestPaymentAndUnlock(BuildContext context) async {
     final authCtrl = Get.find<AuthController>();
     final user = authCtrl.currentUser.value;
     if (user == null) {
       Get.snackbar('Error', 'Please login first');
       return;
     }
-    PremiumPaymentDialog.show(
-      context,
-      isLandlord: false,
-      onPaymentSubmitted: (trxId, senderNumber) async {
-        try {
-          final booking = BookingModel(
-            bookingId: '',
-            postId: post.postId,
-            bachelorUid: user.uid,
-            landlordUid: post.ownerUid,
-            paymentStatus: 'pending',
-            trxId: trxId,
-            senderNumber: senderNumber,
-            isUnlocked: false,
-            createdAt: DateTime.now(),
-            bachelorName: (user.name != 'User' && user.name.isNotEmpty)
-                ? user.name
-                : 'Bachelor Tenant',
-            bachelorPhone:
-                user.phone.isNotEmpty ? user.phone : senderNumber,
-          );
-          await BookingRepository().createBooking(booking);
-          Get.snackbar(
-            'Booking Request Submitted! ⏳',
-            'Once Admin verifies your payment, the landlord number will be unlocked and you can call or book directly.',
-            snackPosition: SnackPosition.BOTTOM,
-            backgroundColor: const Color(0xFFF59E0B),
-            colorText: Colors.white,
-            duration: const Duration(seconds: 5),
-          );
-        } catch (e) {
-          Get.snackbar('Error', e.toString());
-        }
-      },
-    );
+    try {
+      final booking = BookingModel(
+        bookingId: '',
+        postId: post.postId,
+        bachelorUid: user.uid,
+        landlordUid: post.ownerUid,
+        paymentStatus: 'approved',
+        trxId: 'free',
+        senderNumber: 'free',
+        isUnlocked: true,
+        createdAt: DateTime.now(),
+        bachelorName: (user.name != 'User' && user.name.isNotEmpty)
+            ? user.name
+            : 'Bachelor Tenant',
+        bachelorPhone: user.phone.isNotEmpty ? user.phone : 'N/A',
+      );
+      await BookingRepository().createBooking(booking);
+      Get.snackbar(
+        'Success! 🎉',
+        'You have successfully unlocked the contact details.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF059669),
+        colorText: Colors.white,
+        duration: const Duration(seconds: 4),
+      );
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    }
   }
 
   Future<void> _callLandlord(
@@ -90,7 +84,7 @@ class RoomDetailScreen extends StatelessWidget {
       BuildContext context, bool isUnlocked, bool isPending) async {
     if (isUnlocked) {
       if (post.ownerUid.isNotEmpty) {
-        final chatController = Get.put(ChatController());
+        final chatController = Get.find<ChatController>();
         final roomId = await chatController.createOrGetChatRoom(
           post.ownerUid,
           '',
@@ -160,15 +154,31 @@ class RoomDetailScreen extends StatelessWidget {
       leading:
           Icon(Icons.flag_outlined, size: 20.r, color: Colors.red.shade400),
       title: Text(reason, style: GoogleFonts.poppins(fontSize: 13.sp)),
-      onTap: () {
+      onTap: () async {
         Navigator.pop(context);
-        Get.snackbar(
-          'Report Submitted ⚠️',
-          '"$reason" has been reported to Admin for review. Thank you!',
-          snackPosition: SnackPosition.BOTTOM,
-          backgroundColor: Colors.red.shade600,
-          colorText: Colors.white,
-        );
+        try {
+          final authCtrl = Get.find<AuthController>();
+          final user = authCtrl.currentUser.value;
+          if (user != null) {
+            await FirebaseFirestore.instance.collection('reports').add({
+              'postId': post.postId,
+              'reporterUid': user.uid,
+              'reporterName': user.name,
+              'reason': reason,
+              'createdAt': FieldValue.serverTimestamp(),
+              'status': 'pending',
+            });
+            Get.snackbar(
+              'Report Submitted ⚠️',
+              '"$reason" has been reported to Admin for review. Thank you!',
+              snackPosition: SnackPosition.BOTTOM,
+              backgroundColor: Colors.red.shade600,
+              colorText: Colors.white,
+            );
+          }
+        } catch (e) {
+          Get.snackbar('Error', 'Failed to submit report.');
+        }
       },
     );
   }
@@ -710,7 +720,7 @@ class RoomDetailScreen extends StatelessWidget {
                 ],
               ),
             ),
-          ),
+          ).animate().slideY(begin: 1.0, end: 0, duration: 400.ms, curve: Curves.easeOutCirc),
         );
       },
     );

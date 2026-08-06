@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -11,6 +12,7 @@ import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
 import '../../profile/views/profile_screen.dart';
+import 'mess_map_screen.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -19,12 +21,21 @@ class BachelorHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Get.put(PostController());
+    final postController = Get.find<PostController>();
     final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
     final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => Get.to(() => const MessMapScreen(), transition: Transition.downToUp),
+        backgroundColor: accentColor,
+        icon: const Icon(Icons.map_rounded, color: Colors.white),
+        label: Text(
+          'Map View',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+      ),
       body: CustomScrollView(
         controller: postController.feedScrollController,
         physics: const BouncingScrollPhysics(),
@@ -182,7 +193,17 @@ class BachelorHomeScreen extends StatelessWidget {
 
             return SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _BachelorPostCard(post: posts[index]),
+                (context, index) {
+                  return _BachelorPostCard(post: posts[index])
+                      .animate()
+                      .fade(duration: 400.ms)
+                      .slideY(
+                          begin: 0.1,
+                          end: 0,
+                          duration: 400.ms,
+                          curve: Curves.easeOutQuad,
+                          delay: (index * 50).ms);
+                },
                 childCount: posts.length,
               ),
             );

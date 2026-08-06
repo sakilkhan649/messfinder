@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/app_constants.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
-import '../../auth/views/role_selection_screen.dart';
+
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -75,7 +77,7 @@ class ProfileScreen extends StatelessWidget {
                               color: Colors.white,
                             )
                           : null,
-                    ),
+                    ).animate().scale(duration: 500.ms, curve: Curves.easeOutBack).fade(duration: 400.ms),
                     SizedBox(height: 16.h),
                     Text(
                       activeUser.name,
@@ -139,14 +141,20 @@ class ProfileScreen extends StatelessWidget {
                       title: 'Edit Profile',
                       onTap: () =>
                           Get.to(() => EditProfileScreen(user: activeUser)),
+                      index: 0,
                     ),
                     _buildMenuItem(
-                      icon: Icons.swap_horiz_rounded,
-                      title: 'Switch Role',
-                      onTap: () => Get.to(
-                        () => const RoleSelectionScreen(),
-                        transition: Transition.cupertino,
-                      ),
+                      icon: isLandlord ? Icons.person_search_rounded : Icons.home_work_rounded,
+                      title: isLandlord ? 'Switch to Bachelor' : 'Switch to Landlord',
+                      onTap: () {
+                        final authCtrl = Get.find<AuthController>();
+                        if (isLandlord) {
+                          authCtrl.switchRole(AppConstants.roleBachelor);
+                        } else {
+                          authCtrl.switchRole(AppConstants.roleLandlord);
+                        }
+                      },
+                      index: 1,
                     ),
                     _buildMenuItem(
                       icon: Icons.help_outline_rounded,
@@ -164,6 +172,7 @@ class ProfileScreen extends StatelessWidget {
                         buttonColor: primaryColor,
                         onConfirm: () => Get.back(),
                       ),
+                      index: 2,
                     ),
 
                     SizedBox(height: 32.h),
@@ -211,6 +220,7 @@ class ProfileScreen extends StatelessWidget {
     required IconData icon,
     required String title,
     required VoidCallback onTap,
+    int index = 0,
   }) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -255,7 +265,7 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).animate().fade(duration: 300.ms, delay: (index * 100).ms).slideX(begin: -0.1, end: 0, duration: 300.ms, delay: (index * 100).ms, curve: Curves.easeOutQuad);
   }
 
   void _showLogoutDialog(Color primaryColor) {

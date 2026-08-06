@@ -63,7 +63,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
   @override
   void initState() {
     super.initState();
-    _paymentController = Get.put(PaymentController());
+    _paymentController = Get.find<PaymentController>();
   }
 
   @override

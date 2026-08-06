@@ -18,7 +18,7 @@ class TenantLeadsScreen extends StatelessWidget {
     const darkEmerald = Color(0xFF064E3B);
 
     // Initialize GetX Controller
-    final controller = Get.put(TenantLeadsController());
+    final controller = Get.find<TenantLeadsController>();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,

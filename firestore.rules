@@ -1,0 +1,54 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if true; // Anyone can see public profile details (needed for post owner info)
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Posts Collection
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // Reports Collection
+    match /reports/{reportId} {
+      // Only Admins can read reports (from Firebase Console). Users can only create.
+      allow read: if false; 
+      allow create: if request.auth != null && request.resource.data.reporterUid == request.auth.uid;
+    }
+
+    // Bookings Collection
+    match /bookings/{bookingId} {
+      allow read: if request.auth != null && (resource.data.bachelorUid == request.auth.uid || resource.data.landlordUid == request.auth.uid);
+      allow create: if request.auth != null && request.resource.data.bachelorUid == request.auth.uid;
+      allow update: if request.auth != null && (resource.data.bachelorUid == request.auth.uid || resource.data.landlordUid == request.auth.uid);
+    }
+
+    // Chats Collection
+    match /chats/{chatId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Chat Messages Subcollection
+    match /chats/{chatId}/messages/{messageId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Payments Collection (If used in the future)
+    match /payments/{paymentId} {
+      allow read: if request.auth != null && resource.data.uid == request.auth.uid;
+      allow write: if false; // Only Admin / Backend can write payments
+    }
+  }
+}

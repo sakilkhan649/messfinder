@@ -138,7 +138,7 @@ class PaymentPendingScreen extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    final paymentController = Get.put(PaymentController());
+                    final paymentController = Get.find<PaymentController>();
                     paymentController.checkMyStatus(user,
                         showPendingMessage: true);
                   },

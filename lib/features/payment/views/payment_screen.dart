@@ -27,7 +27,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   @override
   void initState() {
     super.initState();
-    _paymentController = Get.put(PaymentController());
+    _paymentController = Get.find<PaymentController>();
   }
 
   @override

@@ -23,7 +23,7 @@ class LandlordHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Get.put(PostController());
+    final postController = Get.find<PostController>();
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 

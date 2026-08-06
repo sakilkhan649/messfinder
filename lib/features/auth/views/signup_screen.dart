@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/app_constants.dart';
 import '../controllers/auth_controller.dart';
+import 'phone_login_screen.dart';
 
 class SignupScreen extends StatelessWidget {
   const SignupScreen({super.key});
@@ -304,6 +305,42 @@ class SignupScreen extends StatelessWidget {
                                     color: Colors.white,
                                   ),
                                 ],
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        SizedBox(height: 16.h),
+                        
+                        // Continue with Phone Button
+                        GestureDetector(
+                          onTap: () {
+                            Get.to(() => const PhoneLoginScreen(), transition: Transition.rightToLeft);
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(vertical: 14.h),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(16.r),
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.5),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.phone_android_rounded, color: accentColor, size: 18.r),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  'Continue with Phone',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.5.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

@@ -25,9 +25,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final ChatController _chatController = Get.find<ChatController>();
-  final AuthController _authController = Get.isRegistered<AuthController>()
-      ? Get.find<AuthController>()
-      : Get.put(AuthController());
+  final AuthController _authController = Get.find<AuthController>();
   final TextEditingController _messageController = TextEditingController();
 
   @override

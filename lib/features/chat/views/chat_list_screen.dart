@@ -11,10 +11,8 @@ import 'package:mess_finder/features/chat/views/chat_screen.dart';
 class ChatListScreen extends StatelessWidget {
   ChatListScreen({super.key});
 
-  final ChatController _chatController = Get.put(ChatController());
-  final AuthController _authController = Get.isRegistered<AuthController>()
-      ? Get.find<AuthController>()
-      : Get.put(AuthController());
+  final ChatController _chatController = Get.find<ChatController>();
+  final AuthController _authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {

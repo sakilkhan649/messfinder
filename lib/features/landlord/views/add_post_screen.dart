@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +7,6 @@ import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/app_constants.dart';
 import '../../../core/utils/image_helper.dart';
-import '../../../core/widgets/premium_payment_dialog.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
 
@@ -107,17 +107,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         );
         return;
       }
-      if (isEditing) {
-        _publishPostData();
-      } else {
-        PremiumPaymentDialog.show(
-          context,
-          isLandlord: true,
-          onPaymentSubmitted: (trxId, senderNumber) {
-            _publishPostData(trxId: trxId, senderNumber: senderNumber);
-          },
-        );
-      }
+      _publishPostData();
     }
   }
 

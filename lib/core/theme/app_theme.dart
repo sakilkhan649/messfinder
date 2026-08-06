@@ -4,14 +4,15 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Brand Colors - Vibrant Emerald & Modern Dark/Light tones
   static const Color primaryColor = Color(0xFF059669); // Premium Emerald Green
-  static const Color primaryDark = Color(0xFF047857);
+  static const Color primaryDark = Color(0xFF047857); // Darker Emerald
+  static const Color primaryLight = Color(0xFF34D399); // Light Emerald
   static const Color secondaryColor = Color(0xFFF59E0B); // Amber Accent
-  static const Color backgroundColor = Color(0xFFF8FAFC); // Cool Grey Light
+  static const Color backgroundColor = Color(0xFFF1F5F9); // Very subtle Slate (off-white)
   static const Color cardColor = Colors.white;
   static const Color textPrimary = Color(0xFF0F172A); // Deep Slate
   static const Color textSecondary = Color(0xFF64748B); // Slate Grey
   static const Color errorColor = Color(0xFFEF4444);
-
+  
   // Status Colors
   static const Color statusPending = Color(0xFFF59E0B);
   static const Color statusApproved = Color(0xFF10B981);
@@ -19,7 +20,7 @@ class AppTheme {
 
   // Gradient Colors
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [Color(0xFF059669), Color(0xFF10B981)],
+    colors: [Color(0xFF10B981), Color(0xFF047857)], // Vibrant to Deep Emerald
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -84,10 +85,10 @@ class AppTheme {
       ),
       cardTheme: CardThemeData(
         color: cardColor,
-        elevation: 3,
-        shadowColor: Colors.black.withValues(alpha: 0.06),
+        elevation: 6, // Higher base elevation
+        shadowColor: primaryColor.withValues(alpha: 0.1), // Tinted shadow for premium feel
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20), // More rounded corners
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
