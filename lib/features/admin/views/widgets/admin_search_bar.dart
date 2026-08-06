@@ -5,8 +5,6 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminSearchBar: অ্যাডমিন প্যানেলের যেকোনো তালিকার (Requests / Users)
-/// জন্য পুনরায় ব্যবহারযোগ্য সার্চ বার।
 /// ===================================================================
 class AdminSearchBar extends StatelessWidget {
   final ValueChanged<String> onChanged;

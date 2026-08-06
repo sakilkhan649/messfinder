@@ -13,11 +13,7 @@ import '../widgets/admin_user_card.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MVC PATTERN]
-/// AdminUsersTab: অ্যাপে নিবন্ধিত সব ইউজারের (Landlords এবং Bachelors)
-/// তালিকা আলাদা ২টি ট্যাবে প্রদর্শন ও ইউজার ডিলিট করার ট্যাব।
 /// 
-/// কেউ ২টি রোলেই (Landlord ও Bachelor) অ্যাকাউন্ট খুলে থাকলে তাকে
-/// ২ ট্যাবেই দেখানো হয় এবং Left-Right Swipe করে ডিলিট করা যায়।
 /// ===================================================================
 class AdminUsersTab extends StatelessWidget {
   final AdminController controller;
@@ -54,8 +50,6 @@ class AdminUsersTab extends StatelessWidget {
                     final allBookings = bookingSnapshot.data ?? [];
                     final allPayments = paymentSnapshot.data ?? [];
 
-                    // বাড়িওয়ালা (Landlord) এবং ব্যাচেলর (Bachelor) আলাদা করা
-                    // (কেউ ২টি রোলেই অ্যাকাউন্ট খুলে থাকলে উভয় ট্যাবেই দেখাবে)
                     final landlordUsers = allUsers
                         .where((u) => controller.isLandlordUser(
                               u,
@@ -157,7 +151,6 @@ class AdminUsersTab extends StatelessWidget {
     );
   }
 
-  // ─── বাড়িওয়ালা (Landlord) vs ব্যাচেলর (Bachelor) Full-Width Segmented Tab ───
   Widget _buildUserRoleTabs({
     required int landlordCount,
     required int bachelorCount,

@@ -107,7 +107,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     SizedBox(height: 8.h),
                     Text(
-                      '৳$fee.00',
+                      'Tk.$fee.00',
                       style: GoogleFonts.poppins(
                         fontSize: 36.sp,
                         fontWeight: FontWeight.bold,

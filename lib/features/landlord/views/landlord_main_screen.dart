@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
-
 import 'landlord_home_screen.dart';
 import 'tenant_leads_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
@@ -32,10 +31,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: screens,
-      ),
+      body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -116,10 +112,8 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                 label,
                 style: GoogleFonts.poppins(
                   fontSize: 12.sp,
-                  fontWeight:
-                      isSelected ? FontWeight.bold : FontWeight.w500,
-                  color:
-                      isSelected ? activeColor : Colors.grey.shade600,
+                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                  color: isSelected ? activeColor : Colors.grey.shade600,
                 ),
               ),
             ],

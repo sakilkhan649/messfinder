@@ -10,11 +10,7 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminPostCard: মেস লিস্টিং পোস্ট ও পেমেন্টের বিস্তারিত দেখানোর কার্ড।
-/// Approve এবং Reject করার বাটন এই কার্ড থেকে Controller-এর কলব্যাক চালায়।
 /// 
-/// Approved বা Rejected কার্ডগুলো Left-Right Swipe (Dismissible) করে
-/// ফায়ারবেস থেকে স্থায়ীভাবে ডিলিট করা যায়।
 /// ===================================================================
 class AdminPostCard extends StatelessWidget {
   final PostModel post;
@@ -80,7 +76,7 @@ class AdminPostCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.w),
-              _buildFeeBadge('৳${AppConstants.landlordFee}'),
+              _buildFeeBadge('Tk.${AppConstants.landlordFee}'),
             ],
           ),
           SizedBox(height: 3.h),

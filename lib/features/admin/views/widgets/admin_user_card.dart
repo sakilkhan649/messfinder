@@ -8,11 +8,7 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminUserCard: ফায়ারবেসে নিবন্ধিত প্রতিটি ইউজারের আসল নাম (Real Name),
-/// ফোন নম্বর এবং TrxID প্রদর্শনকারী আনুপাতিক ও সুন্দর কার্ড।
 /// 
-/// কার্ডের ওপর থেকে ডিলিট আইকন সরানো হয়েছে; ইউজার Left-Right Swipe
-/// (Dismissible) করেই কার্ড ডিলিট করতে পারবে।
 /// ===================================================================
 class AdminUserCard extends StatelessWidget {
   final UserModel user;

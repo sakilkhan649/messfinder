@@ -499,7 +499,7 @@ class _BookingCardState extends State<_BookingCard> {
                     ),
                     if (_postRent > 0)
                       Text(
-                        '৳${_postRent.toInt()}/mo',
+                        'Tk.${_postRent.toInt()}/mo',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,

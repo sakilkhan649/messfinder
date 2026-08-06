@@ -67,7 +67,6 @@ class PaymentController extends GetxController {
       await _paymentRepo.submitPayment(newPayment);
       myLatestPayment.value = newPayment;
 
-      // ইউজার প্রোফাইলে TrxID এবং ফোন নম্বর সেভ রাখা (Admin Card-এ দেখার জন্য)
       try {
         await FirebaseFirestore.instance
             .collection(ApiConstants.usersCollection)

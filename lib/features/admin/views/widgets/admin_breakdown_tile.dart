@@ -5,8 +5,6 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminBreakdownTile: প্রতিটি ক্যাটাগরির (Bachelor Bookings, Mess Listings)
-/// পেন্ডিং এবং অ্যাপ্রুভড সংখ্যার সারসংক্ষেপ দেখানোর টাইল।
 /// ===================================================================
 class AdminBreakdownTile extends StatelessWidget {
   final String title;

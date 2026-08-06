@@ -330,7 +330,7 @@ class RoomDetailScreen extends StatelessWidget {
                             ],
                           ),
                           child: Text(
-                            '৳${post.rent.toInt()} / mo',
+                            'Tk.${post.rent.toInt()} / mo',
                             style: GoogleFonts.poppins(
                               fontSize: 16.sp,
                               fontWeight: FontWeight.bold,
@@ -619,7 +619,7 @@ class RoomDetailScreen extends StatelessWidget {
                                         borderRadius: BorderRadius.circular(6.r),
                                       ),
                                       child: Text(
-                                        'Pay ৳50 to unlock phone number & book 🔒',
+                                        'Pay Tk.50 to unlock phone number & book 🔒',
                                         style: GoogleFonts.poppins(
                                           fontSize: 10.sp,
                                           color: primaryColor,

@@ -3,11 +3,8 @@ import '../../../core/utils/app_constants.dart';
 
 /// ===================================================================
 /// [MODEL LAYER - MVC PATTERN]
-/// অ্যাডমিন প্যানেলের নেভিগেশন ও ক্যাটাগরি আইটেমের ডেটা মডেল।
-/// UI-তে সরাসরি হার্ডকোড না করে এই মডেল থেকে আইটেমগুলো লোড করা হয়।
 /// ===================================================================
 
-/// বটম নেভিগেশন বারের প্রতিটি আইটেমের মডেল
 class AdminNavItemModel {
   final int index;
   final String label;
@@ -21,7 +18,6 @@ class AdminNavItemModel {
     required this.activeIcon,
   });
 
-  /// অ্যাডমিন ড্যাশবোর্ডের ৩টি প্রধান ট্যাব
   static const List<AdminNavItemModel> navItems = [
     AdminNavItemModel(
       index: 0,
@@ -50,7 +46,6 @@ class AdminNavItemModel {
   ];
 }
 
-/// Requests ট্যাবের ক্যাটাগরি চিপসের (Bachelor Bookings vs Mess Listings) মডেল
 class AdminCategoryModel {
   final int index;
   final String title;
@@ -62,16 +57,15 @@ class AdminCategoryModel {
     required this.icon,
   });
 
-  /// অ্যাডমিন প্যানেলে অনুমোদনের জন্য থাকা ২টি ক্যাটাগরি
   static List<AdminCategoryModel> get categories => [
         AdminCategoryModel(
           index: 0,
-          title: 'Bookings (৳${AppConstants.bachelorFee})',
+          title: 'Bookings (Tk.${AppConstants.bachelorFee})',
           icon: Icons.school_rounded,
         ),
         AdminCategoryModel(
           index: 1,
-          title: 'Mess Posts (৳${AppConstants.landlordFee})',
+          title: 'Mess Posts (Tk.${AppConstants.landlordFee})',
           icon: Icons.home_work_rounded,
         ),
       ];

@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 
 /// ===================================================================
 /// [VIEW UTILS - MVC PATTERN]
-/// অ্যাডমিন প্যানেলের নিজস্ব কালার প্যালেট (Slate/Dark-Neutral Theme)
-/// Auth স্ক্রিনের Admin Portal বাটনের কালার কম্বিনেশনের সাথে সামঞ্জস্যপূর্ণ।
 /// ===================================================================
 class AdminColors {
   // Primary slate/dark-neutral palette

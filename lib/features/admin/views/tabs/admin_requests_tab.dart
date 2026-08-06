@@ -13,11 +13,7 @@ import '../widgets/admin_search_bar.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MVC PATTERN]
-/// AdminRequestsTab: পেমেন্ট ও অনুমোদনের রিকোয়েস্ট (Bachelor Bookings
-/// এবং Mess Listings) পরিচালনা করার মূল ট্যাব।
 /// 
-/// ক্যাটাগরি চিপস, Pending/Approved/Rejected সাব-ট্যাব এবং সার্চ সুবিধা
-/// এখানে অন্তর্ভুক্ত আছে।
 /// ===================================================================
 class AdminRequestsTab extends StatelessWidget {
   final AdminController controller;
@@ -47,7 +43,6 @@ class AdminRequestsTab extends StatelessWidget {
             final allPosts = postSnapshot.data ?? [];
             final allBookings = bookingSnapshot.data ?? [];
 
-            // মেস পোস্ট ফিল্টারিং
             final pendingPosts = allPosts
                 .where((p) => p.paymentStatus.trim().toLowerCase() == 'pending')
                 .toList();
@@ -60,7 +55,6 @@ class AdminRequestsTab extends StatelessWidget {
                 .where((p) => p.paymentStatus.trim().toLowerCase() == 'rejected')
                 .toList();
 
-            // ব্যাচেলর বুকিং ফিল্টারিং
             final pendingBookings = allBookings
                 .where((b) => b.paymentStatus.trim().toLowerCase() == 'pending')
                 .toList();
@@ -99,7 +93,6 @@ class AdminRequestsTab extends StatelessWidget {
     );
   }
 
-  // ─── ক্যাটাগরি চিপস সিলেক্টর (Model থেকে আইটেম লোড হচ্ছে - Modern Full-Width Segmented Tab) ───
   Widget _buildCategorySelector() {
     return Obx(() {
       final currentCat = controller.selectedCategoryIndex.value;
@@ -172,7 +165,6 @@ class AdminRequestsTab extends StatelessWidget {
     });
   }
 
-  // ─── Pending / Approved / Rejected সাব-ট্যাব বার ───
   Widget _buildTabBar(int pendingCount, int approvedCount, int rejectedCount) {
     return Obx(() {
       final selectedTab = controller.selectedTabIndex.value;
@@ -237,7 +229,6 @@ class AdminRequestsTab extends StatelessWidget {
     );
   }
 
-  // ─── ব্যাচেলর বুকিং তালিকা সেকশন ───
   Widget _buildBookingsSection(
     List<BookingModel> pending,
     List<BookingModel> approved,
@@ -289,7 +280,6 @@ class AdminRequestsTab extends StatelessWidget {
     );
   }
 
-  // ─── মেস লিস্টিং পোস্ট তালিকা সেকশন ───
   Widget _buildPostsSection(
     List<PostModel> pending,
     List<PostModel> approved,

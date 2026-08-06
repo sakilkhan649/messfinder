@@ -340,7 +340,7 @@ class SavedPostsScreen extends StatelessWidget {
                                         ),
                                         SizedBox(width: 4.w),
                                         Text(
-                                          '৳${post.rent.toInt()}',
+                                          'Tk.${post.rent.toInt()}',
                                           style: GoogleFonts.poppins(
                                             fontSize: 17.sp,
                                             fontWeight: FontWeight.bold,

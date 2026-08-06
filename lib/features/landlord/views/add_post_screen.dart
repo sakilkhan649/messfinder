@@ -325,7 +325,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                             keyboardType: TextInputType.number,
                             decoration: _buildInputDecoration(
                               hintText: '4500',
-                              prefixText: '৳ ',
+                              prefixText: 'Tk. ',
                             ),
                             validator: (v) => v == null || v.trim().isEmpty
                                 ? 'Enter rent'
@@ -687,7 +687,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     child: Text(
                       isEditing
                           ? 'Update Room Listing'
-                          : 'Publish Room Listing (৳${AppConstants.landlordFee})',
+                          : 'Publish Room Listing (Tk.${AppConstants.landlordFee})',
                       style: GoogleFonts.poppins(
                         fontSize: 15.5.sp,
                         fontWeight: FontWeight.bold,

@@ -6,10 +6,7 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminRevenueCard: অ্যাডমিনের মোট আয় ও আয়ের উৎসগুলোর (Bookings, Postings)
-/// সারসংক্ষেপ প্রদর্শনকারী হিরো কার্ড (Hero Card)।
 /// 
-/// পারফেক্ট অ্যালাইনমেন্ট ও হরাইজন্টাল/ভার্টিক্যাল ডিভাইডার দিয়ে সাজানো হয়েছে।
 /// ===================================================================
 class AdminRevenueCard extends StatelessWidget {
   final int totalRevenue;
@@ -44,7 +41,6 @@ class AdminRevenueCard extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // ওয়াটারমার্ক আইকন (Background shield icon)
           Positioned(
             right: -10.w,
             top: -10.h,
@@ -87,7 +83,7 @@ class AdminRevenueCard extends StatelessWidget {
 
               // ── Total Amount ───────────────────────────────
               Text(
-                '৳$totalRevenue',
+                'Tk.$totalRevenue',
                 style: GoogleFonts.poppins(
                   fontSize: 36.sp,
                   fontWeight: FontWeight.w800,
@@ -110,8 +106,8 @@ class AdminRevenueCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: _buildRevenueRowItem(
-                        'Bookings (৳${AppConstants.bachelorFee})',
-                        '৳$bookingRev',
+                        'Bookings (Tk.${AppConstants.bachelorFee})',
+                        'Tk.$bookingRev',
                         Icons.school_rounded,
                         const Color(0xFFA78BFA), // Violet accent
                       ),
@@ -123,8 +119,8 @@ class AdminRevenueCard extends StatelessWidget {
                     ),
                     Expanded(
                       child: _buildRevenueRowItem(
-                        'Postings (৳${AppConstants.landlordFee})',
-                        '৳$postRev',
+                        'Postings (Tk.${AppConstants.landlordFee})',
+                        'Tk.$postRev',
                         Icons.home_work_rounded,
                         const Color(0xFF38BDF8), // Light blue accent
                       ),

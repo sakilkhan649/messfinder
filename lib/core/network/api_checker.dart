@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 
 class ApiChecker {
   static void checkApi(dynamic response) {
-    String errorMessage = 'কিছু একটা সমস্যা হয়েছে, আবার চেষ্টা করুন!';
+    String errorMessage = 'Something went wrong, please try again!';
 
     if (response is String) {
       errorMessage = response;
@@ -13,7 +13,7 @@ class ApiChecker {
     }
 
     Get.snackbar(
-      'সতর্কবার্তা',
+      'Warning',
       errorMessage,
       backgroundColor: AppTheme.errorColor,
       colorText: Colors.white,
@@ -23,7 +23,7 @@ class ApiChecker {
     );
   }
 
-  static void showSuccess(String message, {String title = 'সফল!'}) {
+  static void showSuccess(String message, {String title = 'Success!'}) {
     Get.snackbar(
       title,
       message,
@@ -35,7 +35,7 @@ class ApiChecker {
     );
   }
 
-  static void showError(String message, {String title = 'ত্রুটি!'}) {
+  static void showError(String message, {String title = 'Error!'}) {
     Get.snackbar(
       title,
       message,

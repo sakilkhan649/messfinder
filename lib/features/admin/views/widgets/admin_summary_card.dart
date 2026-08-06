@@ -4,8 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminSummaryCard: Pending, Approved এবং Rejected রিকোয়েস্টের
-/// মোট সংখ্যা প্রদর্শনকারী কার্ড।
 /// ===================================================================
 class AdminSummaryCard extends StatelessWidget {
   final String label;

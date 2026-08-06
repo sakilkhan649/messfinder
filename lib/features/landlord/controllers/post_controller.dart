@@ -155,7 +155,7 @@ class PostController extends GetxController {
             }
           },
           onError: (e) {
-            AppLogger.e('পোস্ট স্ট্রিম এরর: $e', e, null, 'POST_CTRL');
+            AppLogger.e('Post stream error: $e', e, null, 'POST_CTRL');
             isLoading.value = false;
             hasEmitted = true;
           },
@@ -199,7 +199,7 @@ class PostController extends GetxController {
       }
     } catch (e) {
       AppLogger.e(
-        'ফায়ারবেস থেকে পছন্দের মেস লোড করতে সমস্যা: $e',
+        'Failed to load favorite posts from Firebase: $e',
         e,
         null,
         'POST_CTRL',
@@ -223,7 +223,7 @@ class PostController extends GetxController {
       }
     } catch (e) {
       AppLogger.e(
-        'ফায়ারবেসে পছন্দের মেস সেভ করতে সমস্যা: $e',
+        'Failed to save favorite post to Firebase: $e',
         e,
         null,
         'POST_CTRL',

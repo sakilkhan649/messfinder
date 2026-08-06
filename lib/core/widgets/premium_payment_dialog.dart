@@ -237,8 +237,8 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                       ),
                       child: Text(
                         widget.isLandlord
-                            ? 'Only ৳$fee (per listing)'
-                            : 'Only ৳$fee (per booking)',
+                            ? 'Only Tk.$fee (per listing)'
+                            : 'Only Tk.$fee (per booking)',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,

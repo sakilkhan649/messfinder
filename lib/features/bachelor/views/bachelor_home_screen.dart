@@ -283,12 +283,12 @@ class BachelorHomeScreen extends StatelessWidget {
   void _showBudgetBottomSheet(BuildContext context, PostController controller, Color primaryColor, Color accentColor) {
     final List<Map<String, dynamic>> budgetOptions = [
       {'label': 'All Budgets', 'value': 0},
-      {'label': 'Under ৳4,000', 'value': 4000},
-      {'label': 'Under ৳5,000', 'value': 5000},
-      {'label': 'Under ৳6,000', 'value': 6000},
-      {'label': 'Under ৳7,000', 'value': 7000},
-      {'label': 'Under ৳8,000', 'value': 8000},
-      {'label': 'Under ৳10,000', 'value': 10000},
+      {'label': 'Under Tk.4,000', 'value': 4000},
+      {'label': 'Under Tk.5,000', 'value': 5000},
+      {'label': 'Under Tk.6,000', 'value': 6000},
+      {'label': 'Under Tk.7,000', 'value': 7000},
+      {'label': 'Under Tk.8,000', 'value': 8000},
+      {'label': 'Under Tk.10,000', 'value': 10000},
     ];
 
     Get.bottomSheet(
@@ -667,7 +667,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                       border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
                     ),
                     child: Text(
-                      '৳${post.rent.toInt()} / mo',
+                      'Tk.${post.rent.toInt()} / mo',
                       style: GoogleFonts.poppins(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.bold,

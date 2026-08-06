@@ -57,24 +57,7 @@ class LandlordHomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
-          IconButton(
-            onPressed: () {
-              final authCtrl = Get.find<AuthController>();
-              authCtrl.switchRole(AppConstants.roleBachelor);
-              Get.snackbar(
-                'Bachelor Mode',
-                'Switched to Seeker view',
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: darkEmerald,
-                colorText: Colors.white,
-              );
-            },
-            icon: const Icon(
-              Icons.swap_horizontal_circle_rounded,
-              color: Colors.white,
-            ),
-            tooltip: 'Switch Mode',
-          ),
+
           IconButton(
             onPressed: () => Get.find<AuthController>().logout(),
             icon: const Icon(Icons.logout_rounded, color: Colors.white),
@@ -368,25 +351,7 @@ class LandlordHomeScreen extends StatelessWidget {
                 color: AppTheme.textSecondary,
               ),
             ),
-            SizedBox(height: 24.h),
-            ElevatedButton.icon(
-              onPressed: () => _onAddPostPressed(context),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: emeraldTheme,
-                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                ),
-              ),
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: Text(
-                'Add Room',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
+
           ],
         ),
       ),
@@ -578,7 +543,7 @@ class _LandlordPostCard extends StatelessWidget {
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '৳${post.rent.toInt()} / month',
+                        'Tk.${post.rent.toInt()} / month',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w500,
@@ -712,67 +677,7 @@ class _LandlordPostCard extends StatelessWidget {
   }
 
   String _cleanEnglishText(String input) {
-    String clean = input
-        .replaceAll('০', '0')
-        .replaceAll('১', '1')
-        .replaceAll('২', '2')
-        .replaceAll('৩', '3')
-        .replaceAll('৪', '4')
-        .replaceAll('৫', '5')
-        .replaceAll('৬', '6')
-        .replaceAll('৭', '7')
-        .replaceAll('৮', '8')
-        .replaceAll('৯', '9');
-
-    // Remove bracketed Bangla text e.g. "WiFi (ওয়াইফাই)" -> "WiFi"
-    clean = clean.replaceAll(RegExp(r'\s*\([\u0980-\u09FF\s/a-zA-Z-]+\)'), '');
-    clean = clean.replaceAll(RegExp(r'\s*\([\u0980-\u09FF\s]+\)'), '');
-
-    // Translate common Bangla words
-    final map = {
-      'ওয়াইফাই': 'WiFi',
-      'ওয়াইফাই': 'WiFi',
-      'ফিল্টার পানি': 'Water Filter',
-      'পানি': 'Water',
-      'সিসিটিভি': 'CCTV',
-      'জেনারেটর': 'Generator',
-      'লিফট': 'Lift',
-      'অ্যাটাচড বাথরুম': 'Attached Bath',
-      'বাথরুম': 'Bathroom',
-      'বেলকনি': 'Balcony',
-      'খাবার ব্যবস্থা': 'Meal Available',
-      'খাবার': 'Meal',
-      'টি সিট': ' Seat',
-      'টা সিট': ' Seat',
-      'টি রুম': ' Room',
-      'টা রুম': ' Room',
-      'সিট': 'Seat',
-      'রুম': 'Room',
-      'মেস': 'Mess',
-      'ভাড়া': 'Rent',
-      'ভারা': 'Rent',
-      'ছেলে': 'Male',
-      'মেয়ে': 'Female',
-      'মেয়ে': 'Female',
-    };
-
-    map.forEach((bangla, english) {
-      clean = clean.replaceAll(bangla, english);
-    });
-
-    // Remove any remaining standalone Bangla characters
-    clean = clean.replaceAll(RegExp(r'[\u0980-\u09FF]'), '').trim();
-    // Fix multiple spaces
-    clean = clean.replaceAll(RegExp(r'\s+'), ' ').trim();
-
-    if (clean == '1 Seat' || clean == '1 Seats') return '1 Seat';
-    if (clean == '2 Seat') return '2 Seats';
-    if (clean == '3 Seat') return '3 Seats';
-    if (clean == '4 Seat') return '4 Seats';
-    if (clean == '5 Seat') return '5 Seats';
-
-    if (clean.isEmpty) return 'Available';
-    return clean;
+    return input.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
   @override
@@ -873,7 +778,7 @@ class _LandlordPostCard extends StatelessWidget {
                       Icon(Icons.sell_rounded, color: Colors.white, size: 13.r),
                       SizedBox(width: 5.w),
                       Text(
-                        '৳${post.rent.toInt()} / month',
+                        'Tk.${post.rent.toInt()} / month',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,

@@ -217,7 +217,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
                       ),
                       SizedBox(height: 4.h),
                       Text(
-                        '৳${post.rent.toInt()} / month',
+                        'Tk.${post.rent.toInt()} / month',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.bold,
                           fontSize: 15.sp,

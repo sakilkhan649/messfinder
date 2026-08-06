@@ -13,10 +13,7 @@ import 'tabs/admin_profile_tab.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MAIN SCAFFOLD (MVC PATTERN)]
-/// AdminDashboardScreen: অ্যাডমিন প্যানেলের প্রধান স্ক্রিন কনটেইনার।
 /// 
-/// এটি অ্যাপবার (AppBar), বটম নেভিগেশন বার (BottomNavigationBar) এবং
-/// ৩টি আলাদা মডিউলার ট্যাবের (Overview, Requests, Users) সমন্বয় করে।
 /// ===================================================================
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -31,7 +28,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   @override
   void initState() {
     super.initState();
-    // GetX Controller রেজিস্ট্রেশন
     _adminController = Get.find<AdminController>();
   }
 
@@ -56,7 +52,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // ─── অ্যাপবার (AppBar - Dark Slate Theme) ───
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: AdminColors.accentDark,
@@ -92,7 +87,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // ─── বটম নেভিগেশন বার (BottomNavigationBar - Dynamically from Model) ───
   Widget _buildBottomNav() {
     return Obx(() {
       final currentNav = _adminController.currentNavIndex.value;
@@ -141,7 +135,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     });
   }
 
-  // ─── লগআউট কনফার্মেশন ডায়ালগ ───
   void _confirmLogout() {
     Get.defaultDialog(
       title: 'Sign Out',

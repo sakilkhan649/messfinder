@@ -10,11 +10,7 @@ import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
-/// AdminBookingCard: ব্যাচেলর বুকিং রিকোয়েস্টের বিস্তারিত দেখানোর কার্ড।
-/// Approve এবং Reject করার বাটন এই কার্ড থেকে Controller-এর কলব্যাক চালায়।
 /// 
-/// Approved বা Rejected কার্ডগুলো Left-Right Swipe (Dismissible) করে
-/// ফায়ারবেস থেকে স্থায়ীভাবে ডিলিট করা যায়।
 /// ===================================================================
 class AdminBookingCard extends StatelessWidget {
   final BookingModel booking;
@@ -79,7 +75,7 @@ class AdminBookingCard extends StatelessWidget {
                 ),
               ),
               SizedBox(width: 8.w),
-              _buildFeeBadge('৳${AppConstants.bachelorFee}'),
+              _buildFeeBadge('Tk.${AppConstants.bachelorFee}'),
             ],
           ),
           SizedBox(height: 3.h),

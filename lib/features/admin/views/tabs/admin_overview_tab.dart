@@ -12,9 +12,6 @@ import '../widgets/admin_breakdown_tile.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MVC PATTERN]
-/// AdminOverviewTab: অ্যাডমিনের ওভারভিউ বা সামারি স্ক্রিন।
-/// এখানে মোট আয় (Revenue) এবং প্রতিটি ক্যাটাগরির (Bookings, Posts)
-/// পরিসংখ্যান কার্ড ও টাইল আকারে প্রদর্শিত হয়।
 /// ===================================================================
 class AdminOverviewTab extends StatelessWidget {
   final AdminController controller;
@@ -44,7 +41,6 @@ class AdminOverviewTab extends StatelessWidget {
             final posts = postSnapshot.data ?? [];
             final bookings = bookingSnapshot.data ?? [];
 
-            // Model থেকে পরিসংখ্যান (Stats & Revenue) হিসাব করা হচ্ছে
             final stats = AdminStatsModel.fromData(
               bookings: bookings,
               posts: posts,

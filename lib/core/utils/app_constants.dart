@@ -1,9 +1,9 @@
 class AppConstants {
   // App Info
   static const String appName = 'MessFinder';
-  static const String appBanglaName = 'মেসফাইন্ডার';
-  static const String appTagline = 'ব্যাচেলরদের বিশ্বস্ত মেস সন্ধানী';
-  static const String appSlogan = 'সহজেই খুঁজুন আপনার পছন্দের মেস ও সিট';
+  static const String appBanglaName = 'MessFinder';
+  static const String appTagline = 'Your Trusted Roommate Finder';
+  static const String appSlogan = 'Find your perfect room easily';
 
   // User Roles
   static const String roleLandlord = 'landlord';
