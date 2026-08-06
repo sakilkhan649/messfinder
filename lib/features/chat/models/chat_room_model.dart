@@ -26,10 +26,13 @@ class ChatRoomModel {
       id: docId,
       participants: List<String>.from(map['participants'] ?? []),
       participantNames: Map<String, String>.from(map['participantNames'] ?? {}),
-      participantPhotos: Map<String, String>.from(map['participantPhotos'] ?? {}),
+      participantPhotos: Map<String, String>.from(
+        map['participantPhotos'] ?? {},
+      ),
       lastMessage: map['lastMessage']?.toString() ?? '',
       lastSenderId: map['lastSenderId']?.toString() ?? '',
-      lastMessageTime: map['lastMessageTime'] != null && map['lastMessageTime'] is Timestamp
+      lastMessageTime:
+          map['lastMessageTime'] != null && map['lastMessageTime'] is Timestamp
           ? (map['lastMessageTime'] as Timestamp).toDate()
           : null,
       unreadCounts: Map<String, int>.from(map['unreadCounts'] ?? {}),
@@ -43,7 +46,9 @@ class ChatRoomModel {
       'participantPhotos': participantPhotos,
       'lastMessage': lastMessage,
       'lastSenderId': lastSenderId,
-      'lastMessageTime': lastMessageTime != null ? Timestamp.fromDate(lastMessageTime!) : FieldValue.serverTimestamp(),
+      'lastMessageTime': lastMessageTime != null
+          ? Timestamp.fromDate(lastMessageTime!)
+          : FieldValue.serverTimestamp(),
       'unreadCounts': unreadCounts,
     };
   }

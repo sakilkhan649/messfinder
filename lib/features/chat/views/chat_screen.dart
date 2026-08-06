@@ -25,7 +25,9 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final ChatController _chatController = Get.find<ChatController>();
-  final AuthController _authController = Get.isRegistered<AuthController>() ? Get.find<AuthController>() : Get.put(AuthController());
+  final AuthController _authController = Get.isRegistered<AuthController>()
+      ? Get.find<AuthController>()
+      : Get.put(AuthController());
   final TextEditingController _messageController = TextEditingController();
 
   @override
@@ -65,139 +67,174 @@ class _ChatScreenState extends State<ChatScreen> {
       );
 
       return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: rolePrimaryColor,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            CircleAvatar(
-              radius: 18.r,
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-              child: Icon(Icons.person_rounded, size: 20.r, color: Colors.white),
-            ),
-            SizedBox(width: 12.w),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.targetUserName,
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                    ),
-                  ),
-                  Text(
-                    'Online', // Placeholder for status
-                    style: GoogleFonts.poppins(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: rolePrimaryColor,
+          elevation: 0,
+          iconTheme: const IconThemeData(color: Colors.white),
+          titleSpacing: 0,
+          title: Row(
+            children: [
+              CircleAvatar(
+                radius: 18.r,
+                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                child: Icon(
+                  Icons.person_rounded,
+                  size: 20.r,
+                  color: Colors.white,
+                ),
               ),
-            ),
-          ],
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: StreamBuilder<List<MessageModel>>(
-              stream: _chatController.getMessages(widget.chatRoomId),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(child: CircularProgressIndicator(color: rolePrimaryColor));
-                }
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text('Error: ${snapshot.error}', style: GoogleFonts.poppins()),
-                  );
-                }
-                
-                final messages = snapshot.data ?? [];
-                
-                if (messages.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(24.r),
-                          decoration: BoxDecoration(
-                            color: rolePrimaryColor.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(Icons.waving_hand_rounded, size: 48.r, color: rolePrimaryColor),
-                        ),
-                        SizedBox(height: 16.h),
-                        Text('Say hi to ${widget.targetUserName}!', 
-                            style: GoogleFonts.poppins(color: AppTheme.textSecondary, fontSize: 16.sp, fontWeight: FontWeight.w500)),
-                      ],
+              SizedBox(width: 12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.targetUserName,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16.sp,
+                      ),
                     ),
-                  );
-                }
-
-                return ListView.builder(
-                  reverse: true,
-                  padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    final message = messages[index];
-                    final isMe = message.senderId == _chatController.currentUserId;
-
-                    return Align(
-                      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: EdgeInsets.only(bottom: 12.h, left: isMe ? 64.w : 0, right: isMe ? 0 : 64.w),
-                        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                        decoration: BoxDecoration(
-                          gradient: isMe ? rolePrimaryGradient : null,
-                          color: isMe ? null : Colors.white,
-                          borderRadius: BorderRadius.only(
-                            topLeft: Radius.circular(16.r),
-                            topRight: Radius.circular(16.r),
-                            bottomLeft: Radius.circular(isMe ? 16.r : 4.r),
-                            bottomRight: Radius.circular(isMe ? 4.r : 16.r),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: isMe 
-                                  ? rolePrimaryColor.withValues(alpha: 0.2)
-                                  : Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 8.r,
-                              offset: Offset(0, 4.h),
-                            ),
-                          ],
-                        ),
-                        child: Text(
-                          message.text,
-                          style: GoogleFonts.poppins(
-                            color: isMe ? Colors.white : AppTheme.textPrimary,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                    Text(
+                      'Online', // Placeholder for status
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: StreamBuilder<List<MessageModel>>(
+                stream: _chatController.getMessages(widget.chatRoomId),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(
+                      child: CircularProgressIndicator(color: rolePrimaryColor),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        'Error: ${snapshot.error}',
+                        style: GoogleFonts.poppins(),
                       ),
                     );
-                  },
-                );
-              },
+                  }
+
+                  final messages = snapshot.data ?? [];
+
+                  if (messages.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(24.r),
+                            decoration: BoxDecoration(
+                              color: rolePrimaryColor.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.waving_hand_rounded,
+                              size: 48.r,
+                              color: rolePrimaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'Say hi to ${widget.targetUserName}!',
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textSecondary,
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.builder(
+                    reverse: true,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 16.w,
+                      vertical: 16.h,
+                    ),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final message = messages[index];
+                      final isMe =
+                          message.senderId == _chatController.currentUserId;
+
+                      return Align(
+                        alignment: isMe
+                            ? Alignment.centerRight
+                            : Alignment.centerLeft,
+                        child: Container(
+                          margin: EdgeInsets.only(
+                            bottom: 12.h,
+                            left: isMe ? 64.w : 0,
+                            right: isMe ? 0 : 64.w,
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 12.h,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: isMe ? rolePrimaryGradient : null,
+                            color: isMe ? null : Colors.white,
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16.r),
+                              topRight: Radius.circular(16.r),
+                              bottomLeft: Radius.circular(isMe ? 16.r : 4.r),
+                              bottomRight: Radius.circular(isMe ? 4.r : 16.r),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isMe
+                                    ? rolePrimaryColor.withValues(alpha: 0.2)
+                                    : Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 8.r,
+                                offset: Offset(0, 4.h),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            message.text,
+                            style: GoogleFonts.poppins(
+                              color: isMe ? Colors.white : AppTheme.textPrimary,
+                              fontSize: 14.sp,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
-          ),
-          _buildMessageInput(rolePrimaryColor, rolePrimaryGradient),
-        ],
-      ),
-    );
+            _buildMessageInput(rolePrimaryColor, rolePrimaryGradient),
+          ],
+        ),
+      );
     });
   }
 
-  Widget _buildMessageInput(Color rolePrimaryColor, LinearGradient rolePrimaryGradient) {
+  Widget _buildMessageInput(
+    Color rolePrimaryColor,
+    LinearGradient rolePrimaryGradient,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -216,7 +253,10 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: TextField(
                 controller: _messageController,
-                style: GoogleFonts.poppins(fontSize: 14.sp, color: AppTheme.textPrimary),
+                style: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  color: AppTheme.textPrimary,
+                ),
                 decoration: InputDecoration(
                   hintText: 'Type a message...',
                   hintStyle: GoogleFonts.poppins(color: Colors.grey.shade400),
@@ -226,7 +266,10 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   filled: true,
                   fillColor: AppTheme.backgroundColor,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 12.h,
+                  ),
                 ),
                 maxLines: null,
                 textInputAction: TextInputAction.send,
@@ -249,7 +292,11 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ],
                 ),
-                child: Icon(Icons.send_rounded, color: Colors.white, size: 20.r),
+                child: Icon(
+                  Icons.send_rounded,
+                  color: Colors.white,
+                  size: 20.r,
+                ),
               ),
             ),
           ],

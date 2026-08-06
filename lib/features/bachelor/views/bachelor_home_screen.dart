@@ -26,6 +26,7 @@ class BachelorHomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       body: CustomScrollView(
+        controller: postController.feedScrollController,
         physics: const BouncingScrollPhysics(),
         slivers: [
           // ── AppBar & Filters Section ───────────────────────────────────────────

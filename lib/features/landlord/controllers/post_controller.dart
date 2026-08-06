@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_logger.dart';
@@ -15,6 +17,10 @@ class PostController extends GetxController {
   final RxSet<String> savedPostIds = <String>{}.obs;
   final RxBool isLoading = true.obs;
 
+  final RxInt postLimit = 20.obs;
+  StreamSubscription<List<PostModel>>? _postsSubscription;
+  final ScrollController feedScrollController = ScrollController();
+
   // Cache for Landlord Profiles to optimize scrolling
   final Map<String, Map<String, dynamic>> landlordProfilesCache = {};
 
@@ -23,7 +29,10 @@ class PostController extends GetxController {
       return landlordProfilesCache[uid];
     }
     try {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
       if (doc.exists && doc.data() != null) {
         landlordProfilesCache[uid] = doc.data() as Map<String, dynamic>;
         return landlordProfilesCache[uid];
@@ -45,6 +54,7 @@ class PostController extends GetxController {
   void toggleSavePost(String postId) {
     if (savedPostIds.contains(postId)) {
       savedPostIds.remove(postId);
+      _updateSavedPostsList();
       _syncSavedPostsToFirebase();
       Get.snackbar(
         'Favorites',
@@ -54,6 +64,7 @@ class PostController extends GetxController {
       );
     } else {
       savedPostIds.add(postId);
+      _updateSavedPostsList();
       _syncSavedPostsToFirebase();
       Get.snackbar(
         'Favorites ❤️',
@@ -64,13 +75,28 @@ class PostController extends GetxController {
     }
   }
 
-  List<PostModel> get savedPosts =>
-      allPosts.where((post) => savedPostIds.contains(post.postId)).toList();
+  final RxList<PostModel> savedPosts = <PostModel>[].obs;
+
+  void _updateSavedPostsList() {
+    savedPosts.assignAll(
+      allPosts.where((post) => savedPostIds.contains(post.postId)).toList()
+    );
+    print('DEBUG: _updateSavedPostsList called. allPosts=${allPosts.length}, savedIds=${savedPostIds.length}, result=${savedPosts.length}');
+  }
 
   @override
   void onInit() {
     super.onInit();
     _initPosts();
+
+    feedScrollController.addListener(() {
+      if (feedScrollController.position.pixels >=
+          feedScrollController.position.maxScrollExtent - 200) {
+        if (!isLoading.value) {
+          loadMorePosts();
+        }
+      }
+    });
   }
 
   Future<void> _initPosts() async {
@@ -80,28 +106,18 @@ class PostController extends GetxController {
     } catch (e) {
       AppLogger.w('Seed demo posts failed/timed out: $e', tag: 'POST_CTRL');
     }
-    
+
     _loadSavedPostsFromFirebase();
 
-    bool hasEmitted = false;
-    
-    // Listen to all posts
-    _postRepo.getAllPostsStream().listen((posts) {
-      allPosts.assignAll(posts);
-      if (!hasEmitted) {
-        isLoading.value = false;
-        hasEmitted = true;
-      }
-    }, onError: (e) {
-      AppLogger.e('পোস্ট স্ট্রিম এরর: $e', e, null, 'POST_CTRL');
-      isLoading.value = false;
-      hasEmitted = true;
-    });
+    _listenToPosts();
 
     // Fallback if stream takes too long or Play Services is missing
     Future.delayed(const Duration(seconds: 5), () {
-      if (!hasEmitted) {
-        AppLogger.w('Firestore stream taking too long. Disabling loading spinner.', tag: 'POST_CTRL');
+      if (isLoading.value) {
+        AppLogger.w(
+          'Firestore stream taking too long. Disabling loading spinner.',
+          tag: 'POST_CTRL',
+        );
         isLoading.value = false;
       }
     });
@@ -112,14 +128,48 @@ class PostController extends GetxController {
       ever(auth.currentUser, (_) {
         _loadSavedPostsFromFirebase();
       });
-      if (auth.currentUser.value != null && auth.currentUser.value!.isLandlord) {
-        _postRepo
-            .getLandlordPostsStream(auth.currentUser.value!.uid)
-            .listen((posts) {
+      if (auth.currentUser.value != null &&
+          auth.currentUser.value!.isLandlord) {
+        _postRepo.getLandlordPostsStream(auth.currentUser.value!.uid).listen((
+          posts,
+        ) {
           myPosts.assignAll(posts);
         });
       }
     }
+  }
+
+  void _listenToPosts() {
+    bool hasEmitted = false;
+    _postsSubscription?.cancel();
+    _postsSubscription = _postRepo
+        .getAllPostsStream(limit: postLimit.value)
+        .listen(
+          (posts) {
+            allPosts.assignAll(posts);
+            _updateSavedPostsList();
+            if (!hasEmitted) {
+              isLoading.value = false;
+              hasEmitted = true;
+            }
+          },
+          onError: (e) {
+            AppLogger.e('পোস্ট স্ট্রিম এরর: $e', e, null, 'POST_CTRL');
+            isLoading.value = false;
+            hasEmitted = true;
+          },
+        );
+  }
+
+  void loadMorePosts() {
+    postLimit.value += 20;
+    _listenToPosts();
+  }
+
+  @override
+  void onClose() {
+    _postsSubscription?.cancel();
+    super.onClose();
   }
 
   Future<void> refreshPosts() async {
@@ -141,12 +191,18 @@ class PostController extends GetxController {
             if (data.containsKey('savedPosts') && data['savedPosts'] is List) {
               final List<dynamic> savedList = data['savedPosts'];
               savedPostIds.assignAll(savedList.map((e) => e.toString()));
+              _updateSavedPostsList();
             }
           }
         }
       }
     } catch (e) {
-      AppLogger.e('ফায়ারবেস থেকে পছন্দের মেস লোড করতে সমস্যা: $e', e, null, 'POST_CTRL');
+      AppLogger.e(
+        'ফায়ারবেস থেকে পছন্দের মেস লোড করতে সমস্যা: $e',
+        e,
+        null,
+        'POST_CTRL',
+      );
     }
   }
 
@@ -160,12 +216,17 @@ class PostController extends GetxController {
               .collection('users')
               .doc(user.uid)
               .set({
-            'savedPosts': savedPostIds.toList(),
-          }, SetOptions(merge: true));
+                'savedPosts': savedPostIds.toList(),
+              }, SetOptions(merge: true));
         }
       }
     } catch (e) {
-      AppLogger.e('ফায়ারবেসে পছন্দের মেস সেভ করতে সমস্যা: $e', e, null, 'POST_CTRL');
+      AppLogger.e(
+        'ফায়ারবেসে পছন্দের মেস সেভ করতে সমস্যা: $e',
+        e,
+        null,
+        'POST_CTRL',
+      );
     }
   }
 
@@ -234,7 +295,7 @@ class PostController extends GetxController {
         longitude: 90.4125,
         images: images.isEmpty
             ? [
-                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop'
+                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
               ]
             : images,
         seatCount: seatCount,
@@ -252,7 +313,8 @@ class PostController extends GetxController {
 
       await _postRepo.addPost(newPost);
       ApiChecker.showSuccess(
-          'Room listing submitted for review! ⏳ It will go live once payment is verified.');
+        'Room listing submitted for review! ⏳ It will go live once payment is verified.',
+      );
     } catch (e) {
       ApiChecker.showError(e.toString());
     } finally {
@@ -288,7 +350,8 @@ class PostController extends GetxController {
     try {
       await _postRepo.toggleAvailability(postId, currentStatus);
       ApiChecker.showSuccess(
-          currentStatus ? 'Listing deactivated' : 'Listing activated');
+        currentStatus ? 'Listing deactivated' : 'Listing activated',
+      );
     } catch (e) {
       ApiChecker.showError(e.toString());
     }

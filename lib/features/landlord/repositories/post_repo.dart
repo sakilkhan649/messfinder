@@ -7,25 +7,31 @@ class PostRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Stream all mess posts for Bachelor Feed (Only approved & published)
-  Stream<List<PostModel>> getAllPostsStream() {
+  Stream<List<PostModel>> getAllPostsStream({int limit = 20}) {
     return _firestore
         .collection(ApiConstants.postsCollection)
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
         .snapshots()
         .map((snapshot) {
-      final posts = snapshot.docs
-          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
-          .where((post) {
-        if (post.isAvailable == false) return false;
-        final status = post.paymentStatus.trim().toLowerCase();
-        return status == 'approved' ||
-            status == 'paid' ||
-            status == 'success';
-      }).toList();
-      // Sort in memory by createdAt descending
-      posts.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return posts;
-    });
+          final posts = snapshot.docs
+              .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+              .where((post) {
+                if (post.isAvailable == false) return false;
+                final status = post.paymentStatus.trim().toLowerCase();
+                return status == 'approved' ||
+                    status == 'paid' ||
+                    status == 'success';
+              })
+              .toList();
+          // Sort in memory by createdAt descending
+          posts.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return posts;
+        });
   }
 
   Future<void> togglePostAvailability(String postId, bool isAvailable) async {
@@ -33,11 +39,11 @@ class PostRepository {
       await _firestore
           .collection(ApiConstants.postsCollection)
           .doc(postId)
-          .update({
-        'isAvailable': isAvailable,
-      });
-      AppLogger.s('Post availability status updated ($postId): isAvailable=$isAvailable',
-          tag: 'POST_REPO');
+          .update({'isAvailable': isAvailable});
+      AppLogger.s(
+        'Post availability status updated ($postId): isAvailable=$isAvailable',
+        tag: 'POST_REPO',
+      );
     } catch (e) {
       throw 'Failed to update post availability status: $e';
     }
@@ -45,32 +51,33 @@ class PostRepository {
 
   // Stream pending posts for Admin Dashboard
   Stream<List<PostModel>> getPendingPostsStream() {
-    return _firestore
-        .collection(ApiConstants.postsCollection)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection(ApiConstants.postsCollection).snapshots().map((
+      snapshot,
+    ) {
       final posts = snapshot.docs
           .map((doc) => PostModel.fromMap(doc.data(), doc.id))
-          .where((post) =>
-              post.paymentStatus.trim().toLowerCase() == 'pending')
+          .where((post) => post.paymentStatus.trim().toLowerCase() == 'pending')
           .toList();
-      posts.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      posts.sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
       return posts;
     });
   }
 
   // Stream ALL mess posts for Admin Dashboard (Pending, Approved, Rejected)
   Stream<List<PostModel>> getAdminAllPostsStream() {
-    return _firestore
-        .collection(ApiConstants.postsCollection)
-        .snapshots()
-        .map((snapshot) {
+    return _firestore.collection(ApiConstants.postsCollection).snapshots().map((
+      snapshot,
+    ) {
       final posts = snapshot.docs
           .map((doc) => PostModel.fromMap(doc.data(), doc.id))
           .toList();
-      posts.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      posts.sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
       return posts;
     });
   }
@@ -81,10 +88,7 @@ class PostRepository {
       await _firestore
           .collection(ApiConstants.postsCollection)
           .doc(postId)
-          .update({
-        'isPublished': true,
-        'paymentStatus': 'approved',
-      });
+          .update({'isPublished': true, 'paymentStatus': 'approved'});
       AppLogger.s('Post approved successfully: $postId', tag: 'POST_REPO');
     } catch (e) {
       throw 'Failed to approve post: $e';
@@ -97,10 +101,7 @@ class PostRepository {
       await _firestore
           .collection(ApiConstants.postsCollection)
           .doc(postId)
-          .update({
-        'isPublished': false,
-        'paymentStatus': 'rejected',
-      });
+          .update({'isPublished': false, 'paymentStatus': 'rejected'});
       AppLogger.s('Post rejected: $postId', tag: 'POST_REPO');
     } catch (e) {
       throw 'Failed to reject post: $e';
@@ -114,13 +115,16 @@ class PostRepository {
         .where('ownerUid', isEqualTo: ownerUid)
         .snapshots()
         .map((snapshot) {
-      final posts = snapshot.docs
-          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
-          .toList();
-      posts.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return posts;
-    });
+          final posts = snapshot.docs
+              .map((doc) => PostModel.fromMap(doc.data(), doc.id))
+              .toList();
+          posts.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return posts;
+        });
   }
 
   // Add a new mess post
@@ -187,8 +191,10 @@ class PostRepository {
           .get()
           .timeout(const Duration(seconds: 5));
       if (snapshot.docs.isEmpty) {
-        AppLogger.i('No mess posts found, creating demo posts...',
-            tag: 'POST_REPO');
+        AppLogger.i(
+          'No mess posts found, creating demo posts...',
+          tag: 'POST_REPO',
+        );
         final List<PostModel> demoPosts = [
           PostModel(
             postId: 'demo_1',
@@ -201,11 +207,17 @@ class PostRepository {
             longitude: 90.3687,
             images: [
               'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
-              'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop'
+              'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?q=80&w=800&auto=format&fit=crop',
             ],
             seatCount: 2,
             bachelorType: 'male',
-            facilities: ['WiFi', 'Generator', 'Filtered Water', 'CCTV', 'Meal System'],
+            facilities: [
+              'WiFi',
+              'Generator',
+              'Filtered Water',
+              'CCTV',
+              'Meal System',
+            ],
             isAvailable: true,
             isPublished: true,
             paymentStatus: 'approved',
@@ -222,11 +234,18 @@ class PostRepository {
             longitude: 90.3795,
             images: [
               'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=800&auto=format&fit=crop',
-              'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop'
+              'https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=800&auto=format&fit=crop',
             ],
             seatCount: 1,
             bachelorType: 'female',
-            facilities: ['WiFi', 'Lift', 'Generator', 'CCTV', 'Attached Bathroom', 'Security Guard'],
+            facilities: [
+              'WiFi',
+              'Lift',
+              'Generator',
+              'CCTV',
+              'Attached Bathroom',
+              'Security Guard',
+            ],
             isAvailable: true,
             isPublished: true,
             paymentStatus: 'approved',
@@ -243,11 +262,18 @@ class PostRepository {
             longitude: 90.3772,
             images: [
               'https://images.unsplash.com/photo-1598928506311-c55ded91a20c?q=80&w=800&auto=format&fit=crop',
-              'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop'
+              'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?q=80&w=800&auto=format&fit=crop',
             ],
             seatCount: 3,
             bachelorType: 'both',
-            facilities: ['WiFi', 'Lift', 'Generator', 'Parking', 'Balcony', 'Meal System'],
+            facilities: [
+              'WiFi',
+              'Lift',
+              'Generator',
+              'Parking',
+              'Balcony',
+              'Meal System',
+            ],
             isAvailable: true,
             isPublished: true,
             paymentStatus: 'approved',
@@ -264,11 +290,17 @@ class PostRepository {
             longitude: 90.4066,
             images: [
               'https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?q=80&w=800&auto=format&fit=crop',
-              'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=800&auto=format&fit=crop'
+              'https://images.unsplash.com/photo-1493809842364-78817add7ffb?q=80&w=800&auto=format&fit=crop',
             ],
             seatCount: 2,
             bachelorType: 'male',
-            facilities: ['WiFi', 'Lift', 'Generator', 'Attached Bathroom', 'Filtered Water'],
+            facilities: [
+              'WiFi',
+              'Lift',
+              'Generator',
+              'Attached Bathroom',
+              'Filtered Water',
+            ],
             isAvailable: true,
             isPublished: true,
             paymentStatus: 'approved',
@@ -285,7 +317,10 @@ class PostRepository {
         AppLogger.s('Demo mess posts seeded successfully', tag: 'POST_REPO');
       }
     } catch (e) {
-      AppLogger.w('Failed to save demo posts (possibly offline): $e', tag: 'POST_REPO');
+      AppLogger.w(
+        'Failed to save demo posts (possibly offline): $e',
+        tag: 'POST_REPO',
+      );
     }
   }
 }
