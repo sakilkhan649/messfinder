@@ -10,7 +10,7 @@ import 'app_logger.dart';
 
 class ImgbbService {
   // TODO: Replace with your own ImgBB API Key from https://api.imgbb.com/
-  static const String _apiKey = '93b5f1a79a0a45989b8776bb14158866'; 
+  static const String _apiKey = '7dc645a72f0ce2d1d47497a1af02f620'; 
   final Uuid _uuid = const Uuid();
 
   /// Compresses and uploads an image to ImgBB
@@ -56,7 +56,7 @@ class ImgbbService {
         AppLogger.s('ImgBB Upload Success: $downloadUrl', tag: 'IMGBB_SVC');
         return downloadUrl;
       } else {
-        AppLogger.e('ImgBB Upload Failed: ${jsonResponse['error']['message']}', null, null, 'IMGBB_SVC');
+        AppLogger.e('ImgBB Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'IMGBB_SVC');
         return null;
       }
 

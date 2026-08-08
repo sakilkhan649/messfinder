@@ -186,25 +186,34 @@ class AuthRepository {
     try {
       AppLogger.i('Attempting to delete account for UID: $uid', tag: 'AUTH_REPO');
       
-      // 1. Delete user document from Firestore first
-      await _firestore
-          .collection(ApiConstants.usersCollection)
-          .doc(uid)
-          .delete()
-          .timeout(
+      User? user = _auth.currentUser;
+      if (user == null) {
+        throw 'No authenticated user found to delete.';
+      }
+
+      // 1. Backup user document from Firestore
+      final userDocRef = _firestore.collection(ApiConstants.usersCollection).doc(uid);
+      final userDocSnap = await userDocRef.get();
+      final userDataBackup = userDocSnap.data();
+
+      // 2. Delete user document from Firestore first
+      await userDocRef.delete().timeout(
             const Duration(seconds: 10),
             onTimeout: () => throw 'Timeout deleting user data from Firestore.',
           );
           
-      // 2. Delete user from Firebase Auth
-      User? user = _auth.currentUser;
-      if (user != null) {
+      // 3. Delete user from Firebase Auth
+      try {
         await user.delete().timeout(
           const Duration(seconds: 10),
           onTimeout: () => throw 'Timeout deleting user from Firebase Authentication.',
         );
-      } else {
-        throw 'No authenticated user found to delete.';
+      } catch (e) {
+        // If Auth deletion fails (e.g. requires-recent-login), restore the Firestore document
+        if (userDataBackup != null) {
+          await userDocRef.set(userDataBackup);
+        }
+        rethrow;
       }
 
       AppLogger.s('Account deleted successfully for UID: $uid', tag: 'AUTH_REPO');

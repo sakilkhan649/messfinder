@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mess_finder/core/utils/imgbb_service.dart';
 
 class ChatController extends GetxController {
   final _firestore = FirebaseFirestore.instance;
@@ -46,8 +48,8 @@ class ChatController extends GetxController {
           uid2: finalTargetName,
         },
         participantPhotos: {
-          if (currentUserPhoto != null) uid1: currentUserPhoto,
-          if (finalTargetPhoto != null) uid2: finalTargetPhoto,
+          uid1: ?currentUserPhoto,
+          uid2: ?finalTargetPhoto,
         },
         lastMessage: '',
         lastSenderId: '',
@@ -93,8 +95,8 @@ class ChatController extends GetxController {
 
   final RxBool isSending = false.obs;
 
-  Future<void> sendMessage(String chatRoomId, String text, String targetUserId) async {
-    if (text.trim().isEmpty) return;
+  Future<void> sendMessage(String chatRoomId, String text, String targetUserId, {String? imageUrl}) async {
+    if (text.trim().isEmpty && imageUrl == null) return;
 
     try {
       isSending.value = true;
@@ -108,6 +110,7 @@ class ChatController extends GetxController {
         id: messageRef.id,
         senderId: currentUserId,
         text: text.trim(),
+        imageUrl: imageUrl,
         createdAt: DateTime.now(),
       );
 
@@ -118,7 +121,7 @@ class ChatController extends GetxController {
       
       final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
       batch.update(chatRef, {
-        'lastMessage': message.text,
+        'lastMessage': imageUrl != null ? '📷 Image' : message.text,
         'lastMessageTime': FieldValue.serverTimestamp(),
         'lastSenderId': currentUserId,
         'unreadCounts.$targetUserId': FieldValue.increment(1),
@@ -127,6 +130,61 @@ class ChatController extends GetxController {
       await batch.commit();
     } finally {
       isSending.value = false;
+    }
+  }
+
+  Future<void> sendImageMessage(String chatRoomId, String targetUserId) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    
+    if (image == null) return;
+    
+    isSending.value = true;
+    try {
+      final imgbbService = ImgbbService();
+      final imageUrl = await imgbbService.uploadImage(image.path);
+      
+      if (imageUrl != null) {
+        await sendMessage(chatRoomId, '', targetUserId, imageUrl: imageUrl);
+      } else {
+        Get.snackbar('Error', 'Failed to upload image');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send image');
+    } finally {
+      isSending.value = false;
+    }
+  }
+
+  Future<void> editMessage(String chatRoomId, String messageId, String newText) async {
+    if (newText.trim().isEmpty) return;
+    try {
+      await _firestore
+          .collection(ApiConstants.chatsCollection)
+          .doc(chatRoomId)
+          .collection(ApiConstants.messagesCollection)
+          .doc(messageId)
+          .update({
+        'text': newText.trim(),
+        'isEdited': true,
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to edit message');
+    }
+  }
+
+  Future<void> deleteMessage(String chatRoomId, String messageId) async {
+    try {
+      await _firestore
+          .collection(ApiConstants.chatsCollection)
+          .doc(chatRoomId)
+          .collection(ApiConstants.messagesCollection)
+          .doc(messageId)
+          .update({
+        'isDeleted': true,
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to delete message');
     }
   }
 

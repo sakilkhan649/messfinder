@@ -283,10 +283,10 @@ class NotificationService {
         token: token,
         title: title,
         body: body,
-        data: {
+        data: <String, String>{
           'type': type.name,
           ...extraData,
-          if (relatedId != null) 'relatedId': relatedId,
+          'relatedId': ?relatedId,
         },
       );
     }
@@ -318,12 +318,17 @@ class NotificationService {
     return _firestore
         .collection('notifications')
         .where('receiverUid', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
-        .limit(50)
         .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
-            .toList());
+        .map((snap) {
+          final list = snap.docs
+              .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
+              .toList();
+          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return list;
+        })
+        .handleError((error) {
+          debugPrint('❌ Notifications stream error: $error');
+        });
   }
 
   // ── Unread count stream ──────────────────────────────────────────────────
@@ -331,8 +336,12 @@ class NotificationService {
     return _firestore
         .collection('notifications')
         .where('receiverUid', isEqualTo: uid)
-        .where('isRead', isEqualTo: false)
         .snapshots()
-        .map((snap) => snap.docs.length);
+        .map((snap) => snap.docs
+            .where((doc) => (doc.data()['isRead'] ?? false) == false)
+            .length)
+        .handleError((error) {
+          debugPrint('❌ Unread count stream error: $error');
+        });
   }
 }

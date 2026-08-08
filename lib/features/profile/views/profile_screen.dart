@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 
 import 'edit_profile_screen.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
@@ -44,6 +45,9 @@ class ProfileScreen extends StatelessWidget {
               color: Colors.white,
             ),
           ),
+          actions: const [
+            NotificationBellAction(),
+          ],
           iconTheme: const IconThemeData(color: Colors.white),
           centerTitle: true,
         ),

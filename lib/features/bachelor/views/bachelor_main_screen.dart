@@ -1,16 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
-import '../../notifications/controllers/notification_controller.dart';
-import '../../notifications/views/notifications_screen.dart';
 import 'bachelor_home_screen.dart';
 import 'mess_map_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
 import '../../profile/views/profile_screen.dart';
+import 'package:get/get.dart';
 
 class BachelorMainScreen extends StatefulWidget {
   final UserModel user;
@@ -54,126 +51,93 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
         },
         child: IndexedStack(index: _currentIndex, children: screens),
       ),
+      floatingActionButton: _isBottomNavVisible
+          ? FloatingActionButton(
+              onPressed: () {
+                // TODO: Add action for center button (e.g., Search or Add)
+                Get.snackbar('Action', 'Center button tapped',
+                    snackPosition: SnackPosition.TOP);
+              },
+              backgroundColor: primaryColor,
+              elevation: 4,
+              shape: const CircleBorder(),
+              child: Icon(Icons.eco_outlined, color: Colors.white, size: 28.r),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: AnimatedSlide(
         duration: const Duration(milliseconds: 300),
         offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
-        child: Container(
-          decoration: BoxDecoration(
+        child: Padding(
+          padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.h),
+          child: BottomAppBar(
             color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 15.r,
-                offset: Offset(0, -4.h),
+            elevation: 10,
+            notchMargin: 12,
+            shape: AutomaticNotchedShape(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(35.r),
               ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildNavItem(
-                    index: 0,
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    activeColor: primaryColor,
+              const CircleBorder(),
+            ),
+            padding: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              height: 70.h,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Left side
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildNavItem(
+                        index: 0,
+                        icon: Icons.home_outlined,
+                        activeIcon: Icons.home_rounded,
+                        label: 'Home',
+                        activeColor: primaryColor,
+                      ),
+                      _buildNavItem(
+                        index: 1,
+                        icon: Icons.location_on_outlined,
+                        activeIcon: Icons.location_on_rounded,
+                        label: 'Map',
+                        activeColor: primaryColor,
+                      ),
+                    ],
                   ),
-                  _buildNavItem(
-                    index: 1,
-                    icon: Icons.location_on_rounded,
-                    label: 'Map',
-                    activeColor: primaryColor,
+                ),
+                // Center space for FAB
+                SizedBox(width: 48.w),
+                // Right side
+                Expanded(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildNavItem(
+                        index: 2,
+                        icon: Icons.chat_bubble_outline_rounded,
+                        activeIcon: Icons.chat_bubble_rounded,
+                        label: 'Chats',
+                        activeColor: primaryColor,
+                      ),
+                      _buildNavItem(
+                        index: 3,
+                        icon: Icons.person_outline_rounded,
+                        activeIcon: Icons.person_rounded,
+                        label: 'Profile',
+                        activeColor: primaryColor,
+                      ),
+                    ],
                   ),
-                  _buildNavItem(
-                    index: 2,
-                    icon: Icons.chat_bubble_rounded,
-                    label: 'Chats',
-                    activeColor: primaryColor,
-                  ),
-                  // Notification Bell
-                  _buildNotificationBell(primaryColor),
-                  _buildNavItem(
-                    index: 3,
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    activeColor: primaryColor,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildNotificationBell(Color primaryColor) {
-    return Expanded(
-      child: InkWell(
-        onTap: () => Get.to(() => const NotificationsScreen(),
-            transition: Transition.rightToLeft),
-        borderRadius: BorderRadius.circular(16.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 4.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Obx(() {
-                final count = Get.isRegistered<NotificationController>()
-                    ? Get.find<NotificationController>().unreadCount.value
-                    : 0;
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 20.w, vertical: 6.h),
-                      child: Icon(
-                        Icons.notifications_rounded,
-                        size: 24.r,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                    if (count > 0)
-                      Positioned(
-                        right: 14.w,
-                        top: 2.h,
-                        child: Container(
-                          padding: EdgeInsets.all(3.r),
-                          constraints: BoxConstraints(minWidth: 16.r, minHeight: 16.r),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFEF4444),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: Text(
-                              count > 9 ? '9+' : '$count',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9.sp,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                );
-              }),
-              SizedBox(height: 4.h),
-              Text(
-                'Alerts',
-                style: GoogleFonts.poppins(
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -181,46 +145,40 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
   Widget _buildNavItem({
     required int index,
     required IconData icon,
+    required IconData activeIcon,
     required String label,
     required Color activeColor,
   }) {
     final isSelected = _currentIndex == index;
 
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
-        borderRadius: BorderRadius.circular(16.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 4.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 6.h),
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 55.w,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 28.r,
+              color: isSelected ? activeColor : Colors.grey.shade400,
+            ),
+            SizedBox(height: 6.h),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: isSelected ? 1.0 : 0.0,
+              child: Container(
+                height: 5.r,
+                width: 5.r,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? activeColor.withValues(alpha: 0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Icon(
-                  icon,
-                  size: 24.r,
-                  color: isSelected ? activeColor : Colors.grey.shade500,
+                  color: activeColor,
+                  shape: BoxShape.circle,
                 ),
               ),
-              SizedBox(height: 4.h),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 12.sp,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? activeColor : Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

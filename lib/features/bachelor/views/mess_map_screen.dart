@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
@@ -48,6 +49,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
             icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 24.r),
             onPressed: () => _postController.refreshPosts(),
           ),
+          const NotificationBellAction(),
         ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(64.h),
@@ -109,8 +111,8 @@ class _MessMapScreenState extends State<MessMapScreen> {
                   markers: activePosts.map((post) {
                     return Marker(
                       point: LatLng(post.latitude, post.longitude),
-                      width: 36.r,
-                      height: 36.r,
+                      width: 28.r,
+                      height: 28.r,
                       child: GestureDetector(
                         onTap: () => _showPostDetailsBottomSheet(context, post),
                         child: Container(
@@ -129,7 +131,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
                           child: Icon(
                             Icons.home_work_rounded,
                             color: Colors.white,
-                            size: 18.r,
+                            size: 14.r,
                           ),
                         ),
                       ),

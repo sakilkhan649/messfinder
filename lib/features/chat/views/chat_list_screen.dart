@@ -7,6 +7,7 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
+import 'package:mess_finder/features/notifications/views/widgets/notification_bell_action.dart';
 
 class ChatListScreen extends StatelessWidget {
   ChatListScreen({super.key});
@@ -37,6 +38,9 @@ class ChatListScreen extends StatelessWidget {
               fontSize: 20.sp,
             ),
           ),
+          actions: const [
+            NotificationBellAction(),
+          ],
         ),
         body: StreamBuilder<List<ChatRoomModel>>(
           stream: _chatController.getChatRooms(),

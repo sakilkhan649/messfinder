@@ -53,54 +53,80 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         },
         child: IndexedStack(index: _currentIndex, children: screens),
       ),
-      bottomNavigationBar: AnimatedSlide(
-        duration: const Duration(milliseconds: 300),
-        offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.08),
-                blurRadius: 15.r,
-                offset: Offset(0, -4.h),
+      floatingActionButton: _isBottomNavVisible
+          ? SizedBox(
+              height: 72.w,
+              width: 72.w,
+              child: FittedBox(
+                child: FloatingActionButton(
+                  onPressed: () => setState(() => _currentIndex = 2),
+                  backgroundColor: primaryEmerald,
+                  elevation: 4,
+                  shape: const CircleBorder(),
+                  child: Icon(Icons.add, color: Colors.white, size: 36.sp),
+                ),
               ),
-            ],
-          ),
-          child: SafeArea(
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 8.h),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(useMaterial3: false),
+        child: AnimatedSlide(
+          duration: const Duration(milliseconds: 300),
+          offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
+          child: BottomAppBar(
+            color: Colors.white,
+            elevation: 24, // High elevation for prominent shadow
+            shadowColor: Colors.black, // Pure black shadow
+            surfaceTintColor: Colors.transparent,
+            notchMargin: 10.w,
+            shape: const CircularNotchedRectangle(),
+            padding: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              child: SizedBox(
+                height: 70.h,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildNavItem(
-                    index: 0,
-                    icon: Icons.home_rounded,
-                    label: 'Home',
-                    activeColor: primaryEmerald,
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(
+                          index: 0,
+                          icon: Icons.home_outlined,
+                          activeIcon: Icons.home_rounded,
+                          activeColor: primaryEmerald,
+                        ),
+                        _buildNavItem(
+                          index: 1,
+                          icon: Icons.location_on_outlined,
+                          activeIcon: Icons.location_on_rounded,
+                          activeColor: primaryEmerald,
+                        ),
+                      ],
+                    ),
                   ),
-                  _buildNavItem(
-                    index: 1,
-                    icon: Icons.location_on_rounded,
-                    label: 'Map',
-                    activeColor: primaryEmerald,
-                  ),
-                  _buildCenterNavItem(
-                    index: 2,
-                    icon: Icons.add_rounded,
-                    activeColor: primaryEmerald,
-                  ),
-                  _buildNavItem(
-                    index: 3,
-                    icon: Icons.chat_bubble_rounded,
-                    label: 'Chats',
-                    activeColor: primaryEmerald,
-                  ),
-                  _buildNavItem(
-                    index: 4,
-                    icon: Icons.person_rounded,
-                    label: 'Profile',
-                    activeColor: primaryEmerald,
+                  SizedBox(width: 75.w), // Wider center space for the large 72x72 FAB
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildNavItem(
+                          index: 3,
+                          icon: Icons.chat_bubble_outline_rounded,
+                          activeIcon: Icons.chat_bubble_rounded,
+                          activeColor: primaryEmerald,
+                        ),
+                        _buildNavItem(
+                          index: 4,
+                          icon: Icons.person_outline_rounded,
+                          activeIcon: Icons.person_rounded,
+                          activeColor: primaryEmerald,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -108,88 +134,46 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildNavItem({
     required int index,
     required IconData icon,
-    required String label,
+    required IconData activeIcon,
     required Color activeColor,
   }) {
     final isSelected = _currentIndex == index;
 
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
-        borderRadius: BorderRadius.circular(16.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 4.h),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+    return GestureDetector(
+      onTap: () => setState(() => _currentIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 55.w,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 28.sp,
+              color: isSelected ? activeColor : Colors.black87,
+            ),
+            SizedBox(height: 6.h),
+            AnimatedOpacity(
+              duration: const Duration(milliseconds: 250),
+              opacity: isSelected ? 1.0 : 0.0,
+              child: Container(
+                height: 3.h,
+                width: 16.w,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? activeColor.withValues(alpha: 0.15)
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20.r),
-                ),
-                child: Icon(
-                  icon,
-                  size: 24.r,
-                  color: isSelected ? activeColor : Colors.grey.shade500,
+                  color: activeColor,
+                  borderRadius: BorderRadius.circular(1.5.r),
                 ),
               ),
-              SizedBox(height: 4.h),
-              Text(
-                label,
-                style: GoogleFonts.poppins(
-                  fontSize: 11.sp,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                  color: isSelected ? activeColor : Colors.grey.shade600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCenterNavItem({
-    required int index,
-    required IconData icon,
-    required Color activeColor,
-  }) {
-    // ignore: unused_local_variable
-    final isSelected = _currentIndex == index;
-
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
-        borderRadius: BorderRadius.circular(30.r),
-        child: Container(
-          margin: EdgeInsets.symmetric(horizontal: 8.w),
-          height: 48.h,
-          decoration: BoxDecoration(
-            color: activeColor,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: activeColor.withValues(alpha: 0.4),
-                blurRadius: 10.r,
-                offset: Offset(0, 4.h),
-              ),
-            ],
-          ),
-          child: Icon(
-            icon,
-            size: 28.r,
-            color: Colors.white,
-          ),
+            ),
+          ],
         ),
       ),
     );

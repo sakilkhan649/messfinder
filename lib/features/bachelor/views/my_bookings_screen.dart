@@ -9,6 +9,7 @@ import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/api_constants.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../models/booking_model.dart';
 import '../repositories/booking_repo.dart';
 
@@ -41,6 +42,9 @@ class MyBookingsScreen extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+        actions: const [
+          NotificationBellAction(),
+        ],
       ),
       body: uid.isEmpty
           ? Center(

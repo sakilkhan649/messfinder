@@ -4,12 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-
 import '../../../core/utils/image_helper.dart';
-
 import '../../auth/models/user_model.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
@@ -52,7 +51,7 @@ class BachelorHomeScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              actions: const [],
+              actions: const [NotificationBellAction()],
               bottom: PreferredSize(
                 preferredSize: Size.fromHeight(132.h),
                 child: Column(

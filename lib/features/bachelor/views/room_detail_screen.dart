@@ -9,6 +9,7 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
@@ -306,6 +307,14 @@ class RoomDetailScreen extends StatelessWidget {
                         ),
                         tooltip: 'Report Listing',
                       ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(right: 12.w),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const NotificationBellAction(),
                     ),
                   ],
                   flexibleSpace: FlexibleSpaceBar(

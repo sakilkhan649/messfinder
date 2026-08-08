@@ -3,6 +3,8 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../admin/views/utils/admin_colors.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../controllers/notification_controller.dart';
 import '../models/app_notification_model.dart';
 
@@ -12,11 +14,19 @@ class NotificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ctrl = Get.find<NotificationController>();
+    final authCtrl = Get.isRegistered<AuthController>()
+        ? Get.find<AuthController>()
+        : null;
+    final isAdmin = authCtrl?.currentUser.value?.isAdmin == true;
+
+    final Color primaryColor = isAdmin
+        ? AdminColors.accentDark
+        : const Color(0xFF059669);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF059669),
+        backgroundColor: primaryColor,
         elevation: 0,
         title: Text(
           'Notifications',
@@ -56,9 +66,12 @@ class NotificationsScreen extends StatelessWidget {
           separatorBuilder: (_, __) => SizedBox(height: 8.h),
           itemBuilder: (context, i) {
             return _NotificationTile(
-              notification: list[i],
-              onTap: () => ctrl.markRead(list[i].id),
-            ).animate().fadeIn(duration: 300.ms, delay: (i * 50).ms).slideY(
+                  notification: list[i],
+                  onTap: () => ctrl.markRead(list[i].id),
+                )
+                .animate()
+                .fadeIn(duration: 300.ms, delay: (i * 50).ms)
+                .slideY(
                   begin: 0.1,
                   end: 0,
                   duration: 300.ms,
@@ -129,7 +142,9 @@ class _NotificationTile extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(14.r),
         decoration: BoxDecoration(
-          color: notification.isRead ? Colors.white : color.withValues(alpha: 0.05),
+          color: notification.isRead
+              ? Colors.white
+              : color.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14.r),
           border: Border.all(
             color: notification.isRead

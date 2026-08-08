@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
-
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/models/user_model.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
@@ -37,10 +37,12 @@ class MyPostsScreen extends StatelessWidget {
           'My Posts',
           style: GoogleFonts.poppins(
             fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
+        actions: const [
+          NotificationBellAction(),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _onAddPostPressed(context),

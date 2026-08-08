@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../controllers/admin_controller.dart';
 import '../models/admin_nav_item_model.dart';
 import 'utils/admin_colors.dart';
@@ -77,6 +78,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ],
       ),
       actions: [
+        const NotificationBellAction(),
         IconButton(
           onPressed: () => _confirmLogout(),
           icon: Icon(Icons.logout_rounded, color: Colors.white, size: 22.r),

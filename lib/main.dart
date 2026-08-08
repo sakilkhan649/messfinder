@@ -27,8 +27,7 @@ void main() async {
   // Register FCM background message handler (must be top-level)
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
-  // Initialize NotificationService
-  await NotificationService().initialize();
+  // NotificationService will be initialized later to prevent blocking the UI thread
 
   runApp(const MessFinderApp());
 }

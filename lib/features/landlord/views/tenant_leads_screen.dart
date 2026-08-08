@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../bachelor/models/booking_model.dart';
 import '../controllers/tenant_leads_controller.dart';
 import '../models/post_model.dart';
@@ -41,6 +42,9 @@ class TenantLeadsScreen extends StatelessWidget {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
+        actions: const [
+          NotificationBellAction(),
+        ],
       ),
       body: StreamBuilder<List<BookingModel>>(
         stream: controller.getLeadsStream(post),

@@ -6,6 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
+import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
 
 class SavedPostsScreen extends StatelessWidget {
@@ -44,6 +45,9 @@ class SavedPostsScreen extends StatelessWidget {
               color: Colors.white,
             ),
           ),
+          actions: const [
+            NotificationBellAction(),
+          ],
         ),
         body: RefreshIndicator(
           color: rolePrimaryColor,
