@@ -3,7 +3,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../controllers/onboarding_controller.dart';
 
 class OnboardingScreen extends StatelessWidget {
@@ -51,38 +50,50 @@ class OnboardingScreen extends StatelessWidget {
                       children: [
                         // Animated Image
                         Image.asset(
-                          page.imagePath,
-                          height: 250.h,
-                          fit: BoxFit.contain,
-                        ).animate(target: 1).scale(
-                            duration: 500.ms, curve: Curves.easeOutBack),
-                        
+                              page.imagePath,
+                              height: 250.h,
+                              fit: BoxFit.contain,
+                            )
+                            .animate(target: 1)
+                            .scale(duration: 500.ms, curve: Curves.easeOutBack),
+
                         SizedBox(height: 60.h),
-                        
+
                         // Title
                         Text(
-                          page.title,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 24.sp,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF1E293B),
-                          ),
-                        ).animate().slideY(begin: 0.5, end: 0, duration: 400.ms).fade(),
-                        
+                              page.title,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 24.sp,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF1E293B),
+                              ),
+                            )
+                            .animate()
+                            .slideY(begin: 0.5, end: 0, duration: 400.ms)
+                            .fade(),
+
                         SizedBox(height: 20.h),
-                        
+
                         // Description
                         Text(
-                          page.description,
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w400,
-                            color: const Color(0xFF64748B),
-                            height: 1.5,
-                          ),
-                        ).animate().slideY(begin: 0.5, end: 0, duration: 400.ms, delay: 100.ms).fade(),
+                              page.description,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.w400,
+                                color: const Color(0xFF64748B),
+                                height: 1.5,
+                              ),
+                            )
+                            .animate()
+                            .slideY(
+                              begin: 0.5,
+                              end: 0,
+                              duration: 400.ms,
+                              delay: 100.ms,
+                            )
+                            .fade(),
                       ],
                     ),
                   );
@@ -94,8 +105,9 @@ class OnboardingScreen extends StatelessWidget {
             Padding(
               padding: EdgeInsets.all(40.w),
               child: Obx(() {
-                final isLastPage = controller.currentPage.value == controller.pages.length - 1;
-                
+                final isLastPage =
+                    controller.currentPage.value == controller.pages.length - 1;
+
                 return Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -107,11 +119,13 @@ class OnboardingScreen extends StatelessWidget {
                           duration: const Duration(milliseconds: 300),
                           margin: EdgeInsets.only(right: 8.w),
                           height: 8.h,
-                          width: controller.currentPage.value == index ? 24.w : 8.w,
+                          width: controller.currentPage.value == index
+                              ? 24.w
+                              : 8.w,
                           decoration: BoxDecoration(
                             color: controller.currentPage.value == index
                                 ? primaryColor
-                                : primaryColor.withValues(alpha: 0.2),
+                                : primaryColor.withOpacity(0.2),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                         ),
@@ -127,13 +141,15 @@ class OnboardingScreen extends StatelessWidget {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 300),
                         padding: EdgeInsets.symmetric(
-                            horizontal: isLastPage ? 24.w : 20.w, vertical: 12.h),
+                          horizontal: isLastPage ? 24.w : 20.w,
+                          vertical: 12.h,
+                        ),
                         decoration: BoxDecoration(
                           color: primaryColor,
                           borderRadius: BorderRadius.circular(30.r),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withValues(alpha: 0.3),
+                              color: primaryColor.withOpacity(0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),

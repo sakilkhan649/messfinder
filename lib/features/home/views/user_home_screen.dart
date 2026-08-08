@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import '../../bachelor/views/bachelor_home_screen.dart';
@@ -54,15 +53,15 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       ),
       floatingActionButton: _isBottomNavVisible
           ? SizedBox(
-              height: 72.w,
-              width: 72.w,
+              height: 72,
+              width: 72,
               child: FittedBox(
                 child: FloatingActionButton(
                   onPressed: () => setState(() => _currentIndex = 2),
                   backgroundColor: primaryEmerald,
                   elevation: 4,
                   shape: const CircleBorder(),
-                  child: Icon(Icons.add, color: Colors.white, size: 36.sp),
+                  child: const Icon(Icons.add, color: Colors.white, size: 36),
                 ),
               ),
             )
@@ -73,72 +72,63 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         child: AnimatedSlide(
           duration: const Duration(milliseconds: 300),
           offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
-          child: Container(
-            decoration: BoxDecoration(
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.15),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                  offset: const Offset(0, -2), // Shadow upwards
-                ),
-              ],
-            ),
-            child: BottomAppBar(
-              color: Colors.white,
-              elevation: 0,
-              surfaceTintColor: Colors.transparent,
-              notchMargin: 10.w,
-              shape: const CircularNotchedRectangle(),
-              padding: EdgeInsets.zero,
-              clipBehavior: Clip.antiAlias,
-              child: SafeArea(
-                child: SizedBox(
-                  height: 70.h,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildNavItem(
-                              index: 0,
-                              icon: Icons.home_outlined,
-                              activeIcon: Icons.home_rounded,
-                              activeColor: primaryEmerald,
-                            ),
-                            _buildNavItem(
-                              index: 1,
-                              icon: Icons.location_on_outlined,
-                              activeIcon: Icons.location_on_rounded,
-                              activeColor: primaryEmerald,
-                            ),
-                          ],
-                        ),
+          child: BottomAppBar(
+            color: Colors.white,
+            elevation: 24, // High elevation for prominent shadow
+            shadowColor: Colors.black, // Pure black shadow
+            surfaceTintColor: Colors.transparent,
+            notchMargin: 10,
+            shape: const CircularNotchedRectangle(),
+            padding: EdgeInsets.zero,
+            clipBehavior: Clip.antiAlias,
+            child: SafeArea(
+              child: SizedBox(
+                height: 70,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildNavItem(
+                            index: 0,
+                            icon: Icons.home_outlined,
+                            activeIcon: Icons.home_rounded,
+                            activeColor: primaryEmerald,
+                          ),
+                          _buildNavItem(
+                            index: 1,
+                            icon: Icons.location_on_outlined,
+                            activeIcon: Icons.location_on_rounded,
+                            activeColor: primaryEmerald,
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 75.w), // Center space for the FAB
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            _buildNavItem(
-                              index: 3,
-                              icon: Icons.chat_bubble_outline_rounded,
-                              activeIcon: Icons.chat_bubble_rounded,
-                              activeColor: primaryEmerald,
-                            ),
-                            _buildNavItem(
-                              index: 4,
-                              icon: Icons.person_outline_rounded,
-                              activeIcon: Icons.person_rounded,
-                              activeColor: primaryEmerald,
-                            ),
-                          ],
-                        ),
+                    ),
+                    const SizedBox(
+                      width: 75,
+                    ), // Wider center space for the large 72x72 FAB
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildNavItem(
+                            index: 3,
+                            icon: Icons.chat_bubble_outline_rounded,
+                            activeIcon: Icons.chat_bubble_rounded,
+                            activeColor: primaryEmerald,
+                          ),
+                          _buildNavItem(
+                            index: 4,
+                            icon: Icons.person_outline_rounded,
+                            activeIcon: Icons.person_rounded,
+                            activeColor: primaryEmerald,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -160,26 +150,26 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       onTap: () => setState(() => _currentIndex = index),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 55.w,
+        width: 55,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               isSelected ? activeIcon : icon,
-              size: 28.sp,
+              size: 28,
               color: isSelected ? activeColor : Colors.black87,
             ),
-            SizedBox(height: 6.h),
+            const SizedBox(height: 6),
             AnimatedOpacity(
               duration: const Duration(milliseconds: 250),
               opacity: isSelected ? 1.0 : 0.0,
               child: Container(
-                height: 3.h,
-                width: 16.w,
+                height: 3,
+                width: 16,
                 decoration: BoxDecoration(
                   color: activeColor,
-                  borderRadius: BorderRadius.circular(1.5.r),
+                  borderRadius: BorderRadius.circular(1.5),
                 ),
               ),
             ),
