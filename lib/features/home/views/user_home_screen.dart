@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import '../../bachelor/views/bachelor_home_screen.dart';
@@ -74,69 +73,80 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
         child: AnimatedSlide(
           duration: const Duration(milliseconds: 300),
           offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
-          child: BottomAppBar(
-            color: Colors.white,
-            elevation: 24, // High elevation for prominent shadow
-            shadowColor: Colors.black, // Pure black shadow
-            surfaceTintColor: Colors.transparent,
-            notchMargin: 10.w,
-            shape: const CircularNotchedRectangle(),
-            padding: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: SafeArea(
-              child: SizedBox(
-                height: 70.h,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildNavItem(
-                          index: 0,
-                          icon: Icons.home_outlined,
-                          activeIcon: Icons.home_rounded,
-                          activeColor: primaryEmerald,
+          child: Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 10,
+                  spreadRadius: 2,
+                  offset: const Offset(0, -2), // Shadow upwards
+                ),
+              ],
+            ),
+            child: BottomAppBar(
+              color: Colors.white,
+              elevation: 0,
+              surfaceTintColor: Colors.transparent,
+              notchMargin: 10.w,
+              shape: const CircularNotchedRectangle(),
+              padding: EdgeInsets.zero,
+              clipBehavior: Clip.antiAlias,
+              child: SafeArea(
+                child: SizedBox(
+                  height: 70.h,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildNavItem(
+                              index: 0,
+                              icon: Icons.home_outlined,
+                              activeIcon: Icons.home_rounded,
+                              activeColor: primaryEmerald,
+                            ),
+                            _buildNavItem(
+                              index: 1,
+                              icon: Icons.location_on_outlined,
+                              activeIcon: Icons.location_on_rounded,
+                              activeColor: primaryEmerald,
+                            ),
+                          ],
                         ),
-                        _buildNavItem(
-                          index: 1,
-                          icon: Icons.location_on_outlined,
-                          activeIcon: Icons.location_on_rounded,
-                          activeColor: primaryEmerald,
+                      ),
+                      SizedBox(width: 75.w), // Center space for the FAB
+                      Expanded(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildNavItem(
+                              index: 3,
+                              icon: Icons.chat_bubble_outline_rounded,
+                              activeIcon: Icons.chat_bubble_rounded,
+                              activeColor: primaryEmerald,
+                            ),
+                            _buildNavItem(
+                              index: 4,
+                              icon: Icons.person_outline_rounded,
+                              activeIcon: Icons.person_rounded,
+                              activeColor: primaryEmerald,
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 75.w), // Wider center space for the large 72x72 FAB
-                  Expanded(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildNavItem(
-                          index: 3,
-                          icon: Icons.chat_bubble_outline_rounded,
-                          activeIcon: Icons.chat_bubble_rounded,
-                          activeColor: primaryEmerald,
-                        ),
-                        _buildNavItem(
-                          index: 4,
-                          icon: Icons.person_outline_rounded,
-                          activeIcon: Icons.person_rounded,
-                          activeColor: primaryEmerald,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildNavItem({
     required int index,
