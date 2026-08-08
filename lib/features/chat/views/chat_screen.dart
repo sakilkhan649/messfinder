@@ -55,11 +55,11 @@ class _ChatScreenState extends State<ChatScreen> {
       final isLandlord = _authController.currentUser.value?.isLandlord ?? false;
       final Color rolePrimaryColor = isLandlord
           ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF1E1B4B); // Deep Indigo for Bachelor
+          : const Color(0xFF059669); // Deep Indigo for Bachelor
       final LinearGradient rolePrimaryGradient = LinearGradient(
         colors: isLandlord
             ? [const Color(0xFF059669), const Color(0xFF10B981)]
-            : [const Color(0xFF1E1B4B), const Color(0xFF312E81)],
+            : [const Color(0xFF059669), const Color(0xFF047857)],
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
@@ -290,11 +290,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.send_rounded,
-                  color: Colors.white,
-                  size: 20.r,
-                ),
+                child: Obx(() => _chatController.isSending.value
+                    ? SizedBox(
+                        height: 20.r,
+                        width: 20.r,
+                        child: const CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                        size: 20.r,
+                      )),
               ),
             ),
           ],

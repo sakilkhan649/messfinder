@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import 'landlord_home_screen.dart';
-import 'tenant_leads_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
+import '../../profile/views/profile_screen.dart';
 
 class LandlordMainScreen extends StatefulWidget {
   final UserModel user;
@@ -24,9 +24,9 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
     const emeraldTheme = Color(0xFF059669);
 
     final List<Widget> screens = [
-      LandlordHomeScreen(user: widget.user),
-      const TenantLeadsScreen(),
+      MyPostsScreen(user: widget.user),
       ChatListScreen(),
+      ProfileScreen(user: widget.user),
     ];
 
     return Scaffold(
@@ -57,14 +57,14 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                 ),
                 _buildNavItem(
                   index: 1,
-                  icon: Icons.people_alt_rounded,
-                  label: 'Requests',
+                  icon: Icons.chat_rounded,
+                  label: 'Chats',
                   activeColor: emeraldTheme,
                 ),
                 _buildNavItem(
                   index: 2,
-                  icon: Icons.chat_rounded,
-                  label: 'Chats',
+                  icon: Icons.person_rounded,
+                  label: 'Profile',
                   activeColor: emeraldTheme,
                 ),
               ],

@@ -6,36 +6,72 @@ import '../models/booking_model.dart';
 class BookingRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Create a new booking request
+  // Create a new booking request and update post availability
   Future<String> createBooking(BookingModel booking) async {
     try {
-      AppLogger.i('Saving booking request (PostId: ${booking.postId})', tag: 'BOOKING_REPO');
-      final docRef = _firestore.collection(ApiConstants.bookingsCollection).doc();
+      AppLogger.i(
+        'Saving booking request (PostId: ${booking.postId})',
+        tag: 'BOOKING_REPO',
+      );
+      final docRef = _firestore
+          .collection(ApiConstants.bookingsCollection)
+          .doc();
       final bookingWithId = booking.copyWith(bookingId: docRef.id);
-      await docRef.set(bookingWithId.toMap());
-      AppLogger.s('Booking request saved successfully', tag: 'BOOKING_REPO');
+
+      await _firestore.runTransaction((transaction) async {
+        // 1. Read: Get the Post document FIRST
+        final postRef = _firestore
+            .collection(ApiConstants.postsCollection)
+            .doc(booking.postId);
+        final postSnapshot = await transaction.get(postRef);
+
+        // 2. Write: Save the booking
+        transaction.set(docRef, bookingWithId.toMap());
+
+        // 3. Write: Update Post availability
+        if (postSnapshot.exists) {
+          // Forcefully set to unavailable so no one else can book it
+          transaction.update(postRef, {'seatCount': 0, 'isAvailable': false});
+        }
+      });
+
+      AppLogger.s(
+        'Booking request saved successfully and post updated',
+        tag: 'BOOKING_REPO',
+      );
       return docRef.id;
     } catch (e, stack) {
-      AppLogger.e('Failed to save booking request: $e', e, stack, 'BOOKING_REPO');
+      AppLogger.e(
+        'Failed to save booking request: $e',
+        e,
+        stack,
+        'BOOKING_REPO',
+      );
       throw 'Failed to save booking request: $e';
     }
   }
 
   // Stream booking status for a specific post & bachelor
-  Stream<List<BookingModel>> getBookingStreamForPost(String postId, String bachelorUid) {
+  Stream<List<BookingModel>> getBookingStreamForPost(
+    String postId,
+    String bachelorUid,
+  ) {
     return _firestore
         .collection(ApiConstants.bookingsCollection)
         .where('postId', isEqualTo: postId)
         .where('bachelorUid', isEqualTo: bachelorUid)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Stream pending bookings for Admin Dashboard
@@ -44,14 +80,17 @@ class BookingRepository {
         .collection(ApiConstants.bookingsCollection)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .where((booking) => booking.paymentStatus == 'pending')
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .where((booking) => booking.paymentStatus == 'pending')
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Stream ALL bookings (pending, approved, rejected) for Admin Dashboard
@@ -60,13 +99,16 @@ class BookingRepository {
         .collection(ApiConstants.bookingsCollection)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Stream all bookings for a specific bachelor (My Bookings screen)
@@ -76,13 +118,16 @@ class BookingRepository {
         .where('bachelorUid', isEqualTo: bachelorUid)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Stream all leads for a specific landlord
@@ -92,13 +137,16 @@ class BookingRepository {
         .where('landlordUid', isEqualTo: landlordUid)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Stream all leads for a specific mess post
@@ -108,13 +156,16 @@ class BookingRepository {
         .where('postId', isEqualTo: postId)
         .snapshots()
         .map((snapshot) {
-      final bookings = snapshot.docs
-          .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
-          .toList();
-      bookings.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
-      return bookings;
-    });
+          final bookings = snapshot.docs
+              .map((doc) => BookingModel.fromMap(doc.data(), doc.id))
+              .toList();
+          bookings.sort(
+            (a, b) => (b.createdAt ?? DateTime(0)).compareTo(
+              a.createdAt ?? DateTime(0),
+            ),
+          );
+          return bookings;
+        });
   }
 
   // Approve a booking by Admin
@@ -123,10 +174,7 @@ class BookingRepository {
       await _firestore
           .collection(ApiConstants.bookingsCollection)
           .doc(bookingId)
-          .update({
-        'isUnlocked': true,
-        'paymentStatus': 'approved',
-      });
+          .update({'isUnlocked': true, 'paymentStatus': 'approved'});
       AppLogger.s('Booking approved: $bookingId', tag: 'BOOKING_REPO');
     } catch (e) {
       throw 'Failed to approve booking: $e';
@@ -139,10 +187,7 @@ class BookingRepository {
       await _firestore
           .collection(ApiConstants.bookingsCollection)
           .doc(bookingId)
-          .update({
-        'isUnlocked': false,
-        'paymentStatus': 'rejected',
-      });
+          .update({'isUnlocked': false, 'paymentStatus': 'rejected'});
       AppLogger.s('Booking rejected: $bookingId', tag: 'BOOKING_REPO');
     } catch (e) {
       throw 'Failed to reject booking: $e';

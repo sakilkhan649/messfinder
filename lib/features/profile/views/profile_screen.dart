@@ -4,11 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
 
 import 'edit_profile_screen.dart';
+import '../../admin/views/admin_dashboard_screen.dart';
+import '../../bachelor/views/my_bookings_screen.dart';
+import '../../bachelor/views/saved_posts_screen.dart';
+import '../../landlord/views/landlord_home_screen.dart';
+import '../../landlord/views/tenant_leads_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final UserModel user;
@@ -25,7 +29,7 @@ class ProfileScreen extends StatelessWidget {
       final isLandlord = activeUser.isLandlord;
       final Color primaryColor = isLandlord
           ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF1E1B4B); // Deep Indigo for Bachelor
+          : const Color(0xFF059669); // Deep Indigo for Bachelor
 
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
@@ -43,9 +47,19 @@ class ProfileScreen extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           centerTitle: true,
         ),
-        body: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          child: Column(
+        body: RefreshIndicator(
+          color: primaryColor,
+          onRefresh: () async {
+            if (Get.isRegistered<AuthController>()) {
+              final authCtrl = Get.find<AuthController>();
+              await authCtrl.fetchUserData(authCtrl.currentUser.value?.uid ?? user.uid);
+            } else {
+              await Future.delayed(const Duration(seconds: 1));
+            }
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            child: Column(
             children: [
               // Profile Header
               Container(
@@ -144,18 +158,39 @@ class ProfileScreen extends StatelessWidget {
                       index: 0,
                     ),
                     _buildMenuItem(
-                      icon: isLandlord ? Icons.person_search_rounded : Icons.home_work_rounded,
-                      title: isLandlord ? 'Switch to Bachelor' : 'Switch to Landlord',
-                      onTap: () {
-                        final authCtrl = Get.find<AuthController>();
-                        if (isLandlord) {
-                          authCtrl.switchRole(AppConstants.roleBachelor);
-                        } else {
-                          authCtrl.switchRole(AppConstants.roleLandlord);
-                        }
-                      },
+                      icon: Icons.bookmark_rounded,
+                      title: 'My Bookings',
+                      onTap: () => Get.to(() => const MyBookingsScreen()),
                       index: 1,
                     ),
+                    _buildMenuItem(
+                      icon: Icons.bedroom_parent_rounded,
+                      title: 'My Posts',
+                      onTap: () => Get.to(() => MyPostsScreen(user: activeUser)),
+                      index: 2,
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.favorite_rounded,
+                      title: 'Saved Posts',
+                      onTap: () => Get.to(() => const SavedPostsScreen()),
+                      index: 3,
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.people_alt_rounded,
+                      title: 'Room Requests',
+                      onTap: () => Get.to(() => const TenantLeadsScreen()),
+                      index: 4,
+                    ),
+
+                    // Admin Portal — শুধু admin user-দের জন্য
+                    if (activeUser.isAdmin)
+                      _buildMenuItem(
+                        icon: Icons.admin_panel_settings_rounded,
+                        title: 'Admin Portal',
+                        onTap: () => Get.to(() => const AdminDashboardScreen()),
+                        index: 4,
+                      ),
+
                     _buildMenuItem(
                       icon: Icons.help_outline_rounded,
                       title: 'Help & Support',
@@ -172,7 +207,7 @@ class ProfileScreen extends StatelessWidget {
                         buttonColor: primaryColor,
                         onConfirm: () => Get.back(),
                       ),
-                      index: 2,
+                      index: 5,
                     ),
 
                     SizedBox(height: 32.h),
@@ -205,12 +240,42 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    SizedBox(height: 16.h),
+                    
+                    // Delete Account
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50.h,
+                      child: TextButton.icon(
+                        onPressed: () => _showDeleteAccountDialog(),
+                        icon: Icon(
+                          Icons.delete_forever_rounded,
+                          color: Colors.red.shade400,
+                          size: 20.r,
+                        ),
+                        label: Text(
+                          'Delete Account',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade400,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                            side: BorderSide(color: Colors.red.shade200),
+                          ),
+                        ),
+                      ),
+                    ),
                     SizedBox(height: 40.h),
                   ],
                 ),
               ),
             ],
           ),
+        ),
         ),
       );
     });
@@ -285,6 +350,29 @@ class ProfileScreen extends StatelessWidget {
       radius: 12.r,
       onConfirm: () {
         Get.find<AuthController>().logout();
+      },
+    );
+  }
+
+  void _showDeleteAccountDialog() {
+    Get.defaultDialog(
+      title: 'Delete Account',
+      titleStyle: GoogleFonts.poppins(
+        fontWeight: FontWeight.bold,
+        fontSize: 18.sp,
+        color: Colors.red.shade600,
+      ),
+      middleText: 'Are you sure you want to permanently delete your account? This action cannot be undone and all your data will be lost.',
+      middleTextStyle: GoogleFonts.poppins(fontSize: 13.sp),
+      textConfirm: 'Delete Permanently',
+      textCancel: 'Cancel',
+      cancelTextColor: Colors.grey.shade700,
+      confirmTextColor: Colors.white,
+      buttonColor: Colors.red.shade600,
+      radius: 12.r,
+      onConfirm: () {
+        Get.back();
+        Get.find<AuthController>().deleteMyAccount();
       },
     );
   }

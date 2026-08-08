@@ -27,41 +27,57 @@ class _MessMapScreenState extends State<MessMapScreen> {
   @override
   Widget build(BuildContext context) {
     const emeraldTheme = Color(0xFF059669);
-    final Color primaryColor = const Color(0xFF1E1B4B);
+    final Color primaryColor = const Color(0xFF059669);
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
-        titleSpacing: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
-          onPressed: () => Get.back(),
-        ),
-        title: Container(
-          height: 40.h,
-          margin: EdgeInsets.only(right: 16.w),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8.r),
+        automaticallyImplyLeading: false,
+        titleSpacing: 16.w,
+        title: Text(
+          'Map View',
+          style: GoogleFonts.poppins(
+            fontSize: 18.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
-          child: TextField(
-            onChanged: (val) => _postController.searchQuery.value = val,
-            style: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.white),
-            cursorColor: Colors.white,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.transparent,
-              hintText: 'Search rooms, areas...',
-              hintStyle: GoogleFonts.poppins(
-                fontSize: 13.sp,
-                color: Colors.white70,
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 24.r),
+            onPressed: () => _postController.refreshPosts(),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(64.h),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+            child: Container(
+              height: 42.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8.r),
               ),
-              prefixIcon: Icon(Icons.search_rounded, color: Colors.white70, size: 20.r),
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+              child: TextField(
+                onChanged: (val) => _postController.searchQuery.value = val,
+                style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  hintText: 'Search rooms, areas...',
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 14.sp,
+                    color: Colors.white70,
+                  ),
+                  prefixIcon: Icon(Icons.search_rounded, color: Colors.white70, size: 22.r),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                ),
+              ),
             ),
           ),
         ),

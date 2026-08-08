@@ -4,7 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../core/utils/firebase_storage_service.dart';
+import '../../../core/utils/imgbb_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
@@ -103,10 +103,13 @@ class PostController extends GetxController {
   Future<void> _initPosts() async {
     isLoading.value = true;
     try {
-      await _postRepo.seedDemoPostsIfNeeded();
-    } catch (e) {
-      AppLogger.w('Seed demo posts failed/timed out: $e', tag: 'POST_CTRL');
-    }
+      final demoIds = ['demo_1', 'demo_2', 'demo_3', 'demo_4'];
+      for (final id in demoIds) {
+        await _postRepo.deletePost(id);
+      }
+      AppLogger.s('DELETED DEMO POSTS FROM FIREBASE', tag: 'POST_CTRL');
+    } catch(e) {}
+
 
     _loadSavedPostsFromFirebase();
 
@@ -123,14 +126,13 @@ class PostController extends GetxController {
       }
     });
 
-    // If landlord is logged in, listen to their posts
+    // Listen to current user's posts
     if (Get.isRegistered<AuthController>()) {
       final auth = Get.find<AuthController>();
       ever(auth.currentUser, (_) {
         _loadSavedPostsFromFirebase();
       });
-      if (auth.currentUser.value != null &&
-          auth.currentUser.value!.isLandlord) {
+      if (auth.currentUser.value != null) {
         _postRepo.getLandlordPostsStream(auth.currentUser.value!.uid).listen((
           posts,
         ) {
@@ -260,7 +262,7 @@ class PostController extends GetxController {
   }
 
   // Add a new Mess Post (Landlord)
-  Future<void> addMessPost({
+  Future<bool> addMessPost({
     required String title,
     required double rent,
     required String address,
@@ -278,50 +280,50 @@ class PostController extends GetxController {
     final user = auth.currentUser.value;
     if (user == null) {
       ApiChecker.showError('Please log in again');
-      return;
+      return false;
     }
 
     try {
       isLoading.value = true;
       
-      final storageService = FirebaseStorageService();
+      final storageService = ImgbbService();
       final List<String> finalImageUrls = [];
       
       for (String path in images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
         } else {
-          final url = await storageService.uploadPostImage(path);
+          final url = await storageService.uploadImage(path);
           if (url != null) {
             finalImageUrls.add(url);
           }
         }
       }
 
-      final newPost = PostModel(
-        postId: '',
-        ownerUid: user.uid,
-        ownerPhone: (ownerPhone != null && ownerPhone.trim().isNotEmpty)
-            ? ownerPhone.trim()
-            : user.phone,
-        title: title,
-        rent: rent,
-        address: address,
-        latitude: 23.8103,
-        longitude: 90.4125,
-        images: finalImageUrls.isEmpty
-            ? [
-                'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?q=80&w=800&auto=format&fit=crop',
-              ]
-            : finalImageUrls,
-        seatCount: seatCount,
-        seatDescription: seatDescription,
-        bachelorType: bachelorType,
+        if (finalImageUrls.isEmpty && images.isNotEmpty) {
+          throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
+        }
+
+        final newPost = PostModel(
+          postId: '',
+          ownerUid: user.uid,
+          ownerPhone: (ownerPhone != null && ownerPhone.trim().isNotEmpty)
+              ? ownerPhone.trim()
+              : user.phone,
+          title: title,
+          rent: rent,
+          address: address,
+          latitude: 23.8103,
+          longitude: 90.4125,
+          images: finalImageUrls,
+          seatCount: seatCount,
+          seatDescription: seatDescription,
+          bachelorType: bachelorType,
         preferredTenant: preferredTenant,
         facilities: facilities,
         isAvailable: true,
-        isPublished: false,
-        paymentStatus: 'pending',
+        isPublished: true,
+        paymentStatus: 'approved',
         paymentTrxId: trxId,
         senderNumber: senderNumber,
         createdAt: DateTime.now(),
@@ -329,39 +331,46 @@ class PostController extends GetxController {
 
       await _postRepo.addPost(newPost);
       ApiChecker.showSuccess(
-        'Room listing submitted for review! ⏳ It will go live once payment is verified.',
+        'Room listing published successfully! 🎉',
       );
+      return true;
     } catch (e) {
       ApiChecker.showError(e.toString());
+      return false;
     } finally {
       isLoading.value = false;
     }
   }
 
   // Update an existing Mess Post
-  Future<void> updateMessPost(PostModel updatedPost) async {
+  Future<bool> updateMessPost(PostModel updatedPost) async {
     try {
       isLoading.value = true;
       
-      final storageService = FirebaseStorageService();
+      final storageService = ImgbbService();
       final List<String> finalImageUrls = [];
       
       for (String path in updatedPost.images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
         } else {
-          final url = await storageService.uploadPostImage(path);
+          final url = await storageService.uploadImage(path);
           if (url != null) {
             finalImageUrls.add(url);
           }
         }
       }
       
-      final finalPost = updatedPost.copyWith(images: finalImageUrls);
-      await _postRepo.updatePost(finalPost);
+      if (finalImageUrls.isEmpty && updatedPost.images.isNotEmpty) {
+        throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
+      }
+      
+      await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls));
       ApiChecker.showSuccess('Room listing updated successfully! 🎉');
+      return true;
     } catch (e) {
       ApiChecker.showError(e.toString());
+      return false;
     } finally {
       isLoading.value = false;
     }

@@ -20,7 +20,7 @@ class SavedPostsScreen extends StatelessWidget {
       final isLandlord = authController.currentUser.value?.isLandlord ?? false;
       final rolePrimaryColor = isLandlord
           ? const Color(0xFF059669)
-          : const Color(0xFF1E1B4B);
+          : const Color(0xFF059669);
 
       final posts = postController.savedPosts;
       print('DEBUG: SavedPostsScreen built. allPosts=${postController.allPosts.length}, savedPostIds=${postController.savedPostIds.length}, savedPosts=${posts.length}');
@@ -31,6 +31,10 @@ class SavedPostsScreen extends StatelessWidget {
           backgroundColor: rolePrimaryColor,
           elevation: 0,
           iconTheme: const IconThemeData(color: Colors.white),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20.r),
+            onPressed: () => Get.back(),
+          ),
           centerTitle: true,
           title: Text(
             'Saved Messes',
@@ -41,48 +45,58 @@ class SavedPostsScreen extends StatelessWidget {
             ),
           ),
         ),
-        body: posts.isEmpty
-            ? Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.r),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(24.r),
-                        decoration: BoxDecoration(
-                          color: rolePrimaryColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.favorite_border_rounded,
-                          size: 56.r,
-                          color: rolePrimaryColor,
-                        ),
+        body: RefreshIndicator(
+          color: rolePrimaryColor,
+          onRefresh: () async {
+            await postController.refreshPosts();
+          },
+          child: posts.isEmpty
+              ? SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * 0.8,
+                    alignment: Alignment.center,
+                    child: Padding(
+                      padding: EdgeInsets.all(32.r),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: EdgeInsets.all(24.r),
+                            decoration: BoxDecoration(
+                              color: rolePrimaryColor.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.favorite_border_rounded,
+                              size: 56.r,
+                              color: rolePrimaryColor,
+                            ),
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            'No Saved Messes',
+                            style: GoogleFonts.poppins(
+                              fontSize: 18.sp,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          SizedBox(height: 8.h),
+                          Text(
+                            'Tap the heart icon on any mess card in your feed to save it here for quick access.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14.sp,
+                              color: AppTheme.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: 16.h),
-                      Text(
-                        'No Saved Messes',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'Tap the heart icon on any mess card in your feed to save it here for quick access.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
-                          fontSize: 14.sp,
-                          color: AppTheme.textSecondary,
-                          height: 1.5,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              )
+                )
             : ListView.builder(
               padding: EdgeInsets.all(16.r),
               itemCount: posts.length,
@@ -103,20 +117,13 @@ class SavedPostsScreen extends StatelessWidget {
                         transition: Transition.rightToLeft,
                       );
                     },
-                    child: Container(
-                      margin: EdgeInsets.only(bottom: 16.h),
-                      padding: EdgeInsets.all(12.r),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 12.r,
-                            offset: Offset(0, 4.h),
+                    child: Column(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(12.r),
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -365,11 +372,15 @@ class SavedPostsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                );
+                    ), // Close Container
+                    Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+                  ],
+                ), // Close Column
+              ), // Close GestureDetector
+            ); // Close Dismissible
               },
             ),
+        ),
       );
     });
   }

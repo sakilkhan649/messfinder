@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import '../../auth/views/role_selection_screen.dart';
+import '../../../core/middlewares/auth_middleware.dart';
 
 class SplashController extends GetxController {
   @override
@@ -10,6 +10,6 @@ class SplashController extends GetxController {
 
   void _navigateToNext() async {
     await Future.delayed(const Duration(milliseconds: 2500));
-    Get.off(() => const RoleSelectionScreen(), transition: Transition.fadeIn);
+    await AuthMiddleware.checkAuthAndNavigate();
   }
 }

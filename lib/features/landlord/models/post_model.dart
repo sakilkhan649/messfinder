@@ -40,8 +40,8 @@ class PostModel {
     this.isAvailable = true,
     this.createdAt,
     this.ownerPhone,
-    this.paymentStatus = 'pending',
-    this.isPublished = false,
+    this.paymentStatus = 'approved',
+    this.isPublished = true,
     this.paymentTrxId,
     this.senderNumber,
   }) : _preferredTenant = preferredTenant; // ignore: prefer_initializing_formals

@@ -1,15 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_constants.dart';
-import '../../../core/utils/firebase_storage_service.dart';
+import '../../../core/utils/imgbb_service.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../home/views/user_home_screen.dart';
+import '../../notifications/controllers/notification_controller.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repo.dart';
 import '../views/login_screen.dart';
-import '../views/role_selection_screen.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepo = AuthRepository();
@@ -79,9 +80,18 @@ class AuthController extends GetxController {
           }
 
           // Sync role: update users doc if selected role is different
-          if (selectedRole.value != AppConstants.roleAdmin &&
+          // IMPORTANT: Never override an admin user's role
+          if (userData.role != AppConstants.roleAdmin &&
+              selectedRole.value != AppConstants.roleAdmin &&
               userData.role != selectedRole.value) {
             updatedUser = updatedUser.copyWith(role: selectedRole.value);
+            await _authRepo.saveUserData(updatedUser);
+          }
+
+          // If logging in via admin dialog but role was corrupted, restore it
+          if (selectedRole.value == AppConstants.roleAdmin &&
+              updatedUser.role != AppConstants.roleAdmin) {
+            updatedUser = updatedUser.copyWith(role: AppConstants.roleAdmin);
             await _authRepo.saveUserData(updatedUser);
           }
 
@@ -199,14 +209,37 @@ class AuthController extends GetxController {
   }
 
   void handleNavigation(UserModel user) {
-    if (user.isAdmin || selectedRole.value == AppConstants.roleAdmin) {
-      // Step 4 - Navigate to Admin Dashboard
+    // Save FCM token & subscribe to role-based topic
+    _setupNotificationsForUser(user);
+
+    // Always use the actual user role from Firestore, NOT selectedRole
+    if (user.isAdmin) {
       Get.offAll(() => const AdminDashboardScreen(),
           transition: Transition.rightToLeft);
     } else {
-      // Action-based payment model: users explore app immediately!
+      // Reset selectedRole to match actual user role
+      selectedRole.value = user.role;
       Get.offAll(() => UserHomeScreen(user: user),
           transition: Transition.rightToLeft);
+    }
+  }
+
+  Future<void> _setupNotificationsForUser(UserModel user) async {
+    final notifService = NotificationService();
+    // Save FCM token to Firestore
+    await notifService.saveTokenToFirestore(user.uid);
+    // Subscribe to role-based topic for broadcast notifications
+    await notifService.subscribeToTopic('all_users');
+    if (user.isBachelor) {
+      await notifService.subscribeToTopic('bachelors');
+      await notifService.unsubscribeFromTopic('landlords');
+    } else if (user.isLandlord) {
+      await notifService.subscribeToTopic('landlords');
+      await notifService.unsubscribeFromTopic('bachelors');
+    }
+    // Start listening to in-app notifications
+    if (Get.isRegistered<NotificationController>()) {
+      Get.find<NotificationController>().listenForUser(user.uid);
     }
   }
 
@@ -253,8 +286,8 @@ class AuthController extends GetxController {
         if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
           finalPhotoUrl = photoUrl;
         } else {
-          final storageService = FirebaseStorageService();
-          final uploadedUrl = await storageService.uploadPostImage(photoUrl);
+          final storageService = ImgbbService();
+          final uploadedUrl = await storageService.uploadImage(photoUrl);
           if (uploadedUrl != null) {
             finalPhotoUrl = uploadedUrl;
           }
@@ -281,7 +314,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     await _authRepo.logout();
     currentUser.value = null;
-    Get.offAll(() => const RoleSelectionScreen(),
+    Get.offAll(() => const LoginScreen(),
         transition: Transition.fadeIn);
   }
 
@@ -297,11 +330,22 @@ class AuthController extends GetxController {
       await _authRepo.deleteCurrentAccount(user.uid);
       currentUser.value = null;
       ApiChecker.showSuccess('Your account has been deleted successfully.');
-      Get.offAll(() => const RoleSelectionScreen(), transition: Transition.fadeIn);
+      Get.offAll(() => const LoginScreen(), transition: Transition.fadeIn);
     } catch (e) {
       ApiChecker.showError(e.toString());
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  Future<void> fetchUserData(String uid) async {
+    try {
+      final userData = await _authRepo.getUserData(uid);
+      if (userData != null) {
+        currentUser.value = userData;
+      }
+    } catch (e) {
+      AppLogger.e('Failed to fetch user data: $e', e, null, 'AUTH_CTRL');
     }
   }
 

@@ -8,13 +8,14 @@ import '../../features/chat/controllers/chat_controller.dart';
 import '../../features/payment/controllers/payment_controller.dart';
 import '../../features/admin/controllers/admin_controller.dart';
 import '../../features/landlord/controllers/tenant_leads_controller.dart';
+import '../../features/notifications/controllers/notification_controller.dart';
 
 class AppBindings extends Bindings {
   @override
   void dependencies() {
-    // Core & Authentication (Permanent)
     Get.put(NetworkController(), permanent: true);
     Get.put(AuthController(), permanent: true);
+    Get.put(NotificationController(), permanent: true);
     
     // Features (Lazy loaded, fenix: true ensures they are recreated if needed after being disposed)
     Get.lazyPut(() => SplashController(), fenix: true);

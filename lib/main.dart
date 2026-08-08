@@ -1,7 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/app_constants.dart';
 import 'features/splash/views/splash_screen.dart';
@@ -19,9 +21,15 @@ void main() async {
       );
     }
   } catch (e) {
-    // Gracefully handle test environment where native Firebase channels are absent
     debugPrint('Firebase init notice (test/dev fallback): $e');
   }
+
+  // Register FCM background message handler (must be top-level)
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // Initialize NotificationService
+  await NotificationService().initialize();
+
   runApp(const MessFinderApp());
 }
 

@@ -3,19 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
 import '../../../core/utils/image_helper.dart';
-import '../../auth/controllers/auth_controller.dart';
+
 import '../../auth/models/user_model.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
 import 'add_post_screen.dart';
-import '../../profile/views/profile_screen.dart';
 
-class LandlordHomeScreen extends StatelessWidget {
+
+class MyPostsScreen extends StatelessWidget {
   final UserModel user;
 
-  const LandlordHomeScreen({super.key, required this.user});
+  const MyPostsScreen({super.key, required this.user});
 
   void _onAddPostPressed(BuildContext context) {
     Get.to(() => const AddPostScreen(), transition: Transition.rightToLeft);
@@ -32,39 +31,16 @@ class LandlordHomeScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: darkEmerald,
         elevation: 0,
-        leading: GestureDetector(
-          onTap: () => Get.to(() => ProfileScreen(user: user)),
-          child: Padding(
-            padding: EdgeInsets.only(left: 16.w),
-            child: CircleAvatar(
-              radius: 16.r,
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-              backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
-                  ? NetworkImage(user.photoUrl!)
-                  : null,
-              child: user.photoUrl == null || user.photoUrl!.isEmpty
-                  ? Icon(Icons.person_rounded, size: 20.r, color: Colors.white)
-                  : null,
-            ),
-          ),
-        ),
+        automaticallyImplyLeading: true,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          'Landlord Home',
+          'My Posts',
           style: GoogleFonts.poppins(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
         ),
-        actions: [
-
-          IconButton(
-            onPressed: () => Get.find<AuthController>().logout(),
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
-            tooltip: 'Logout',
-          ),
-          SizedBox(width: 8.w),
-        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _onAddPostPressed(context),
@@ -90,11 +66,16 @@ class LandlordHomeScreen extends StatelessWidget {
         final availablePosts = posts.where((p) => p.isAvailable).length;
         final totalSeats = posts.fold<int>(0, (sum, p) => sum + p.seatCount);
 
-        return CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // Luxury Emerald Stats Banner
-            SliverToBoxAdapter(
+        return RefreshIndicator(
+          color: emeraldTheme,
+          onRefresh: () async {
+            await postController.refreshPosts();
+          },
+          child: CustomScrollView(
+            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            slivers: [
+              // Luxury Emerald Stats Banner
+              SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.all(16.r),
                 padding: EdgeInsets.all(18.r),
@@ -270,7 +251,8 @@ class LandlordHomeScreen extends StatelessWidget {
                 ),
               ),
             SliverToBoxAdapter(child: SizedBox(height: 80.h)),
-          ],
+            ],
+          ),
         );
       }),
     );
@@ -351,7 +333,6 @@ class LandlordHomeScreen extends StatelessWidget {
                 color: AppTheme.textSecondary,
               ),
             ),
-
           ],
         ),
       ),

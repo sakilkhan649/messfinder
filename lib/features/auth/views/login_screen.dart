@@ -9,14 +9,211 @@ import 'forgot_password_screen.dart';
 import 'phone_login_screen.dart';
 import 'signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  late AuthController authController;
+  late TextEditingController emailController;
+  late TextEditingController passwordController;
+
+  // --- Hidden Admin Easter Egg ---
+  int _tapCount = 0;
+  DateTime _lastTapTime = DateTime.now();
+
+  void _handleLogoTap() {
+    final now = DateTime.now();
+    if (now.difference(_lastTapTime).inMilliseconds > 1000) {
+      _tapCount = 0;
+    }
+    _lastTapTime = now;
+    _tapCount++;
+
+    if (_tapCount >= 3) {
+      _tapCount = 0;
+      _showAdminLoginDialog();
+    }
+  }
+
+  void _showAdminLoginDialog() {
+    final adminEmailCtrl = TextEditingController();
+    final adminPassCtrl = TextEditingController();
+    final obscure = true.obs;
+    const adminColor = Color(0xFF0F172A);
+
+    Get.bottomSheet(
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      Container(
+        padding: EdgeInsets.only(
+          left: 24.w,
+          right: 24.w,
+          top: 24.h,
+          bottom: MediaQuery.of(Get.context!).viewInsets.bottom + 24.h,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 30.r,
+              offset: Offset(0, -6.h),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Handle bar
+            Container(
+              width: 40.w,
+              height: 4.h,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2.r),
+              ),
+            ),
+            SizedBox(height: 20.h),
+
+            // Icon
+            Container(
+              padding: EdgeInsets.all(14.r),
+              decoration: BoxDecoration(
+                color: adminColor.withValues(alpha: 0.08),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.admin_panel_settings_rounded,
+                color: adminColor,
+                size: 30.r,
+              ),
+            ),
+            SizedBox(height: 12.h),
+
+            Text(
+              'Admin Access',
+              style: GoogleFonts.poppins(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+                color: adminColor,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Enter admin credentials to continue',
+              style: GoogleFonts.poppins(
+                fontSize: 12.5.sp,
+                color: Colors.grey.shade500,
+              ),
+            ),
+            SizedBox(height: 24.h),
+
+            // Email field
+            TextField(
+              controller: adminEmailCtrl,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                labelText: 'Admin Email',
+                labelStyle: GoogleFonts.poppins(fontSize: 13.sp),
+                prefixIcon: Icon(Icons.email_outlined, size: 20.r),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: adminColor, width: 1.5),
+                ),
+              ),
+            ),
+            SizedBox(height: 14.h),
+
+            // Password field
+            Obx(() => TextField(
+              controller: adminPassCtrl,
+              obscureText: obscure.value,
+              decoration: InputDecoration(
+                labelText: 'Password',
+                labelStyle: GoogleFonts.poppins(fontSize: 13.sp),
+                prefixIcon: Icon(Icons.lock_outline_rounded, size: 20.r),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    obscure.value ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                    size: 19.r,
+                    color: Colors.grey,
+                  ),
+                  onPressed: () => obscure.toggle(),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                  borderSide: BorderSide(color: adminColor, width: 1.5),
+                ),
+              ),
+            )),
+            SizedBox(height: 24.h),
+
+            // Login button
+            SizedBox(
+              width: double.infinity,
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed: () {
+                  final email = adminEmailCtrl.text.trim();
+                  final pass = adminPassCtrl.text.trim();
+                  if (email.isEmpty || pass.isEmpty) return;
+                  // Set role to admin so AuthController navigates correctly
+                  authController.selectedRole.value = AppConstants.roleAdmin;
+                  Get.back(); // close dialog
+                  authController.login(email, pass);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: adminColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14.r),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Sign in as Admin',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 8.h),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    authController = Get.find<AuthController>();
+    emailController = TextEditingController();
+    passwordController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.find<AuthController>();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -35,103 +232,44 @@ class LoginScreen extends StatelessWidget {
                     vertical: 20.h,
                   ),
                   child: Obx(() {
-                    final role = authController.selectedRole.value;
-                    final isLandlord = role == AppConstants.roleLandlord;
-                    final isAdmin = role == AppConstants.roleAdmin;
-                    final obscurePassword =
-                        authController.obscureLoginPassword.value;
-
-                    // Role Theme Styling
-                    final List<Color> gradientColors = isLandlord
-                        ? const [Color(0xFF064E3B), Color(0xFF10B981)]
-                        : (isAdmin
-                            ? const [Color(0xFF0F172A), Color(0xFF334155)]
-                            : const [Color(0xFF1E1B4B), Color(0xFF312E81)]);
-
-                    final Color accentColor = isLandlord
-                        ? const Color(0xFF059669)
-                        : (isAdmin
-                            ? const Color(0xFF3B82F6)
-                            : const Color(0xFFF59E0B));
-
-                    final IconData roleIcon = isLandlord
-                        ? Icons.home_work_rounded
-                        : (isAdmin
-                            ? Icons.admin_panel_settings_rounded
-                            : Icons.person_search_rounded);
-
-                    final String badgeText = isLandlord
-                        ? 'OWNER LOGIN'
-                        : (isAdmin ? 'ADMIN LOGIN' : 'SEEKER LOGIN');
+                    final obscurePassword = authController.obscureLoginPassword.value;
+                    final List<Color> gradientColors = const [Color(0xFF064E3B), Color(0xFF10B981)];
+                    final Color accentColor = const Color(0xFF059669);
+                    final IconData roleIcon = Icons.home_work_rounded;
+                    const String badgeText = 'LOGIN';
 
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        // Top Navigation / Back Row
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: GestureDetector(
-                            onTap: () => Get.back(),
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 8.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20.r),
-                                border: Border.all(
-                                    color: const Color(0xFFE2E8F0)),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.arrow_back_ios_new_rounded,
-                                    size: 14.r,
-                                    color: const Color(0xFF475569),
-                                  ),
-                                  SizedBox(width: 6.w),
-                                  Text(
-                                    'Back',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF475569),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        SizedBox(height: 32.h),
 
-                        SizedBox(height: 16.h),
-
-                        // Glowing Role Emblem
-                        Container(
-                          width: 60.r,
-                          height: 60.r,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: gradientColors,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(20.r),
-                            boxShadow: [
-                              BoxShadow(
-                                color: accentColor.withValues(alpha: 0.35),
-                                blurRadius: 20.r,
-                                offset: Offset(0, 8.h),
+                        // Glowing Role Emblem (৩ বার tap = Admin Portal)
+                        GestureDetector(
+                          onTap: _handleLogoTap,
+                          child: Container(
+                            width: 60.r,
+                            height: 60.r,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: gradientColors,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
                               ),
-                            ],
-                          ),
-                          child: Icon(
-                            roleIcon,
-                            size: 30.r,
-                            color: Colors.white,
+                              borderRadius: BorderRadius.circular(20.r),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: accentColor.withValues(alpha: 0.35),
+                                  blurRadius: 20.r,
+                                  offset: Offset(0, 8.h),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              roleIcon,
+                              size: 30.r,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
 
@@ -199,7 +337,7 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: 28.h),
 
-                        // Email Input Field (Styled exactly like ForgotPasswordScreen)
+                        // Email Input Field
                         _buildInputField(
                           label: 'Email Address',
                           hintText: 'example@email.com',
@@ -210,7 +348,7 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: 16.h),
 
-                        // Password Input Field (Styled exactly like ForgotPasswordScreen with GetX)
+                        // Password Input Field
                         _buildInputField(
                           label: 'Password',
                           hintText: '••••••••',
@@ -354,38 +492,37 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: 24.h),
 
-                        // Create Account Link (Hidden for Admin)
-                        if (!isAdmin)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'New user? ',
+                        // Create Account Link
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'New user? ',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.sp,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                authController
+                                    .obscureSignupPassword.value = true;
+                                Get.to(
+                                  () => const SignupScreen(),
+                                  transition: Transition.rightToLeft,
+                                );
+                              },
+                              child: Text(
+                                'Create Account',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 13.sp,
-                                  color: AppTheme.textSecondary,
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color: accentColor,
                                 ),
                               ),
-                              GestureDetector(
-                                onTap: () {
-                                  authController
-                                      .obscureSignupPassword.value = true;
-                                  Get.to(
-                                    () => const SignupScreen(),
-                                    transition: Transition.rightToLeft,
-                                  );
-                                },
-                                child: Text(
-                                  'Create Account',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13.5.sp,
-                                    fontWeight: FontWeight.w700,
-                                    color: accentColor,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
+                        ),
                       ],
                     );
                   }),
@@ -398,7 +535,6 @@ class LoginScreen extends StatelessWidget {
     );
   }
 
-  // Exactly matching ForgotPasswordScreen's TextField design
   Widget _buildInputField({
     required String label,
     required String hintText,

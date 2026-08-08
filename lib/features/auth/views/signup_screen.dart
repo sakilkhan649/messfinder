@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
 import '../controllers/auth_controller.dart';
 import 'phone_login_screen.dart';
 
@@ -35,26 +34,13 @@ class SignupScreen extends StatelessWidget {
                     vertical: 20.h,
                   ),
                   child: Obx(() {
-                    final role = authController.selectedRole.value;
-                    final isLandlord = role == AppConstants.roleLandlord;
-                    final obscurePassword =
-                        authController.obscureSignupPassword.value;
+                    final obscurePassword = authController.obscureSignupPassword.value;
 
                     // Role Theme Styling
-                    final List<Color> gradientColors = isLandlord
-                        ? const [Color(0xFF064E3B), Color(0xFF10B981)]
-                        : const [Color(0xFF1E1B4B), Color(0xFF312E81)];
-
-                    final Color accentColor = isLandlord
-                        ? const Color(0xFF059669)
-                        : const Color(0xFFF59E0B);
-
-                    final IconData roleIcon = isLandlord
-                        ? Icons.home_work_rounded
-                        : Icons.person_search_rounded;
-
-                    final String badgeText =
-                        isLandlord ? 'OWNER SIGNUP' : 'SEEKER SIGNUP';
+                    final List<Color> gradientColors = const [Color(0xFF064E3B), Color(0xFF10B981)];
+                    final Color accentColor = const Color(0xFF059669);
+                    final IconData roleIcon = Icons.home_work_rounded;
+                    const String badgeText = 'SIGNUP';
 
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.center,

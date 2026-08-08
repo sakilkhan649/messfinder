@@ -13,15 +13,12 @@ import '../widgets/admin_search_bar.dart';
 
 /// ===================================================================
 /// [VIEW LAYER - MVC PATTERN]
-/// 
+///
 /// ===================================================================
 class AdminRequestsTab extends StatelessWidget {
   final AdminController controller;
 
-  const AdminRequestsTab({
-    super.key,
-    required this.controller,
-  });
+  const AdminRequestsTab({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -34,9 +31,7 @@ class AdminRequestsTab extends StatelessWidget {
             if (postSnapshot.connectionState == ConnectionState.waiting ||
                 bookingSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(
-                child: CircularProgressIndicator(
-                  color: AdminColors.accentDark,
-                ),
+                child: CircularProgressIndicator(color: AdminColors.accentDark),
               );
             }
 
@@ -47,24 +42,32 @@ class AdminRequestsTab extends StatelessWidget {
                 .where((p) => p.paymentStatus.trim().toLowerCase() == 'pending')
                 .toList();
             final approvedPosts = allPosts
-                .where((p) =>
-                    p.paymentStatus.trim().toLowerCase() == 'approved' ||
-                    p.isPublished == true)
+                .where(
+                  (p) =>
+                      p.paymentStatus.trim().toLowerCase() == 'approved' ||
+                      p.isPublished == true,
+                )
                 .toList();
             final rejectedPosts = allPosts
-                .where((p) => p.paymentStatus.trim().toLowerCase() == 'rejected')
+                .where(
+                  (p) => p.paymentStatus.trim().toLowerCase() == 'rejected',
+                )
                 .toList();
 
             final pendingBookings = allBookings
                 .where((b) => b.paymentStatus.trim().toLowerCase() == 'pending')
                 .toList();
             final approvedBookings = allBookings
-                .where((b) =>
-                    b.paymentStatus.trim().toLowerCase() == 'approved' ||
-                    b.isUnlocked == true)
+                .where(
+                  (b) =>
+                      b.paymentStatus.trim().toLowerCase() == 'approved' ||
+                      b.isUnlocked == true,
+                )
                 .toList();
             final rejectedBookings = allBookings
-                .where((b) => b.paymentStatus.trim().toLowerCase() == 'rejected')
+                .where(
+                  (b) => b.paymentStatus.trim().toLowerCase() == 'rejected',
+                )
                 .toList();
 
             return Column(
@@ -82,7 +85,10 @@ class AdminRequestsTab extends StatelessWidget {
                     }
                     // default catIndex == 0: Bachelor Bookings
                     return _buildBookingsSection(
-                        pendingBookings, approvedBookings, rejectedBookings);
+                      pendingBookings,
+                      approvedBookings,
+                      rejectedBookings,
+                    );
                   }),
                 ),
               ],
@@ -121,8 +127,9 @@ class AdminRequestsTab extends StatelessWidget {
                     boxShadow: isSelected
                         ? [
                             BoxShadow(
-                              color: AdminColors.accentDark
-                                  .withValues(alpha: 0.22),
+                              color: AdminColors.accentDark.withValues(
+                                alpha: 0.22,
+                              ),
                               blurRadius: 10.r,
                               offset: Offset(0, 4.h),
                             ),
@@ -178,16 +185,28 @@ class AdminRequestsTab extends StatelessWidget {
         child: Row(
           children: [
             Expanded(
-              child: _buildTabButton(0, 'Pending ($pendingCount)',
-                  selectedTab == 0, AdminColors.statusPending),
+              child: _buildTabButton(
+                0,
+                'Pending ($pendingCount)',
+                selectedTab == 0,
+                AdminColors.statusPending,
+              ),
             ),
             Expanded(
-              child: _buildTabButton(1, 'Approved ($approvedCount)',
-                  selectedTab == 1, AdminColors.statusApproved),
+              child: _buildTabButton(
+                1,
+                'Approved ($approvedCount)',
+                selectedTab == 1,
+                AdminColors.statusApproved,
+              ),
             ),
             Expanded(
-              child: _buildTabButton(2, 'Rejected ($rejectedCount)',
-                  selectedTab == 2, AdminColors.statusRejected),
+              child: _buildTabButton(
+                2,
+                'Rejected ($rejectedCount)',
+                selectedTab == 2,
+                AdminColors.statusRejected,
+              ),
             ),
           ],
         ),
@@ -195,7 +214,12 @@ class AdminRequestsTab extends StatelessWidget {
     });
   }
 
-  Widget _buildTabButton(int index, String title, bool isSelected, Color color) {
+  Widget _buildTabButton(
+    int index,
+    String title,
+    bool isSelected,
+    Color color,
+  ) {
     return GestureDetector(
       onTap: () => controller.setTab(index),
       child: AnimatedContainer(
@@ -245,8 +269,9 @@ class AdminRequestsTab extends StatelessWidget {
           child: Obx(() {
             final tabIndex = controller.selectedTabIndex.value;
             final query = controller.searchQuery.value.trim().toLowerCase();
-            List<BookingModel> list =
-                (tabIndex == 0) ? pending : (tabIndex == 1 ? approved : rejected);
+            List<BookingModel> list = (tabIndex == 0)
+                ? pending
+                : (tabIndex == 1 ? approved : rejected);
 
             if (query.isNotEmpty) {
               list = list.where((b) {
@@ -271,7 +296,7 @@ class AdminRequestsTab extends StatelessWidget {
                 booking: list[i],
                 onApprove: () => controller.approveBooking(list[i]),
                 onReject: () => controller.rejectBooking(list[i]),
-                onDelete: () => controller.confirmDeleteBooking(list[i]),
+                onDelete: () => controller.deleteBooking(list[i]),
               ),
             );
           }),
@@ -296,8 +321,9 @@ class AdminRequestsTab extends StatelessWidget {
           child: Obx(() {
             final tabIndex = controller.selectedTabIndex.value;
             final query = controller.searchQuery.value.trim().toLowerCase();
-            List<PostModel> list =
-                (tabIndex == 0) ? pending : (tabIndex == 1 ? approved : rejected);
+            List<PostModel> list = (tabIndex == 0)
+                ? pending
+                : (tabIndex == 1 ? approved : rejected);
 
             if (query.isNotEmpty) {
               list = list.where((p) {
@@ -323,7 +349,7 @@ class AdminRequestsTab extends StatelessWidget {
                 post: list[i],
                 onApprove: () => controller.approvePost(list[i]),
                 onReject: () => controller.rejectPost(list[i]),
-                onDelete: () => controller.confirmDeletePost(list[i]),
+                onDelete: () => controller.deletePost(list[i]),
               ),
             );
           }),

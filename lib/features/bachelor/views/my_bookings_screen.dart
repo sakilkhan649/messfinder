@@ -17,7 +17,7 @@ class MyBookingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
+    final Color primaryColor = const Color(0xFF059669); // Deep Indigo
 
     final auth = Get.find<AuthController>();
     final uid = auth.currentUser.value?.uid ?? '';
@@ -29,6 +29,10 @@ class MyBookingsScreen extends StatelessWidget {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20.r),
+          onPressed: () => Get.back(),
+        ),
         title: Text(
           'My Bookings',
           style: GoogleFonts.poppins(
@@ -76,31 +80,42 @@ class MyBookingsScreen extends StatelessWidget {
                 final bookings = snapshot.data ?? [];
 
                 if (bookings.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.book_online_outlined,
-                            size: 72.r, color: const Color(0xFFCBD5E1)),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'No bookings yet',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
+                  return RefreshIndicator(
+                    color: primaryColor,
+                    onRefresh: () async {
+                      await Future.delayed(const Duration(seconds: 1));
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Container(
+                        height: MediaQuery.of(context).size.height * 0.7,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.book_online_outlined,
+                                size: 72.r, color: const Color(0xFFCBD5E1)),
+                            SizedBox(height: 16.h),
+                            Text(
+                              'No bookings yet',
+                              style: GoogleFonts.poppins(
+                                fontSize: 20.sp,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 8.h),
+                            Text(
+                              'Your room booking requests\nwill appear here.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.sp,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          'Your room booking requests\nwill appear here.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   );
                 }
@@ -114,12 +129,18 @@ class MyBookingsScreen extends StatelessWidget {
                         b.paymentStatus.trim().toLowerCase() == 'approved')
                     .length;
 
-                return ListView(
-                  physics: const BouncingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(
-                      horizontal: 20.w, vertical: 16.h),
-                  children: [
-                    // Summary Banner
+                return RefreshIndicator(
+                  color: primaryColor,
+                  onRefresh: () async {
+                    // For StreamBuilder, a pull to refresh mostly just gives UI feedback
+                    await Future.delayed(const Duration(seconds: 1));
+                  },
+                  child: ListView(
+                    physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 20.w, vertical: 16.h),
+                    children: [
+                      // Summary Banner
                     Container(
                       padding: EdgeInsets.all(16.r),
                       decoration: BoxDecoration(
@@ -177,9 +198,10 @@ class MyBookingsScreen extends StatelessWidget {
                     SizedBox(height: 18.h),
                     ...bookings.map((b) => _BookingCard(booking: b)),
                   ],
-                );
-              },
-            ),
+                ),
+              );
+            },
+          ),
     );
   }
 }
@@ -234,7 +256,7 @@ class _BookingCardState extends State<_BookingCard> {
   String? _ownerPhotoUrl;
   String _ownerUid = '';
 
-  final Color primaryColor = const Color(0xFF1E1B4B);
+  final Color primaryColor = const Color(0xFF059669);
 
   @override
   void initState() {

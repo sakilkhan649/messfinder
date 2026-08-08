@@ -78,7 +78,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final isLandlord = widget.user.isLandlord;
     final Color primaryColor = isLandlord
         ? const Color(0xFF059669) // Emerald for Landlord
-        : const Color(0xFF1E1B4B); // Deep Indigo for Bachelor
+        : const Color(0xFF059669); // Deep Indigo for Bachelor
 
     return Scaffold(
       backgroundColor: Colors.white,

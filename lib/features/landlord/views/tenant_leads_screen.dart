@@ -25,7 +25,11 @@ class TenantLeadsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: darkEmerald,
         elevation: 0,
-        automaticallyImplyLeading: post != null,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20.r),
+          onPressed: () => Get.back(),
+        ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           post != null ? post!.title : 'Bachelor booking requests',
@@ -241,9 +245,15 @@ class TenantLeadsScreen extends StatelessWidget {
                     );
                   }
 
-                  return ListView.separated(
-                    physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
+                  return RefreshIndicator(
+                    color: primaryEmerald,
+                    onRefresh: () async {
+                      // Stream builder auto-updates, but this provides pull-to-refresh UX delay
+                      await Future.delayed(const Duration(seconds: 1));
+                    },
+                    child: ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                      padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
                     itemCount: filteredLeads.length,
                     separatorBuilder: (context, index) =>
                         SizedBox(height: 14.h),
@@ -295,6 +305,7 @@ class TenantLeadsScreen extends StatelessWidget {
                         ),
                       );
                     },
+                  ),
                   );
                 }),
               ),
@@ -525,6 +536,50 @@ class _LeadCard extends StatelessWidget {
                     ? () => controller.copyPhoneNumber(rawPhone)
                     : null,
               ),
+
+              // ── Action Buttons for Pending Requests ───────────────────────
+              if (booking.paymentStatus.trim().toLowerCase() == 'pending') ...[
+                SizedBox(height: 12.h),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => controller.rejectLead(booking.bookingId),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFEE2E2),
+                          foregroundColor: const Color(0xFFB91C1C),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Reject',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12.w),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () => controller.approveLead(booking.bookingId),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryEmerald,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.r),
+                          ),
+                        ),
+                        child: Text(
+                          'Approve',
+                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
 
               // ── Status / Unlocked Note ───────────────────────────────
               if (booking.isUnlocked ||

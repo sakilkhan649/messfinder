@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../../core/utils/api_constants.dart';
@@ -12,7 +13,8 @@ class TenantLeadsController extends GetxController {
   final BookingRepository _bookingRepo = BookingRepository();
   final AuthController _authController = Get.find<AuthController>();
 
-  final RxInt selectedTabIndex = 0.obs; // 0 = Pending, 1 = Approved, 2 = Rejected
+  final RxInt selectedTabIndex =
+      0.obs; // 0 = Pending, 1 = Approved, 2 = Rejected
   final RxString searchQuery = ''.obs;
 
   // Cache user data (uid -> {name, phone}) to prevent redundant Firestore queries
@@ -92,10 +94,8 @@ class TenantLeadsController extends GetxController {
             .limit(1)
             .get();
         if (payPhoneQuery.docs.isNotEmpty) {
-          final pName = payPhoneQuery.docs.first
-                  .data()['userName']
-                  ?.toString()
-                  .trim() ??
+          final pName =
+              payPhoneQuery.docs.first.data()['userName']?.toString().trim() ??
               '';
           if (pName.isNotEmpty && pName.toLowerCase() != 'user') {
             return pName;
@@ -178,7 +178,8 @@ class TenantLeadsController extends GetxController {
             FirebaseFirestore.instance
                 .collection(ApiConstants.usersCollection)
                 .doc(uid)
-                .update({'name': name}).catchError((_) {});
+                .update({'name': name})
+                .catchError((_) {});
           }
         }
         if (name.isEmpty ||
@@ -199,8 +200,10 @@ class TenantLeadsController extends GetxController {
         return info;
       }
     } catch (e) {
-      AppLogger.w('Failed to fetch user info for lead: $e',
-          tag: 'LEADS_CONTROLLER');
+      AppLogger.w(
+        'Failed to fetch user info for lead: $e',
+        tag: 'LEADS_CONTROLLER',
+      );
     }
     // Fallback if user doc does not exist
     var nameFallback = 'Bachelor Tenant';
@@ -208,8 +211,9 @@ class TenantLeadsController extends GetxController {
     if (resolved != null && resolved.isNotEmpty) {
       nameFallback = resolved;
     }
-    final phoneFallback =
-        booking.senderNumber.isNotEmpty ? booking.senderNumber : 'Not provided';
+    final phoneFallback = booking.senderNumber.isNotEmpty
+        ? booking.senderNumber
+        : 'Not provided';
     final fallback = {'name': nameFallback, 'phone': phoneFallback};
     userCache[uid] = fallback;
     return fallback;
@@ -244,8 +248,8 @@ class TenantLeadsController extends GetxController {
     }
     final q = query.trim().toLowerCase();
     return statusFiltered.where((b) {
-      final isApproved = b.isUnlocked ||
-          b.paymentStatus.trim().toLowerCase() == 'approved';
+      final isApproved =
+          b.isUnlocked || b.paymentStatus.trim().toLowerCase() == 'approved';
       final cachedName = userCache[b.bachelorUid]?['name']?.toLowerCase() ?? '';
       final cachedPhone =
           userCache[b.bachelorUid]?['phone']?.toLowerCase() ?? '';
@@ -279,6 +283,36 @@ class TenantLeadsController extends GetxController {
         backgroundColor: const Color(0xFFEF4444),
         colorText: const Color(0xFFFFFFFF),
       );
+    }
+  }
+
+  Future<void> approveLead(String bookingId) async {
+    try {
+      await _bookingRepo.approveBooking(bookingId);
+      Get.snackbar(
+        'Approved',
+        'Request approved successfully.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF059669),
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to approve request: $e');
+    }
+  }
+
+  Future<void> rejectLead(String bookingId) async {
+    try {
+      await _bookingRepo.rejectBooking(bookingId);
+      Get.snackbar(
+        'Rejected',
+        'Request rejected.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFFEF4444),
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to reject request: $e');
     }
   }
 }

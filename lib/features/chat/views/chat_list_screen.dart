@@ -20,7 +20,7 @@ class ChatListScreen extends StatelessWidget {
       final isLandlord = _authController.currentUser.value?.isLandlord ?? false;
       final Color rolePrimaryColor = isLandlord
           ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF1E1B4B); // Deep Indigo for Bachelor
+          : const Color(0xFF059669); // Deep Indigo for Bachelor
 
       return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
@@ -95,145 +95,152 @@ class ChatListScreen extends StatelessWidget {
 
             final chats = snapshot.data!;
 
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
+            return RefreshIndicator(
+              color: rolePrimaryColor,
+              onRefresh: () async {
+                await Future.delayed(const Duration(seconds: 1));
+              },
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                itemCount: chats.length,
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
 
-                final otherUserId = chat.participants.firstWhere(
-                  (id) => id != _chatController.currentUserId,
-                  orElse: () => '',
-                );
+                  final otherUserId = chat.participants.firstWhere(
+                    (id) => id != _chatController.currentUserId,
+                    orElse: () => '',
+                  );
 
-                final otherUserName =
-                    chat.participantNames[otherUserId] ?? 'Unknown';
-                final otherUserPhoto = chat.participantPhotos[otherUserId];
+                  final otherUserName =
+                      chat.participantNames[otherUserId] ?? 'Unknown';
+                  final otherUserPhoto = chat.participantPhotos[otherUserId];
 
-                final unreadCount =
-                    chat.unreadCounts[_chatController.currentUserId] ?? 0;
+                  final unreadCount =
+                      chat.unreadCounts[_chatController.currentUserId] ?? 0;
 
-                return Container(
-                  margin: EdgeInsets.only(bottom: 12.h),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16.r),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 10.r,
-                        offset: Offset(0, 4.h),
-                      ),
-                    ],
-                  ),
-                  child: Material(
-                    color: Colors.transparent,
-                    child: InkWell(
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 12.h),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(16.r),
-                      onTap: () {
-                        Get.to(
-                          () => ChatScreen(
-                            chatRoomId: chat.id,
-                            targetUserId: otherUserId,
-                            targetUserName: otherUserName,
-                          ),
-                        );
-                      },
-                      child: Padding(
-                        padding: EdgeInsets.all(12.r),
-                        child: Row(
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: rolePrimaryColor.withValues(
-                                    alpha: 0.2,
-                                  ),
-                                  width: 2,
-                                ),
-                              ),
-                              child: CircleAvatar(
-                                radius: 26.r,
-                                backgroundColor: rolePrimaryColor.withValues(
-                                  alpha: 0.1,
-                                ),
-                                backgroundImage:
-                                    otherUserPhoto != null &&
-                                        otherUserPhoto.isNotEmpty
-                                    ? NetworkImage(otherUserPhoto)
-                                    : null,
-                                child:
-                                    otherUserPhoto == null ||
-                                        otherUserPhoto.isEmpty
-                                    ? Icon(
-                                        Icons.person_rounded,
-                                        size: 28.r,
-                                        color: rolePrimaryColor,
-                                      )
-                                    : null,
-                              ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10.r,
+                          offset: Offset(0, 4.h),
+                        ),
+                      ],
+                    ),
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(16.r),
+                        onTap: () {
+                          Get.to(
+                            () => ChatScreen(
+                              chatRoomId: chat.id,
+                              targetUserId: otherUserId,
+                              targetUserName: otherUserName,
                             ),
-                            SizedBox(width: 16.w),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    otherUserName,
-                                    style: GoogleFonts.poppins(
-                                      fontWeight: unreadCount > 0
-                                          ? FontWeight.bold
-                                          : FontWeight.w600,
-                                      fontSize: 15.sp,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    chat.lastMessage.isEmpty
-                                        ? 'Say hi!'
-                                        : chat.lastMessage,
-                                    style: GoogleFonts.poppins(
-                                      color: unreadCount > 0
-                                          ? AppTheme.textPrimary
-                                          : AppTheme.textSecondary,
-                                      fontWeight: unreadCount > 0
-                                          ? FontWeight.w600
-                                          : FontWeight.normal,
-                                      fontSize: 13.sp,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (unreadCount > 0) ...[
-                              SizedBox(width: 8.w),
+                          );
+                        },
+                        child: Padding(
+                          padding: EdgeInsets.all(12.r),
+                          child: Row(
+                            children: [
                               Container(
-                                padding: EdgeInsets.all(8.r),
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.errorColor,
+                                decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  unreadCount.toString(),
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 11.sp,
-                                    fontWeight: FontWeight.bold,
+                                  border: Border.all(
+                                    color: rolePrimaryColor.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    width: 2,
                                   ),
                                 ),
+                                child: CircleAvatar(
+                                  radius: 26.r,
+                                  backgroundColor: rolePrimaryColor.withValues(
+                                    alpha: 0.1,
+                                  ),
+                                  backgroundImage:
+                                      otherUserPhoto != null &&
+                                          otherUserPhoto.isNotEmpty
+                                      ? NetworkImage(otherUserPhoto)
+                                      : null,
+                                  child:
+                                      otherUserPhoto == null ||
+                                          otherUserPhoto.isEmpty
+                                      ? Icon(
+                                          Icons.person_rounded,
+                                          size: 28.r,
+                                          color: rolePrimaryColor,
+                                        )
+                                      : null,
+                                ),
                               ),
+                              SizedBox(width: 16.w),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      otherUserName,
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: unreadCount > 0
+                                            ? FontWeight.bold
+                                            : FontWeight.w600,
+                                        fontSize: 15.sp,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    SizedBox(height: 4.h),
+                                    Text(
+                                      chat.lastMessage.isEmpty
+                                          ? 'Say hi!'
+                                          : chat.lastMessage,
+                                      style: GoogleFonts.poppins(
+                                        color: unreadCount > 0
+                                            ? AppTheme.textPrimary
+                                            : AppTheme.textSecondary,
+                                        fontWeight: unreadCount > 0
+                                            ? FontWeight.w600
+                                            : FontWeight.normal,
+                                        fontSize: 13.sp,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (unreadCount > 0) ...[
+                                SizedBox(width: 8.w),
+                                Container(
+                                  padding: EdgeInsets.all(8.r),
+                                  decoration: const BoxDecoration(
+                                    color: AppTheme.errorColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Text(
+                                    unreadCount.toString(),
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           },
         ),

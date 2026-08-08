@@ -4,15 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
+
 import '../../../core/utils/image_helper.dart';
-import '../../auth/controllers/auth_controller.dart';
+
 import '../../auth/models/user_model.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
-import '../../profile/views/profile_screen.dart';
-import 'mess_map_screen.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -22,200 +20,234 @@ class BachelorHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final postController = Get.find<PostController>();
-    final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
+    final Color primaryColor = const Color(0xFF059669); // Deep Indigo
     final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Get.to(() => const MessMapScreen(), transition: Transition.downToUp),
-        backgroundColor: accentColor,
-        icon: const Icon(Icons.map_rounded, color: Colors.white),
-        label: Text(
-          'Map View',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-      ),
-      body: CustomScrollView(
-        controller: postController.feedScrollController,
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // ── AppBar & Filters Section ───────────────────────────────────────────
-          SliverAppBar(
-            floating: true,
-            snap: true,
-            backgroundColor: primaryColor,
-            elevation: 0,
-            surfaceTintColor: primaryColor,
-            automaticallyImplyLeading: false,
-            titleSpacing: 16.w,
-            title: Row(
-              children: [
-                GestureDetector(
-                  onTap: () => Get.to(() => ProfileScreen(user: user)),
-                  child: CircleAvatar(
-                    radius: 18.r,
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    backgroundImage: user.photoUrl != null && user.photoUrl!.isNotEmpty
-                        ? NetworkImage(user.photoUrl!)
-                        : null,
-                    child: user.photoUrl == null || user.photoUrl!.isEmpty
-                        ? Icon(Icons.person_rounded, size: 20.r, color: Colors.white)
-                        : null,
-                  ),
+
+      body: RefreshIndicator(
+        color: primaryColor,
+        onRefresh: () async {
+          await postController.refreshPosts();
+        },
+        child: CustomScrollView(
+          controller: postController.feedScrollController,
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // ── AppBar & Filters Section ───────────────────────────────────────────
+            SliverAppBar(
+              floating: true,
+              snap: true,
+              backgroundColor: primaryColor,
+              elevation: 0,
+              surfaceTintColor: primaryColor,
+              automaticallyImplyLeading: false,
+              titleSpacing: 16.w,
+              title: Text(
+                'Welcome to MessFinder',
+                style: GoogleFonts.poppins(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: Container(
-                    height: 38.h,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: TextField(
-                      onChanged: (val) => postController.searchQuery.value = val,
-                      style: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.white),
-                      cursorColor: Colors.white,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        hintText: 'Search rooms, areas...',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          color: Colors.white70,
+              ),
+              actions: const [],
+              bottom: PreferredSize(
+                preferredSize: Size.fromHeight(132.h),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+                      child: Container(
+                        height: 38.h,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8.r),
                         ),
-                        prefixIcon: Icon(Icons.search_rounded, color: Colors.white70, size: 20.r),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+                        child: TextField(
+                          onChanged: (val) =>
+                              postController.searchQuery.value = val,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            color: Colors.white,
+                          ),
+                          cursorColor: Colors.white,
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            hintText: 'Search rooms, areas...',
+                            hintStyle: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              color: Colors.white70,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: Colors.white70,
+                              size: 20.r,
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 10.h,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            ),
-            actions: [
-              IconButton(
-                onPressed: () {
-                  final authCtrl = Get.find<AuthController>();
-                  authCtrl.switchRole(AppConstants.roleLandlord);
-                },
-                icon: Icon(Icons.swap_horizontal_circle_rounded, color: Colors.white, size: 26.r),
-                tooltip: 'Switch to Landlord Mode',
-              ),
-              IconButton(
-                onPressed: () => Get.find<AuthController>().logout(),
-                icon: Icon(Icons.logout_rounded, color: Colors.white, size: 26.r),
-                tooltip: 'Sign Out',
-              ),
-              SizedBox(width: 8.w),
-            ],
-            bottom: PreferredSize(
-              preferredSize: Size.fromHeight(82.h),
-              child: Container(
-                margin: EdgeInsets.only(top: 12.h),
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey.shade200, width: 1),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    _buildBudgetFilterButton(context, postController, primaryColor, accentColor),
-                    SizedBox(width: 12.w),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Obx(() {
-                          return Row(
-                            children: [
-                              _buildFilterChip(postController, 'all', 'All', primaryColor, accentColor),
-                              SizedBox(width: 8.w),
-                              _buildFilterChip(postController, 'male', 'Male Only', primaryColor, accentColor),
-                              SizedBox(width: 8.w),
-                              _buildFilterChip(postController, 'female', 'Female Only', primaryColor, accentColor),
-                              SizedBox(width: 8.w),
-                              _buildFilterChip(postController, 'both', 'Any', primaryColor, accentColor),
-                            ],
-                          );
-                        }),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 12.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.grey.shade200,
+                            width: 1,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          _buildBudgetFilterButton(
+                            context,
+                            postController,
+                            primaryColor,
+                            accentColor,
+                          ),
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              physics: const BouncingScrollPhysics(),
+                              child: Obx(() {
+                                return Row(
+                                  children: [
+                                    _buildFilterChip(
+                                      postController,
+                                      'all',
+                                      'All',
+                                      primaryColor,
+                                      accentColor,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    _buildFilterChip(
+                                      postController,
+                                      'male',
+                                      'Male Only',
+                                      primaryColor,
+                                      accentColor,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    _buildFilterChip(
+                                      postController,
+                                      'female',
+                                      'Female Only',
+                                      primaryColor,
+                                      accentColor,
+                                    ),
+                                    SizedBox(width: 8.w),
+                                    _buildFilterChip(
+                                      postController,
+                                      'both',
+                                      'Any',
+                                      primaryColor,
+                                      accentColor,
+                                    ),
+                                  ],
+                                );
+                              }),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
             ),
-          ),
 
-          // ── Posts List ───────────────────────────────────────────────────────
-          Obx(() {
-            if (postController.isLoading.value) {
-              return SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator(color: primaryColor)),
-              );
-            }
-
-            final posts = postController.filteredPosts;
-
-            if (posts.isEmpty) {
-              return SliverFillRemaining(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off_rounded, size: 64.r, color: Colors.grey.shade300),
-                      SizedBox(height: 16.h),
-                      Text(
-                        'No rooms found',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'Try adjusting your search or filters.',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ],
+            // ── Posts List ───────────────────────────────────────────────────────
+            Obx(() {
+              if (postController.isLoading.value) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: CircularProgressIndicator(color: primaryColor),
                   ),
-                ),
-              );
-            }
+                );
+              }
 
-            return SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
+              final posts = postController.filteredPosts;
+
+              if (posts.isEmpty) {
+                return SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off_rounded,
+                          size: 64.r,
+                          color: Colors.grey.shade300,
+                        ),
+                        SizedBox(height: 16.h),
+                        Text(
+                          'No rooms found',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 8.h),
+                        Text(
+                          'Try adjusting your search or filters.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }
+
+              return SliverList(
+                delegate: SliverChildBuilderDelegate((context, index) {
                   return _BachelorPostCard(post: posts[index])
                       .animate()
                       .fade(duration: 400.ms)
                       .slideY(
-                          begin: 0.1,
-                          end: 0,
-                          duration: 400.ms,
-                          curve: Curves.easeOutQuad,
-                          delay: (index * 50).ms);
-                },
-                childCount: posts.length,
-              ),
-            );
-          }),
+                        begin: 0.1,
+                        end: 0,
+                        duration: 400.ms,
+                        curve: Curves.easeOutQuad,
+                        delay: (index * 50).ms,
+                      );
+                }, childCount: posts.length),
+              );
+            }),
 
-          SliverToBoxAdapter(child: SizedBox(height: 24.h)),
-        ],
+            SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildFilterChip(PostController controller, String value, String label, Color primaryColor, Color accentColor) {
+  Widget _buildFilterChip(
+    PostController controller,
+    String value,
+    String label,
+    Color primaryColor,
+    Color accentColor,
+  ) {
     final isSelected = controller.selectedGenderFilter.value == value;
 
     return GestureDetector(
@@ -235,7 +267,7 @@ class BachelorHomeScreen extends StatelessWidget {
                     color: accentColor.withValues(alpha: 0.3),
                     blurRadius: 8.r,
                     offset: Offset(0, 3.h),
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -251,11 +283,21 @@ class BachelorHomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBudgetFilterButton(BuildContext context, PostController controller, Color primaryColor, Color accentColor) {
+  Widget _buildBudgetFilterButton(
+    BuildContext context,
+    PostController controller,
+    Color primaryColor,
+    Color accentColor,
+  ) {
     return Obx(() {
       final isFiltered = controller.selectedBudgetFilter.value > 0;
       return GestureDetector(
-        onTap: () => _showBudgetBottomSheet(context, controller, primaryColor, accentColor),
+        onTap: () => _showBudgetBottomSheet(
+          context,
+          controller,
+          primaryColor,
+          accentColor,
+        ),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.all(14.r),
@@ -280,7 +322,12 @@ class BachelorHomeScreen extends StatelessWidget {
     });
   }
 
-  void _showBudgetBottomSheet(BuildContext context, PostController controller, Color primaryColor, Color accentColor) {
+  void _showBudgetBottomSheet(
+    BuildContext context,
+    PostController controller,
+    Color primaryColor,
+    Color accentColor,
+  ) {
     final List<Map<String, dynamic>> budgetOptions = [
       {'label': 'All Budgets', 'value': 0},
       {'label': 'Under Tk.4,000', 'value': 4000},
@@ -327,7 +374,8 @@ class BachelorHomeScreen extends StatelessWidget {
                 children: budgetOptions.map((opt) {
                   final int val = opt['value'];
                   final String label = opt['label'];
-                  final bool isSelected = controller.selectedBudgetFilter.value == val;
+                  final bool isSelected =
+                      controller.selectedBudgetFilter.value == val;
                   return GestureDetector(
                     onTap: () {
                       controller.selectedBudgetFilter.value = val;
@@ -335,19 +383,30 @@ class BachelorHomeScreen extends StatelessWidget {
                     },
                     child: Container(
                       margin: EdgeInsets.only(bottom: 8.h),
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16.w,
+                        vertical: 14.h,
+                      ),
                       decoration: BoxDecoration(
-                        color: isSelected ? primaryColor.withValues(alpha: 0.08) : Colors.transparent,
+                        color: isSelected
+                            ? primaryColor.withValues(alpha: 0.08)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(12.r),
                         border: Border.all(
-                          color: isSelected ? primaryColor.withValues(alpha: 0.3) : Colors.grey.shade200,
+                          color: isSelected
+                              ? primaryColor.withValues(alpha: 0.3)
+                              : Colors.grey.shade200,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            isSelected ? Icons.radio_button_checked_rounded : Icons.radio_button_unchecked_rounded,
-                            color: isSelected ? primaryColor : Colors.grey.shade400,
+                            isSelected
+                                ? Icons.radio_button_checked_rounded
+                                : Icons.radio_button_unchecked_rounded,
+                            color: isSelected
+                                ? primaryColor
+                                : Colors.grey.shade400,
                             size: 20.r,
                           ),
                           SizedBox(width: 12.w),
@@ -355,8 +414,12 @@ class BachelorHomeScreen extends StatelessWidget {
                             label,
                             style: GoogleFonts.poppins(
                               fontSize: 14.sp,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                              color: isSelected ? primaryColor : AppTheme.textPrimary,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: isSelected
+                                  ? primaryColor
+                                  : AppTheme.textPrimary,
                             ),
                           ),
                         ],
@@ -425,331 +488,385 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
-    final Color primaryColor = const Color(0xFF1E1B4B); // Deep Indigo
+    final Color primaryColor = const Color(0xFF059669); // Deep Indigo
     final Color accentColor = const Color(0xFFF59E0B); // Warm Amber Gold
 
     return GestureDetector(
-      onTap: () => Get.to(() => RoomDetailScreen(post: post), transition: Transition.cupertino),
-      child: Container(
-        margin: EdgeInsets.only(bottom: 8.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10.r,
-              offset: Offset(0, 4.h),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // ── 1. Facebook Style Header (Landlord Profile) ──────────────────
-            Padding(
-              padding: EdgeInsets.all(16.r),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 20.r,
-                    backgroundColor: primaryColor.withValues(alpha: 0.1),
-                    backgroundImage: profilePic != null && profilePic!.isNotEmpty
-                        ? NetworkImage(profilePic!)
-                        : null,
-                    child: profilePic == null || profilePic!.isEmpty
-                        ? Icon(Icons.person_rounded, color: primaryColor)
-                        : null,
-                  ),
-                  SizedBox(width: 12.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          _timeAgo(post.createdAt),
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.sp,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // ── 2. Post Text Content ──────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    post.title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 17.sp,
-                      fontWeight: FontWeight.w700,
-                      color: primaryColor,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 8.h),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+      onTap: () => Get.to(
+        () => RoomDetailScreen(post: post),
+        transition: Transition.cupertino,
+      ),
+      child: Column(
+        children: [
+          Container(
+            decoration: const BoxDecoration(color: Colors.white),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── 1. Facebook Style Header (Landlord Profile) ──────────────────
+                Padding(
+                  padding: EdgeInsets.all(16.r),
+                  child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded, size: 16.r, color: accentColor),
-                      SizedBox(width: 6.w),
+                      CircleAvatar(
+                        radius: 20.r,
+                        backgroundColor: primaryColor.withValues(alpha: 0.1),
+                        backgroundImage:
+                            profilePic != null && profilePic!.isNotEmpty
+                            ? NetworkImage(profilePic!)
+                            : null,
+                        child: profilePic == null || profilePic!.isEmpty
+                            ? Icon(Icons.person_rounded, color: primaryColor)
+                            : null,
+                      ),
+                      SizedBox(width: 12.w),
                       Expanded(
-                        child: Text(
-                          post.address,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5.sp,
-                            color: Colors.grey.shade600,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: GoogleFonts.poppins(
+                                fontSize: 14.sp,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textPrimary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              _timeAgo(post.createdAt),
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.sp,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 12.h),
-                  
-                  // Tags Container
-                  Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
+                ),
+
+                // ── 2. Post Text Content ──────────────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Bachelor Type Tag
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                        decoration: BoxDecoration(
-                          color: post.bachelorType.toLowerCase() == 'male'
-                              ? Colors.blue.withValues(alpha: 0.1)
-                              : post.bachelorType.toLowerCase() == 'female'
+                      Text(
+                        post.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 17.sp,
+                          fontWeight: FontWeight.w700,
+                          color: primaryColor,
+                          height: 1.3,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      SizedBox(height: 8.h),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 16.r,
+                            color: accentColor,
+                          ),
+                          SizedBox(width: 6.w),
+                          Expanded(
+                            child: Text(
+                              post.address,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5.sp,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12.h),
+
+                      // Tags Container
+                      Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: [
+                          // Bachelor Type Tag
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 5.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: post.bachelorType.toLowerCase() == 'male'
+                                  ? Colors.blue.withValues(alpha: 0.1)
+                                  : post.bachelorType.toLowerCase() == 'female'
                                   ? Colors.pink.withValues(alpha: 0.1)
                                   : Colors.purple.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20.r),
-                          border: Border.all(
-                            color: post.bachelorType.toLowerCase() == 'male'
-                                ? Colors.blue.withValues(alpha: 0.3)
-                                : post.bachelorType.toLowerCase() == 'female'
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(
+                                color: post.bachelorType.toLowerCase() == 'male'
+                                    ? Colors.blue.withValues(alpha: 0.3)
+                                    : post.bachelorType.toLowerCase() ==
+                                          'female'
                                     ? Colors.pink.withValues(alpha: 0.3)
                                     : Colors.purple.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              post.bachelorType.toLowerCase() == 'male'
-                                  ? Icons.male_rounded
-                                  : post.bachelorType.toLowerCase() == 'female'
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  post.bachelorType.toLowerCase() == 'male'
+                                      ? Icons.male_rounded
+                                      : post.bachelorType.toLowerCase() ==
+                                            'female'
                                       ? Icons.female_rounded
                                       : Icons.people_rounded,
-                              size: 14.r,
-                              color: post.bachelorType.toLowerCase() == 'male'
-                                  ? Colors.blue.shade700
-                                  : post.bachelorType.toLowerCase() == 'female'
+                                  size: 14.r,
+                                  color:
+                                      post.bachelorType.toLowerCase() == 'male'
+                                      ? Colors.blue.shade700
+                                      : post.bachelorType.toLowerCase() ==
+                                            'female'
                                       ? Colors.pink.shade700
                                       : Colors.purple.shade700,
-                            ),
-                            SizedBox(width: 4.w),
-                            Text(
-                              post.bachelorType.toLowerCase() == 'male'
-                                  ? 'Male Only'
-                                  : post.bachelorType.toLowerCase() == 'female'
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  post.bachelorType.toLowerCase() == 'male'
+                                      ? 'Male Only'
+                                      : post.bachelorType.toLowerCase() ==
+                                            'female'
                                       ? 'Female Only'
                                       : 'Any Bachelor',
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w600,
-                                color: post.bachelorType.toLowerCase() == 'male'
-                                    ? Colors.blue.shade700
-                                    : post.bachelorType.toLowerCase() == 'female'
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        post.bachelorType.toLowerCase() ==
+                                            'male'
+                                        ? Colors.blue.shade700
+                                        : post.bachelorType.toLowerCase() ==
+                                              'female'
                                         ? Colors.pink.shade700
                                         : Colors.purple.shade700,
-                              ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                      
-                      // Preferred Tenant Tag
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                        decoration: BoxDecoration(
-                          color: accentColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(20.r),
-                          border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.badge_rounded, size: 14.r, color: accentColor),
-                            SizedBox(width: 4.w),
-                            Text(
-                              post.preferredTenant,
-                              style: GoogleFonts.poppins(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w600,
-                                color: accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      
-                      // Facilities
-                      ...post.facilities.take(3).map((facility) {
-                        return Container(
-                          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade100,
-                            borderRadius: BorderRadius.circular(20.r),
-                            border: Border.all(color: Colors.grey.shade300),
                           ),
-                          child: Text(
-                            facility,
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade700,
+
+                          // Preferred Tenant Tag
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 10.w,
+                              vertical: 5.h,
                             ),
+                            decoration: BoxDecoration(
+                              color: accentColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20.r),
+                              border: Border.all(
+                                color: accentColor.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.badge_rounded,
+                                  size: 14.r,
+                                  color: accentColor,
+                                ),
+                                SizedBox(width: 4.w),
+                                Text(
+                                  post.preferredTenant,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Facilities
+                          ...post.facilities.take(3).map((facility) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 10.w,
+                                vertical: 5.h,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(20.r),
+                                border: Border.all(color: Colors.grey.shade300),
+                              ),
+                              child: Text(
+                                facility,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  ),
+                ),
+
+                // ── 3. Post Image ──────────────────────────────────────────────────
+                Stack(
+                  children: [
+                    if (post.images.isNotEmpty)
+                      AppImageHelper.buildImage(
+                        post.images.first,
+                        height: 200.h,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    else
+                      Container(
+                        height: 200.h,
+                        width: double.infinity,
+                        color: Colors.grey.shade200,
+                        child: Icon(
+                          Icons.home_work_rounded,
+                          size: 48.r,
+                          color: Colors.grey.shade400,
+                        ),
+                      ),
+                    Positioned(
+                      top: 12.h,
+                      left: 12.w,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 6.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.7),
+                          borderRadius: BorderRadius.circular(20.r),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.2),
+                          ),
+                        ),
+                        child: Text(
+                          'Tk.${post.rent.toInt()} / mo',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: 12.h,
+                      right: 12.w,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: accentColor,
+                          borderRadius: BorderRadius.circular(8.r),
+                        ),
+                        child: Text(
+                          '${post.seatCount} Seat${post.seatCount > 1 ? 's' : ''}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // ── 4. Footer Actions ──────────────────────────────────────────────
+                Padding(
+                  padding: EdgeInsets.all(12.r),
+                  child: Row(
+                    children: [
+                      Obx(() {
+                        final postCtrl = Get.find<PostController>();
+                        final isFav = postCtrl.isSaved(post.postId);
+                        return IconButton(
+                          onPressed: () => postCtrl.toggleSavePost(post.postId),
+                          icon: Icon(
+                            isFav
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            color: isFav
+                                ? const Color(0xFFEF4444)
+                                : Colors.grey.shade400,
+                            size: 28.r,
                           ),
                         );
                       }),
+                      SizedBox(width: 8.w),
+                      IconButton(
+                        onPressed: () {},
+                        icon: Icon(
+                          Icons.share_rounded,
+                          color: Colors.grey.shade400,
+                          size: 26.r,
+                        ),
+                      ),
+                      const Spacer(),
+                      ElevatedButton(
+                        onPressed: () => Get.to(
+                          () => RoomDetailScreen(post: post),
+                          transition: Transition.cupertino,
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor.withValues(alpha: 0.1),
+                          foregroundColor: primaryColor,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12.r),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 20.w,
+                            vertical: 10.h,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'View Details',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 6.w),
+                            Icon(Icons.arrow_forward_rounded, size: 16.r),
+                          ],
+                        ),
+                      ),
                     ],
-                  ),
-                  SizedBox(height: 16.h),
-                ],
-              ),
-            ),
-
-            // ── 3. Post Image ──────────────────────────────────────────────────
-            Stack(
-              children: [
-                if (post.images.isNotEmpty)
-                  AppImageHelper.buildImage(
-                    post.images.first,
-                    height: 200.h,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  )
-                else
-                  Container(
-                    height: 200.h,
-                    width: double.infinity,
-                    color: Colors.grey.shade200,
-                    child: Icon(Icons.home_work_rounded, size: 48.r, color: Colors.grey.shade400),
-                  ),
-                Positioned(
-                  top: 12.h,
-                  left: 12.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.7),
-                      borderRadius: BorderRadius.circular(20.r),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-                    ),
-                    child: Text(
-                      'Tk.${post.rent.toInt()} / mo',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 12.h,
-                  right: 12.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-                    decoration: BoxDecoration(
-                      color: accentColor,
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    child: Text(
-                      '${post.seatCount} Seat${post.seatCount > 1 ? 's' : ''}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
                   ),
                 ),
               ],
             ),
-
-            // ── 4. Footer Actions ──────────────────────────────────────────────
-            Padding(
-              padding: EdgeInsets.all(12.r),
-              child: Row(
-                children: [
-                  Obx(() {
-                    final postCtrl = Get.find<PostController>();
-                    final isFav = postCtrl.isSaved(post.postId);
-                    return IconButton(
-                      onPressed: () => postCtrl.toggleSavePost(post.postId),
-                      icon: Icon(
-                        isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                        color: isFav ? const Color(0xFFEF4444) : Colors.grey.shade400,
-                        size: 28.r,
-                      ),
-                    );
-                  }),
-                  SizedBox(width: 8.w),
-                  IconButton(
-                    onPressed: () {},
-                    icon: Icon(Icons.share_rounded, color: Colors.grey.shade400, size: 26.r),
-                  ),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: () => Get.to(() => RoomDetailScreen(post: post), transition: Transition.cupertino),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor.withValues(alpha: 0.1),
-                      foregroundColor: primaryColor,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'View Details',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(width: 6.w),
-                        Icon(Icons.arrow_forward_rounded, size: 16.r),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+          ),
+          Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+        ],
       ),
     );
   }

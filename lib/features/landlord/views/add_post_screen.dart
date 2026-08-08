@@ -30,7 +30,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final List<XFile> _pickedLocalImages = [];
 
   String _bachelorType = 'male'; // 'male', 'female', 'both'
-  String _preferredTenant = 'Student / Job holder'; // 'Student', 'Job', 'Student / Job holder'
+  String _preferredTenant =
+      'Student / Job holder'; // 'Student', 'Job', 'Student / Job holder'
   final List<String> _selectedFacilities = ['WiFi', '24/7 Water'];
 
   final List<String> _allFacilities = AppConstants.availableFacilities;
@@ -76,9 +77,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
   Future<void> _pickImagesFromGallery() async {
     try {
-      final List<XFile> images = await _picker.pickMultiImage(
-        imageQuality: 80,
-      );
+      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 80);
       if (images.isNotEmpty) {
         setState(() {
           _pickedLocalImages.addAll(images);
@@ -108,10 +107,18 @@ class _AddPostScreenState extends State<AddPostScreen> {
         return;
       }
       _publishPostData();
+    } else {
+      Get.snackbar(
+        'Incomplete Information',
+        'Please fill all required fields properly.',
+        backgroundColor: AppTheme.errorColor,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
-  void _publishPostData({String? trxId, String? senderNumber}) {
+  Future<void> _publishPostData({String? trxId, String? senderNumber}) async {
     final postCtrl = Get.find<PostController>();
     final List<String> imagesToUse = _pickedLocalImages.isNotEmpty
         ? _pickedLocalImages.map((e) => e.path).toList()
@@ -134,11 +141,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
         facilities: _selectedFacilities,
         images: imagesToUse,
       );
-      Get.back();
-      postCtrl.updateMessPost(updatedPost);
+      final success = await postCtrl.updateMessPost(updatedPost);
+      if (success) {
+        Get.back();
+      }
     } else {
-      Get.back();
-      postCtrl.addMessPost(
+      final success = await postCtrl.addMessPost(
         title: _titleController.text.trim(),
         rent: double.tryParse(_rentController.text.trim()) ?? 4500,
         address: _addressController.text.trim(),
@@ -152,6 +160,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
         senderNumber: senderNumber,
         trxId: trxId,
       );
+      if (success) {
+        Get.back();
+      }
     }
   }
 
@@ -174,18 +185,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
         color: AppTheme.textPrimary,
       ),
       prefixIcon: prefixIcon != null
-          ? Icon(
-              prefixIcon,
-              color: emeraldTheme,
-              size: 20.r,
-            )
+          ? Icon(prefixIcon, color: emeraldTheme, size: 20.r)
           : null,
       filled: true,
       fillColor: const Color(0xFFF8FAFC),
-      contentPadding: EdgeInsets.symmetric(
-        horizontal: 16.w,
-        vertical: 16.h,
-      ),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16.r),
         borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -225,8 +229,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
         ),
         leading: IconButton(
           onPressed: () => Get.back(),
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
         ),
       ),
       body: SafeArea(
@@ -256,8 +262,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
                           color: emeraldTheme.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.verified_user_rounded,
-                            color: emeraldTheme, size: 20.r),
+                        child: Icon(
+                          Icons.verified_user_rounded,
+                          color: emeraldTheme,
+                          size: 20.r,
+                        ),
                       ),
                       SizedBox(width: 12.w),
                       Expanded(
@@ -279,7 +288,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
                 // Section 1: Basic Information
                 _buildSectionHeader(
-                    Icons.home_work_rounded, 'Basic Information'),
+                  Icons.home_work_rounded,
+                  'Basic Information',
+                ),
                 SizedBox(height: 12.h),
 
                 Text(
@@ -367,7 +378,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 24.h),
 
                 // Section 2: Preferences & Location
-                _buildSectionHeader(Icons.people_alt_rounded, 'Preferences & Location'),
+                _buildSectionHeader(
+                  Icons.people_alt_rounded,
+                  'Preferences & Location',
+                ),
                 SizedBox(height: 12.h),
 
                 Text(
@@ -406,7 +420,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     _buildTenantRadio('Job', 'Job'),
                     SizedBox(width: 8.w),
                     _buildTenantRadio(
-                        'Student / Job holder', 'Student / Job holder'),
+                      'Student / Job holder',
+                      'Student / Job holder',
+                    ),
                   ],
                 ),
                 SizedBox(height: 18.h),
@@ -426,7 +442,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   textCapitalization: TextCapitalization.words,
                   maxLines: 2,
                   decoration: _buildInputDecoration(
-                    hintText: 'e.g. House 12, Road 4, Section 10, Mirpur, Dhaka',
+                    hintText:
+                        'e.g. House 12, Road 4, Section 10, Mirpur, Dhaka',
                     prefixIcon: Icons.location_on_rounded,
                   ),
                   validator: (v) =>
@@ -450,14 +467,17 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     hintText: 'e.g. 01712345678',
                     prefixIcon: Icons.phone_rounded,
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Enter phone number' : null,
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Enter phone number'
+                      : null,
                 ),
                 SizedBox(height: 24.h),
 
                 // Section 3: Facilities
-                _buildSectionHeader(Icons.check_circle_outline_rounded,
-                    'Included Facilities'),
+                _buildSectionHeader(
+                  Icons.check_circle_outline_rounded,
+                  'Included Facilities',
+                ),
                 SizedBox(height: 12.h),
 
                 Wrap(
@@ -470,10 +490,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         facility,
                         style: GoogleFonts.poppins(
                           fontSize: 12.sp,
-                          color:
-                              isSelected ? Colors.white : AppTheme.textPrimary,
-                          fontWeight:
-                              isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isSelected
+                              ? Colors.white
+                              : AppTheme.textPrimary,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.w500,
                         ),
                       ),
                       selected: isSelected,
@@ -504,7 +526,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
                 // Section 4: Photo Selection (Gallery Only, No Demo Pictures)
                 _buildSectionHeader(
-                    Icons.photo_camera_rounded, 'Real Room Photos'),
+                  Icons.photo_camera_rounded,
+                  'Real Room Photos',
+                ),
                 SizedBox(height: 12.h),
 
                 GestureDetector(
@@ -572,8 +596,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () =>
-                            setState(() => _pickedLocalImages.clear()),
+                        onTap: () => setState(() => _pickedLocalImages.clear()),
                         child: Text(
                           'Clear All',
                           style: GoogleFonts.poppins(
@@ -601,12 +624,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.r),
                                 border: Border.all(
-                                    color: emeraldTheme, width: 1.5),
+                                  color: emeraldTheme,
+                                  width: 1.5,
+                                ),
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(10.r),
-                                child:
-                                    AppImageHelper.buildImage(file.path),
+                                child: AppImageHelper.buildImage(file.path),
                               ),
                             ),
                             Positioned(
@@ -624,8 +648,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
                                     color: AppTheme.errorColor,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.close_rounded,
-                                      size: 14.r, color: Colors.white),
+                                  child: Icon(
+                                    Icons.close_rounded,
+                                    size: 14.r,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -658,7 +685,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(12.r),
                             border: Border.all(
-                                color: const Color(0xFFE2E8F0), width: 1.5),
+                              color: const Color(0xFFE2E8F0),
+                              width: 1.5,
+                            ),
                           ),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.r),
@@ -672,30 +701,42 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 32.h),
 
                 // Submit Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 52.h,
-                  child: ElevatedButton(
-                    onPressed: _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: emeraldTheme,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16.r),
+                Obx(() {
+                  final postController = Get.find<PostController>();
+                  return SizedBox(
+                    width: double.infinity,
+                    height: 52.h,
+                    child: ElevatedButton(
+                      onPressed: postController.isLoading.value ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: emeraldTheme,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        elevation: 4,
                       ),
-                      elevation: 4,
+                      child: postController.isLoading.value
+                          ? SizedBox(
+                              height: 24.h,
+                              width: 24.h,
+                              child: const CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.5,
+                              ),
+                            )
+                          : Text(
+                              isEditing
+                                  ? 'Update Room Listing'
+                                  : 'Publish Room Listing',
+                              style: GoogleFonts.poppins(
+                                fontSize: 15.5.sp,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
-                    child: Text(
-                      isEditing
-                          ? 'Update Room Listing'
-                          : 'Publish Room Listing (Tk.${AppConstants.landlordFee})',
-                      style: GoogleFonts.poppins(
-                        fontSize: 15.5.sp,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                  );
+                }),
                 SizedBox(height: 30.h),
               ],
             ),

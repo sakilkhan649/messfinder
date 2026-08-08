@@ -91,35 +91,43 @@ class ChatController extends GetxController {
     });
   }
 
+  final RxBool isSending = false.obs;
+
   Future<void> sendMessage(String chatRoomId, String text, String targetUserId) async {
     if (text.trim().isEmpty) return;
 
-    final messageRef = _firestore
-        .collection(ApiConstants.chatsCollection)
-        .doc(chatRoomId)
-        .collection(ApiConstants.messagesCollection)
-        .doc();
+    try {
+      isSending.value = true;
+      final messageRef = _firestore
+          .collection(ApiConstants.chatsCollection)
+          .doc(chatRoomId)
+          .collection(ApiConstants.messagesCollection)
+          .doc();
 
-    final message = MessageModel(
-      id: messageRef.id,
-      senderId: currentUserId,
-      text: text.trim(),
-    );
+      final message = MessageModel(
+        id: messageRef.id,
+        senderId: currentUserId,
+        text: text.trim(),
+        createdAt: DateTime.now(),
+      );
 
-    // Run transaction or batch to update message and last message info in chat room
-    final batch = _firestore.batch();
-    
-    batch.set(messageRef, message.toMap());
-    
-    final chatRoomRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-    batch.update(chatRoomRef, {
-      'lastMessage': text.trim(),
-      'lastSenderId': currentUserId,
-      'lastMessageTime': FieldValue.serverTimestamp(),
-      'unreadCounts.$targetUserId': FieldValue.increment(1),
-    });
+      // Run in batch to ensure both updates happen together
+      final batch = _firestore.batch();
+      
+      batch.set(messageRef, message.toMap());
+      
+      final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
+      batch.update(chatRef, {
+        'lastMessage': message.text,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastSenderId': currentUserId,
+        'unreadCounts.$targetUserId': FieldValue.increment(1),
+      });
 
-    await batch.commit();
+      await batch.commit();
+    } finally {
+      isSending.value = false;
+    }
   }
 
   Future<void> markMessagesAsRead(String chatRoomId) async {
