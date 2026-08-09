@@ -3,13 +3,15 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:share_plus/share_plus.dart';
+
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/image_helper.dart';
 import '../../auth/models/user_model.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
+import 'widgets/facebook_image_grid.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -462,7 +464,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
     if (mounted && data != null) {
       setState(() {
         name = data['name'] ?? 'Unknown User';
-        profilePic = data['profilePic'];
+        profilePic = data['photoUrl'];
         isLoaded = true;
       });
     } else if (mounted) {
@@ -727,24 +729,20 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                 // ── 3. Post Image ──────────────────────────────────────────────────
                 Stack(
                   children: [
-                    if (post.images.isNotEmpty)
-                      AppImageHelper.buildImage(
-                        post.images.first,
-                        height: 200.h,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      )
-                    else
-                      Container(
-                        height: 200.h,
-                        width: double.infinity,
-                        color: Colors.grey.shade200,
-                        child: Icon(
-                          Icons.home_work_rounded,
-                          size: 48.r,
-                          color: Colors.grey.shade400,
-                        ),
-                      ),
+                    SizedBox(
+                      height: 200.h,
+                      width: double.infinity,
+                      child: post.images.isNotEmpty
+                          ? FacebookImageGrid(images: post.images, borderRadius: 20)
+                          : Container(
+                              color: Colors.grey.shade200,
+                              child: Icon(
+                                Icons.home_work_rounded,
+                                size: 48.r,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                    ),
                     Positioned(
                       top: 12.h,
                       left: 12.w,
@@ -818,7 +816,14 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                       }),
                       SizedBox(width: 8.w),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          final shareText = 'Check out this room for rent!\n\n'
+                              '${post.title}\n'
+                              'Rent: Tk.${post.rent.toInt()}/month\n'
+                              'Location: ${post.address}\n\n'
+                              'Shared via Mess Finder App';
+                          Share.share(shareText);
+                        },
                         icon: Icon(
                           Icons.share_rounded,
                           color: Colors.grey.shade400,

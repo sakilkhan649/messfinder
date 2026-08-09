@@ -13,11 +13,13 @@ import '../models/post_model.dart';
 class AddPostScreen extends StatefulWidget {
   final PostModel? existingPost;
   final bool showBackButton;
+  final VoidCallback? onPostAdded;
 
   const AddPostScreen({
     super.key, 
     this.existingPost,
     this.showBackButton = true,
+    this.onPostAdded,
   });
 
   @override
@@ -67,6 +69,19 @@ class _AddPostScreenState extends State<AddPostScreen> {
     _phoneController.dispose();
     _seatDescController.dispose();
     super.dispose();
+  }
+
+  void _clearForm() {
+    _titleController.clear();
+    _rentController.clear();
+    _addressController.clear();
+    _seatDescController.clear();
+    _phoneController.clear();
+    setState(() {
+      _pickedLocalImages.clear();
+      _selectedFacilities.clear();
+      _selectedFacilities.addAll(['WiFi', '24/7 Water']);
+    });
   }
 
   bool get isEditing => widget.existingPost != null;
@@ -167,7 +182,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
         trxId: trxId,
       );
       if (success) {
-        Get.back();
+        if (widget.onPostAdded != null) {
+          _clearForm();
+          widget.onPostAdded!();
+        } else {
+          Get.back();
+        }
       }
     }
   }

@@ -8,13 +8,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/image_helper.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import '../models/booking_model.dart';
 import '../repositories/booking_repo.dart';
+import 'widgets/facebook_image_grid.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
@@ -322,10 +322,7 @@ class RoomDetailScreen extends StatelessWidget {
                       fit: StackFit.expand,
                       children: [
                         post.images.isNotEmpty
-                            ? AppImageHelper.buildImage(
-                                post.images.first,
-                                fit: BoxFit.cover,
-                              )
+                            ? FacebookImageGrid(images: post.images, height: 280)
                             : Container(
                                 color: Colors.grey.shade300,
                                 child: const Icon(

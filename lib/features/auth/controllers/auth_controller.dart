@@ -302,8 +302,8 @@ class AuthController extends GetxController {
       await _authRepo.saveUserData(updatedUser);
       currentUser.value = updatedUser;
       currentUser.refresh();
-      ApiChecker.showSuccess('Profile updated successfully!');
       Get.back();
+      ApiChecker.showSuccess('Profile updated successfully!');
     } catch (e) {
       ApiChecker.showError(e.toString());
     } finally {

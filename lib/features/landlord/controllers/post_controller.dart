@@ -26,6 +26,15 @@ class PostController extends GetxController {
   final Map<String, Map<String, dynamic>> landlordProfilesCache = {};
 
   Future<Map<String, dynamic>?> getLandlordProfile(String uid) async {
+    // If it's the current user, always return the latest local data
+    if (Get.isRegistered<AuthController>()) {
+      final auth = Get.find<AuthController>();
+      final user = auth.currentUser.value;
+      if (user != null && user.uid == uid) {
+        return user.toMap();
+      }
+    }
+
     if (landlordProfilesCache.containsKey(uid)) {
       return landlordProfilesCache[uid];
     }
