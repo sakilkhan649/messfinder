@@ -3,11 +3,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/utils/imgbb_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
+import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 
 class PostController extends GetxController {
   final PostRepository _postRepo = PostRepository();
@@ -284,6 +286,8 @@ class PostController extends GetxController {
     required List<String> images,
     String? trxId,
     String? senderNumber,
+    double latitude = 23.8103,
+    double longitude = 90.4125,
   }) async {
     final auth = Get.find<AuthController>();
     final user = auth.currentUser.value;
@@ -322,8 +326,8 @@ class PostController extends GetxController {
           title: title,
           rent: rent,
           address: address,
-          latitude: 23.8103,
-          longitude: 90.4125,
+          latitude: latitude,
+          longitude: longitude,
           images: finalImageUrls,
           seatCount: seatCount,
           seatDescription: seatDescription,
@@ -342,6 +346,33 @@ class PostController extends GetxController {
       ApiChecker.showSuccess(
         'Room listing published successfully! 🎉',
       );
+      
+      // Broadcast push notification to bachelors (and others) about the new room
+      try {
+        final loc = address.split(',').first;
+        final titleStr = 'New Room Available! 🏠';
+        final bodyStr = 'A new $bachelorType room is available in $loc. Rent: $rent';
+        
+        NotificationService().storeNotification(AppNotificationModel(
+          id: '',
+          title: titleStr,
+          body: bodyStr,
+          type: NotificationType.newPost,
+          receiverUid: 'all',
+          senderUid: user.uid,
+          createdAt: DateTime.now(),
+        ));
+        
+        NotificationService().sendPushToTopic(
+          topic: 'all_users',
+          title: titleStr,
+          body: bodyStr,
+          data: {'type': 'new_post'},
+        );
+      } catch (e) {
+        // ignore notification errors
+      }
+
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());

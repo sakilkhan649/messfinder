@@ -4,11 +4,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/app_constants.dart';
 import '../../../core/utils/image_helper.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
+import 'map_location_picker_screen.dart';
 
 class AddPostScreen extends StatefulWidget {
   final PostModel? existingPost;
@@ -43,6 +45,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
   final List<String> _selectedFacilities = ['WiFi', '24/7 Water'];
 
   final List<String> _allFacilities = AppConstants.availableFacilities;
+  LatLng _selectedLocation = const LatLng(23.8103, 90.4125);
 
   @override
   void initState() {
@@ -58,6 +61,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
       _preferredTenant = p.preferredTenant;
       _selectedFacilities.clear();
       _selectedFacilities.addAll(p.facilities);
+      _selectedLocation = LatLng(p.latitude, p.longitude);
     }
   }
 
@@ -178,6 +182,8 @@ class _AddPostScreenState extends State<AddPostScreen> {
         preferredTenant: _preferredTenant,
         facilities: _selectedFacilities,
         images: imagesToUse,
+        latitude: _selectedLocation.latitude,
+        longitude: _selectedLocation.longitude,
         senderNumber: senderNumber,
         trxId: trxId,
       );
@@ -477,6 +483,33 @@ class _AddPostScreenState extends State<AddPostScreen> {
                   ),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Enter address' : null,
+                ),
+                SizedBox(height: 12.h),
+                ElevatedButton.icon(
+                  onPressed: () async {
+                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: _selectedLocation));
+                    if (picked != null) {
+                      setState(() {
+                        _selectedLocation = picked;
+                      });
+                      Get.snackbar(
+                        'Location Selected',
+                        'Map location has been updated successfully.',
+                        snackPosition: SnackPosition.BOTTOM,
+                        backgroundColor: const Color(0xFF059669),
+                        colorText: Colors.white,
+                      );
+                    }
+                  },
+                  icon: Icon(Icons.map_outlined, color: const Color(0xFF059669), size: 20.r),
+                  label: Text('Select Location on Map', style: GoogleFonts.poppins(color: const Color(0xFF059669))),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    elevation: 0,
+                    side: const BorderSide(color: Color(0xFF059669)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                  ),
                 ),
                 SizedBox(height: 18.h),
 

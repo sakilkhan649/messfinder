@@ -733,7 +733,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                       height: 200.h,
                       width: double.infinity,
                       child: post.images.isNotEmpty
-                          ? FacebookImageGrid(images: post.images, borderRadius: 20)
+                          ? FacebookImageGrid(images: post.images, borderRadius: 0)
                           : Container(
                               color: Colors.grey.shade200,
                               child: Icon(

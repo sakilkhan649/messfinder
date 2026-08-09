@@ -12,12 +12,14 @@ class ChatScreen extends StatefulWidget {
   final String chatRoomId;
   final String targetUserId;
   final String targetUserName;
+  final String? targetUserPhoto;
 
   const ChatScreen({
     super.key,
     required this.chatRoomId,
     required this.targetUserId,
     required this.targetUserName,
+    this.targetUserPhoto,
   });
 
   @override
@@ -53,6 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
+      final _authController = Get.find<AuthController>();
       final isLandlord = _authController.currentUser.value?.isLandlord ?? false;
       final Color rolePrimaryColor = isLandlord
           ? const Color(0xFF059669) // Emerald for Landlord
@@ -64,7 +67,8 @@ class _ChatScreenState extends State<ChatScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
-
+      final currentUserPhoto = _authController.currentUser.value?.photoUrl;
+      final currentUserName = _authController.currentUser.value?.name ?? 'Me';
       return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
@@ -77,11 +81,16 @@ class _ChatScreenState extends State<ChatScreen> {
               CircleAvatar(
                 radius: 18.r,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
-                child: Icon(
-                  Icons.person_rounded,
-                  size: 20.r,
-                  color: Colors.white,
-                ),
+                backgroundImage: widget.targetUserPhoto != null
+                    ? NetworkImage(widget.targetUserPhoto!)
+                    : null,
+                child: widget.targetUserPhoto == null
+                    ? Icon(
+                        Icons.person_rounded,
+                        size: 20.r,
+                        color: Colors.white,
+                      )
+                    : null,
               ),
               SizedBox(width: 12.w),
               Expanded(
@@ -183,12 +192,40 @@ class _ChatScreenState extends State<ChatScreen> {
                           alignment: isMe
                               ? Alignment.centerRight
                               : Alignment.centerLeft,
-                          child: Container(
-                            margin: EdgeInsets.only(
-                              bottom: 12.h,
-                              left: isMe ? 64.w : 0,
-                              right: isMe ? 0 : 64.w,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+                            children: [
+                              if (!isMe)
+                                Padding(
+                                  padding: EdgeInsets.only(bottom: 12.h, right: 8.w, left: 16.w),
+                                  child: Tooltip(
+                                    message: widget.targetUserName,
+                                    triggerMode: TooltipTriggerMode.tap,
+                                    child: CircleAvatar(
+                                      radius: 12.r,
+                                      backgroundColor: Colors.grey.shade300,
+                                      backgroundImage: widget.targetUserPhoto != null
+                                          ? NetworkImage(widget.targetUserPhoto!)
+                                          : null,
+                                      child: widget.targetUserPhoto == null
+                                          ? Icon(
+                                              Icons.person_rounded,
+                                              size: 14.r,
+                                              color: Colors.grey.shade600,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                ),
+                              Flexible(
+                                child: Container(
+                                  margin: EdgeInsets.only(
+                                    bottom: 12.h,
+                                    left: isMe ? 64.w : 0,
+                                    right: isMe ? 16.w : 64.w,
+                                  ),
                             padding: EdgeInsets.symmetric(
                               horizontal: 16.w,
                               vertical: 12.h,
@@ -222,12 +259,14 @@ class _ChatScreenState extends State<ChatScreen> {
                                         color: isMe ? Colors.white70 : Colors.grey,
                                       ),
                                       SizedBox(width: 8.w),
-                                      Text(
-                                        'This message was deleted',
-                                        style: GoogleFonts.poppins(
-                                          color: isMe ? Colors.white70 : Colors.grey,
-                                          fontSize: 14.sp,
-                                          fontStyle: FontStyle.italic,
+                                      Flexible(
+                                        child: Text(
+                                          'This message was deleted',
+                                          style: GoogleFonts.poppins(
+                                            color: isMe ? Colors.white70 : Colors.grey,
+                                            fontSize: 14.sp,
+                                            fontStyle: FontStyle.italic,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -263,19 +302,56 @@ class _ChatScreenState extends State<ChatScreen> {
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
-                                      if (message.isEdited)
-                                        Padding(
-                                          padding: EdgeInsets.only(top: 4.h),
-                                          child: Text(
-                                            '(edited)',
+                                      Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            _formatTime(message.createdAt ?? DateTime.now()),
                                             style: GoogleFonts.poppins(
-                                              color: isMe ? Colors.white70 : Colors.grey,
+                                              color: isMe ? Colors.white70 : Colors.grey.shade500,
                                               fontSize: 10.sp,
                                             ),
                                           ),
-                                        ),
+                                          if (message.isEdited)
+                                            Padding(
+                                              padding: EdgeInsets.only(left: 4.w),
+                                              child: Text(
+                                                '(edited)',
+                                                style: GoogleFonts.poppins(
+                                                  color: isMe ? Colors.white70 : Colors.grey,
+                                                  fontSize: 10.sp,
+                                                ),
+                                              ),
+                                            ),
+                                        ],
+                                      ),
                                     ],
                                   ),
+                                ),
+                              ),
+                                if (isMe)
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 12.h, left: 8.w, right: 16.w),
+                                    child: Tooltip(
+                                      message: currentUserName,
+                                      triggerMode: TooltipTriggerMode.tap,
+                                      child: CircleAvatar(
+                                        radius: 12.r,
+                                        backgroundColor: Colors.grey.shade300,
+                                        backgroundImage: currentUserPhoto != null
+                                            ? NetworkImage(currentUserPhoto)
+                                            : null,
+                                        child: currentUserPhoto == null
+                                            ? Icon(
+                                                Icons.person_rounded,
+                                                size: 14.r,
+                                                color: Colors.grey.shade600,
+                                              )
+                                            : null,
+                                      ),
+                                    ),
+                                  ),
+                            ],
                           ),
                         ),
                       );
@@ -310,14 +386,16 @@ class _ChatScreenState extends State<ChatScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              onPressed: () => _chatController.sendImageMessage(widget.chatRoomId, widget.targetUserId),
+            Obx(() => IconButton(
+              onPressed: _chatController.isSending.value 
+                  ? null 
+                  : () => _chatController.sendImageMessage(widget.chatRoomId, widget.targetUserId),
               icon: Icon(
                 Icons.image_rounded,
-                color: rolePrimaryColor,
+                color: _chatController.isSending.value ? Colors.grey : rolePrimaryColor,
                 size: 24.r,
               ),
-            ),
+            )),
             Expanded(
               child: TextField(
                 controller: _messageController,
@@ -474,5 +552,15 @@ class _ChatScreenState extends State<ChatScreen> {
         ],
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    int hour = time.hour;
+    int minute = time.minute;
+    String period = hour >= 12 ? 'PM' : 'AM';
+    if (hour == 0) hour = 12;
+    if (hour > 12) hour -= 12;
+    String minuteStr = minute < 10 ? '0$minute' : '$minute';
+    return '$hour:$minuteStr $period';
   }
 }

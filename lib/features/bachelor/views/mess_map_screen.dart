@@ -108,9 +108,20 @@ class _MessMapScreenState extends State<MessMapScreen> {
                   userAgentPackageName: 'com.example.mess_finder',
                 ),
                 MarkerLayer(
-                  markers: activePosts.map((post) {
+                  markers: activePosts.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final post = entry.value;
+                    
+                    // Offset existing posts that have the exact same hardcoded default location
+                    double lat = post.latitude;
+                    double lng = post.longitude;
+                    if (lat == 23.8103 && lng == 90.4125) {
+                      lat += (index % 5) * 0.003 - 0.006;
+                      lng += (index ~/ 5) * 0.003 - 0.006;
+                    }
+
                     return Marker(
-                      point: LatLng(post.latitude, post.longitude),
+                      point: LatLng(lat, lng),
                       width: 28.r,
                       height: 28.r,
                       child: GestureDetector(

@@ -304,7 +304,7 @@ class NotificationService {
     final batch = _firestore.batch();
     final query = await _firestore
         .collection('notifications')
-        .where('receiverUid', isEqualTo: uid)
+        .where('receiverUid', whereIn: [uid, 'all'])
         .where('isRead', isEqualTo: false)
         .get();
     for (final doc in query.docs) {
@@ -317,7 +317,7 @@ class NotificationService {
   Stream<List<AppNotificationModel>> getNotificationsStream(String uid) {
     return _firestore
         .collection('notifications')
-        .where('receiverUid', isEqualTo: uid)
+        .where('receiverUid', whereIn: [uid, 'all'])
         .snapshots()
         .map((snap) {
           final list = snap.docs
@@ -335,7 +335,7 @@ class NotificationService {
   Stream<int> getUnreadCountStream(String uid) {
     return _firestore
         .collection('notifications')
-        .where('receiverUid', isEqualTo: uid)
+        .where('receiverUid', whereIn: [uid, 'all'])
         .snapshots()
         .map((snap) => snap.docs
             .where((doc) => (doc.data()['isRead'] ?? false) == false)

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/services/notification_service.dart';
 import '../../../core/utils/api_constants.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../notifications/models/app_notification_model.dart';
 import '../models/booking_model.dart';
 
 class BookingRepository {
@@ -39,6 +41,17 @@ class BookingRepository {
         'Booking request saved successfully and post updated',
         tag: 'BOOKING_REPO',
       );
+      
+      // Notify the landlord
+      NotificationService().sendAndStore(
+        receiverUid: booking.landlordUid,
+        title: 'New Booking Request! 🔔',
+        body: '${booking.bachelorName} requested to book your room.',
+        type: NotificationType.bookingRequest,
+        senderUid: booking.bachelorUid,
+        relatedId: booking.postId,
+      );
+
       return docRef.id;
     } catch (e, stack) {
       AppLogger.e(
@@ -171,10 +184,34 @@ class BookingRepository {
   // Approve a booking by Admin
   Future<void> approveBooking(String bookingId) async {
     try {
+      final docSnapshot = await _firestore
+          .collection(ApiConstants.bookingsCollection)
+          .doc(bookingId)
+          .get();
+          
       await _firestore
           .collection(ApiConstants.bookingsCollection)
           .doc(bookingId)
           .update({'isUnlocked': true, 'paymentStatus': 'approved'});
+          
+      if (docSnapshot.exists) {
+        final booking = BookingModel.fromMap(docSnapshot.data()!, docSnapshot.id);
+        NotificationService().sendAndStore(
+          receiverUid: booking.bachelorUid,
+          title: 'Booking Approved! 🎉',
+          body: 'Your payment was verified. You can now contact the landlord.',
+          type: NotificationType.bookingApproved,
+          relatedId: booking.postId,
+        );
+        NotificationService().sendAndStore(
+          receiverUid: booking.landlordUid,
+          title: 'Booking Payment Verified 💰',
+          body: '${booking.bachelorName} has paid the booking fee. They might contact you soon.',
+          type: NotificationType.paymentVerified,
+          relatedId: booking.postId,
+        );
+      }
+      
       AppLogger.s('Booking approved: $bookingId', tag: 'BOOKING_REPO');
     } catch (e) {
       throw 'Failed to approve booking: $e';
@@ -184,10 +221,27 @@ class BookingRepository {
   // Reject a booking by Admin
   Future<void> rejectBooking(String bookingId) async {
     try {
+      final docSnapshot = await _firestore
+          .collection(ApiConstants.bookingsCollection)
+          .doc(bookingId)
+          .get();
+          
       await _firestore
           .collection(ApiConstants.bookingsCollection)
           .doc(bookingId)
           .update({'isUnlocked': false, 'paymentStatus': 'rejected'});
+          
+      if (docSnapshot.exists) {
+        final booking = BookingModel.fromMap(docSnapshot.data()!, docSnapshot.id);
+        NotificationService().sendAndStore(
+          receiverUid: booking.bachelorUid,
+          title: 'Booking Rejected ❌',
+          body: 'Your booking request was rejected or payment could not be verified.',
+          type: NotificationType.bookingRejected,
+          relatedId: booking.postId,
+        );
+      }
+      
       AppLogger.s('Booking rejected: $bookingId', tag: 'BOOKING_REPO');
     } catch (e) {
       throw 'Failed to reject booking: $e';

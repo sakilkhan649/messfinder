@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
@@ -6,6 +8,9 @@ import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mess_finder/core/utils/imgbb_service.dart';
+import 'package:mess_finder/core/services/notification_service.dart';
+import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
+import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 
 class ChatController extends GetxController {
   final _firestore = FirebaseFirestore.instance;
@@ -48,8 +53,8 @@ class ChatController extends GetxController {
           uid2: finalTargetName,
         },
         participantPhotos: {
-          uid1: ?currentUserPhoto,
-          uid2: ?finalTargetPhoto,
+          if (currentUserPhoto != null) uid1: currentUserPhoto,
+          if (finalTargetPhoto != null) uid2: finalTargetPhoto,
         },
         lastMessage: '',
         lastSenderId: '',
@@ -128,6 +133,23 @@ class ChatController extends GetxController {
       });
 
       await batch.commit();
+      
+      // Send Push Notification
+      try {
+        final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
+        final messagePreview = imageUrl != null ? '📷 Sent an image' : text.trim();
+        await NotificationService().sendAndStore(
+          receiverUid: targetUserId,
+          title: 'New Message from $currentUserName',
+          body: messagePreview,
+          type: NotificationType.general,
+          senderUid: currentUserId,
+          relatedId: chatRoomId,
+          extraData: {'type': 'chat', 'chatRoomId': chatRoomId},
+        );
+      } catch (e) {
+        // ignore notification errors
+      }
     } finally {
       isSending.value = false;
     }
@@ -135,22 +157,124 @@ class ChatController extends GetxController {
 
   Future<void> sendImageMessage(String chatRoomId, String targetUserId) async {
     final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+    final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
+    if (images.isEmpty) return;
     
-    if (image == null) return;
+    final TextEditingController textCtrl = TextEditingController();
+
+    // Show Messenger-style preview dialog/bottom sheet
+    final result = await Get.bottomSheet<Map<String, dynamic>>(
+      Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 250,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(
+                          File(images[index].path),
+                          fit: BoxFit.cover,
+                          width: images.length == 1 ? Get.width - 32 : Get.width * 0.7,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: textCtrl,
+                        maxLines: 4,
+                        minLines: 1,
+                        decoration: InputDecoration(
+                          hintText: 'Add a message...',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.grey.shade100,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    GestureDetector(
+                      onTap: () => Get.back(result: {'send': true, 'text': textCtrl.text}),
+                      child: Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF059669),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+
+    if (result == null || result['send'] != true) return;
+
+    Get.snackbar(
+      'Uploading...',
+      'Please wait while your ${images.length > 1 ? 'images are' : 'image is'} being uploaded.',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 3),
+    );
     
     isSending.value = true;
     try {
       final imgbbService = ImgbbService();
-      final imageUrl = await imgbbService.uploadImage(image.path);
       
-      if (imageUrl != null) {
-        await sendMessage(chatRoomId, '', targetUserId, imageUrl: imageUrl);
-      } else {
-        Get.snackbar('Error', 'Failed to upload image');
+      for (int i = 0; i < images.length; i++) {
+        final imageUrl = await imgbbService.uploadImage(images[i].path);
+        
+        if (imageUrl != null) {
+          // Send text only with the first image
+          final text = i == 0 ? result['text'] as String : '';
+          await sendMessage(chatRoomId, text, targetUserId, imageUrl: imageUrl);
+        } else {
+          Get.snackbar('Error', 'Failed to upload image ${i + 1}');
+        }
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to send image');
+      Get.snackbar('Error', 'Failed to send images: $e');
     } finally {
       isSending.value = false;
     }

@@ -123,6 +123,9 @@ class ChatListScreen extends StatelessWidget {
                   final unreadCount =
                       chat.unreadCounts[_chatController.currentUserId] ?? 0;
 
+                  final isMeLastSender = chat.lastSenderId == _chatController.currentUserId;
+                  final prefix = isMeLastSender ? 'You: ' : '';
+
                   return Container(
                     margin: EdgeInsets.only(bottom: 12.h),
                     decoration: BoxDecoration(
@@ -146,6 +149,7 @@ class ChatListScreen extends StatelessWidget {
                               chatRoomId: chat.id,
                               targetUserId: otherUserId,
                               targetUserName: otherUserName,
+                              targetUserPhoto: otherUserPhoto,
                             ),
                           );
                         },
@@ -203,7 +207,7 @@ class ChatListScreen extends StatelessWidget {
                                     Text(
                                       chat.lastMessage.isEmpty
                                           ? 'Say hi!'
-                                          : chat.lastMessage,
+                                          : '$prefix${chat.lastMessage}',
                                       style: GoogleFonts.poppins(
                                         color: unreadCount > 0
                                             ? AppTheme.textPrimary

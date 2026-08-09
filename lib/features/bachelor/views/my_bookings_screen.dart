@@ -664,6 +664,7 @@ class _BookingCardState extends State<_BookingCard> {
                                       chatRoomId: roomId,
                                       targetUserId: _ownerUid,
                                       targetUserName: _ownerName,
+                                      targetUserPhoto: _ownerPhotoUrl,
                                     ));
                                   } else {
                                     Get.snackbar('Error', 'Landlord ID not found.');
