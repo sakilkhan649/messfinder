@@ -12,7 +12,13 @@ import '../models/post_model.dart';
 
 class AddPostScreen extends StatefulWidget {
   final PostModel? existingPost;
-  const AddPostScreen({super.key, this.existingPost});
+  final bool showBackButton;
+
+  const AddPostScreen({
+    super.key, 
+    this.existingPost,
+    this.showBackButton = true,
+  });
 
   @override
   State<AddPostScreen> createState() => _AddPostScreenState();
@@ -227,13 +233,16 @@ class _AddPostScreenState extends State<AddPostScreen> {
             fontSize: 18.sp,
           ),
         ),
-        leading: IconButton(
-          onPressed: () => Get.back(),
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: Colors.white,
-          ),
-        ),
+        automaticallyImplyLeading: false,
+        leading: widget.showBackButton 
+            ? IconButton(
+                onPressed: () => Get.back(),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
+                  color: Colors.white,
+                ),
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(

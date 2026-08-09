@@ -28,7 +28,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     final List<Widget> screens = [
       BachelorHomeScreen(user: widget.user),
       const MessMapScreen(),
-      const AddPostScreen(),
+      const AddPostScreen(showBackButton: false),
       ChatListScreen(),
       ProfileScreen(user: widget.user),
     ];
