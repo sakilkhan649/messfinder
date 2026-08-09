@@ -24,7 +24,7 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const primaryColor = Color(0xFF059669); // Deep Indigo
+    const primaryColor = Color(0xFF059669);
 
     final List<Widget> screens = [
       BachelorHomeScreen(user: widget.user),
@@ -35,109 +35,138 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      extendBody: true,
-      body: NotificationListener<UserScrollNotification>(
-        onNotification: (notification) {
-          if (notification.direction == ScrollDirection.reverse) {
-            if (_isBottomNavVisible) {
-              setState(() => _isBottomNavVisible = false);
-            }
-          } else if (notification.direction == ScrollDirection.forward) {
-            if (!_isBottomNavVisible) {
-              setState(() => _isBottomNavVisible = true);
-            }
-          }
-          return false;
-        },
-        child: IndexedStack(index: _currentIndex, children: screens),
-      ),
-      floatingActionButton: _isBottomNavVisible
-          ? FloatingActionButton(
-              onPressed: () {
-                // TODO: Add action for center button (e.g., Search or Add)
-                Get.snackbar('Action', 'Center button tapped',
-                    snackPosition: SnackPosition.TOP);
-              },
-              backgroundColor: primaryColor,
-              elevation: 4,
-              shape: const CircleBorder(),
-              child: Icon(Icons.eco_outlined, color: Colors.white, size: 28.r),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: AnimatedSlide(
-        duration: const Duration(milliseconds: 300),
-        offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
-        child: Padding(
-          padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.h),
-          child: BottomAppBar(
-            color: Colors.white,
-            elevation: 10,
-            notchMargin: 12,
-            shape: AutomaticNotchedShape(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(35.r),
+      body: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          // Main content
+          NotificationListener<UserScrollNotification>(
+            onNotification: (notification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isBottomNavVisible) {
+                  setState(() => _isBottomNavVisible = false);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isBottomNavVisible) {
+                  setState(() => _isBottomNavVisible = true);
+                }
+              }
+              return false;
+            },
+            child: IndexedStack(index: _currentIndex, children: screens),
+          ),
+
+          // Floating bottom navbar
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: AnimatedSlide(
+              duration: const Duration(milliseconds: 300),
+              offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
+              child: Padding(
+                padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.h),
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Navbar bar
+                    Container(
+                      height: 70.h,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(35.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.20),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 8), // Shadow underneath
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(35.r),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // Left side
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildNavItem(
+                                  index: 0,
+                                  icon: Icons.home_outlined,
+                                  activeIcon: Icons.home_rounded,
+                                  label: 'Home',
+                                  activeColor: primaryColor,
+                                ),
+                                _buildNavItem(
+                                  index: 1,
+                                  icon: Icons.location_on_outlined,
+                                  activeIcon: Icons.location_on_rounded,
+                                  label: 'Map',
+                                  activeColor: primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Center space for FAB
+                          SizedBox(width: 72.w),
+                          // Right side
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                _buildNavItem(
+                                  index: 2,
+                                  icon: Icons.chat_bubble_outline_rounded,
+                                  activeIcon: Icons.chat_bubble_rounded,
+                                  label: 'Chats',
+                                  activeColor: primaryColor,
+                                ),
+                                _buildNavItem(
+                                  index: 3,
+                                  icon: Icons.person_outline_rounded,
+                                  activeIcon: Icons.person_rounded,
+                                  label: 'Profile',
+                                  activeColor: primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                    // Center FAB
+                    Positioned(
+                      top: -20.h,
+                      child: FloatingActionButton(
+                        onPressed: () {
+                          Get.snackbar(
+                            'Action',
+                            'Center button tapped',
+                            snackPosition: SnackPosition.TOP,
+                          );
+                        },
+                        backgroundColor: primaryColor,
+                        elevation: 6,
+                        shape: const CircleBorder(),
+                        child: Icon(
+                          Icons.eco_outlined,
+                          color: Colors.white,
+                          size: 28.r,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const CircleBorder(),
-            ),
-            padding: EdgeInsets.zero,
-            clipBehavior: Clip.antiAlias,
-            child: SizedBox(
-              height: 70.h,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // Left side
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(
-                        index: 0,
-                        icon: Icons.home_outlined,
-                        activeIcon: Icons.home_rounded,
-                        label: 'Home',
-                        activeColor: primaryColor,
-                      ),
-                      _buildNavItem(
-                        index: 1,
-                        icon: Icons.location_on_outlined,
-                        activeIcon: Icons.location_on_rounded,
-                        label: 'Map',
-                        activeColor: primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-                // Center space for FAB
-                SizedBox(width: 48.w),
-                // Right side
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildNavItem(
-                        index: 2,
-                        icon: Icons.chat_bubble_outline_rounded,
-                        activeIcon: Icons.chat_bubble_rounded,
-                        label: 'Chats',
-                        activeColor: primaryColor,
-                      ),
-                      _buildNavItem(
-                        index: 3,
-                        icon: Icons.person_outline_rounded,
-                        activeIcon: Icons.person_rounded,
-                        label: 'Profile',
-                        activeColor: primaryColor,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ),
           ),
-        ),
-      ),
+        ],
       ),
     );
   }
