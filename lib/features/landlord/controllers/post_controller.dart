@@ -94,7 +94,7 @@ class PostController extends GetxController {
     savedPosts.assignAll(
       allPosts.where((post) => savedPostIds.contains(post.postId)).toList()
     );
-    print('DEBUG: _updateSavedPostsList called. allPosts=${allPosts.length}, savedIds=${savedPostIds.length}, result=${savedPosts.length}');
+    AppLogger.i('DEBUG: _updateSavedPostsList called. allPosts=${allPosts.length}, savedIds=${savedPostIds.length}, result=${savedPosts.length}');
   }
 
   @override
@@ -120,7 +120,9 @@ class PostController extends GetxController {
         await _postRepo.deletePost(id);
       }
       AppLogger.s('DELETED DEMO POSTS FROM FIREBASE', tag: 'POST_CTRL');
-    } catch(e) {}
+    } catch(e) {
+      // Ignore error
+    }
 
 
     _loadSavedPostsFromFirebase();

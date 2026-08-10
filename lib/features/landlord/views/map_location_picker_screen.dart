@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
-import '../../../core/theme/app_theme.dart';
+
 
 class MapLocationPickerScreen extends StatefulWidget {
   final LatLng? initialLocation;

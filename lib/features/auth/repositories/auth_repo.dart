@@ -165,7 +165,7 @@ class AuthRepository {
         }
       }
 
-      if (doc != null && doc.exists && doc.data() != null) {
+      if (doc.exists && doc.data() != null) {
         AppLogger.s('User data retrieved -> Role: ${doc.data()!['role']}',
             tag: 'AUTH_REPO');
         return UserModel.fromMap(doc.data()!, doc.id);

@@ -22,8 +22,6 @@ class _MessMapScreenState extends State<MessMapScreen> {
   final PostController _postController = Get.find<PostController>();
   final MapController _mapController = MapController();
 
-  // Default center (Dhaka)
-  final LatLng _center = const LatLng(23.8103, 90.4125);
 
   @override
   Widget build(BuildContext context) {

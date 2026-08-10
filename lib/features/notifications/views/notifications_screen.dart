@@ -63,7 +63,7 @@ class NotificationsScreen extends StatelessWidget {
         return ListView.separated(
           padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
           itemCount: list.length,
-          separatorBuilder: (_, __) => SizedBox(height: 8.h),
+          separatorBuilder: (context, index) => SizedBox(height: 8.h),
           itemBuilder: (context, i) {
             return Dismissible(
               key: Key(list[i].id),

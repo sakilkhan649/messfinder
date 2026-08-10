@@ -30,8 +30,9 @@ class NotificationBellAction extends StatelessWidget {
           onPressed: () => Get.to(() => const NotificationsScreen(),
               transition: Transition.rightToLeft),
           icon: Icon(
-            Icons.notifications_rounded,
+            Icons.notifications, // Changed to standard notifications icon
             color: color ?? Colors.white,
+            size: 28.r, // Explicitly set size
           ),
         ),
         if (count > 0)

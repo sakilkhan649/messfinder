@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path;
 import 'app_logger.dart';
 
 class ImgbbService {
-  // TODO: Replace with your own ImgBB API Key from https://api.imgbb.com/
   static const String _apiKey = '7dc645a72f0ce2d1d47497a1af02f620'; 
   final Uuid _uuid = const Uuid();
 

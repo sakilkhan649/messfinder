@@ -822,7 +822,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                               'Rent: Tk.${post.rent.toInt()}/month\n'
                               'Location: ${post.address}\n\n'
                               'Shared via Mess Finder App';
-                          Share.share(shareText);
+                          SharePlus.instance.share(ShareParams(text: shareText));
                         },
                         icon: Icon(
                           Icons.share_rounded,

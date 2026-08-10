@@ -125,7 +125,7 @@ class OnboardingScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: controller.currentPage.value == index
                                 ? primaryColor
-                                : primaryColor.withOpacity(0.2),
+                                : primaryColor.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                         ),
@@ -149,7 +149,7 @@ class OnboardingScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(30.r),
                           boxShadow: [
                             BoxShadow(
-                              color: primaryColor.withOpacity(0.3),
+                              color: primaryColor.withValues(alpha: 0.3),
                               blurRadius: 10,
                               offset: const Offset(0, 5),
                             ),

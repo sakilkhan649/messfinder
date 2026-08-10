@@ -28,7 +28,7 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final ChatController _chatController = Get.find<ChatController>();
-  final AuthController _authController = Get.find<AuthController>();
+
   final TextEditingController _messageController = TextEditingController();
 
   @override
@@ -55,8 +55,8 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final _authController = Get.find<AuthController>();
-      final isLandlord = _authController.currentUser.value?.isLandlord ?? false;
+      final authController = Get.find<AuthController>();
+      final isLandlord = authController.currentUser.value?.isLandlord ?? false;
       final Color rolePrimaryColor = isLandlord
           ? const Color(0xFF059669) // Emerald for Landlord
           : const Color(0xFF059669); // Deep Indigo for Bachelor
@@ -67,8 +67,7 @@ class _ChatScreenState extends State<ChatScreen> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
       );
-      final currentUserPhoto = _authController.currentUser.value?.photoUrl;
-      final currentUserName = _authController.currentUser.value?.name ?? 'Me';
+
       return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(

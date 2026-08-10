@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:get/get.dart';
 import '../../../core/services/notification_service.dart';
 import '../models/app_notification_model.dart';
+import '../../../core/utils/app_logger.dart';
 
 class NotificationController extends GetxController {
   final NotificationService _service = NotificationService();
@@ -24,13 +25,13 @@ class NotificationController extends GetxController {
     _notifSub = _service.getNotificationsStream(uid).listen((list) {
       notifications.value = list;
     }, onError: (e) {
-      print('Error listening to notifications: $e');
+      AppLogger.e('Error listening to notifications: $e', e, null, 'NOTIF_CTRL');
     });
 
     _unreadSub = _service.getUnreadCountStream(uid).listen((count) {
       unreadCount.value = count;
     }, onError: (e) {
-      print('Error listening to unread count: $e');
+      AppLogger.e('Error listening to unread count: $e', e, null, 'NOTIF_CTRL');
     });
   }
 

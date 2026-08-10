@@ -53,8 +53,8 @@ class ChatController extends GetxController {
           uid2: finalTargetName,
         },
         participantPhotos: {
-          if (currentUserPhoto != null) uid1: currentUserPhoto,
-          if (finalTargetPhoto != null) uid2: finalTargetPhoto,
+          uid1: currentUserPhoto ?? '',
+          uid2: finalTargetPhoto ?? '',
         },
         lastMessage: '',
         lastSenderId: '',

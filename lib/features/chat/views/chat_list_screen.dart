@@ -149,7 +149,7 @@ class ChatListScreen extends StatelessWidget {
                                 .doc(chat.id)
                                 .update({
                               'participantNames.$otherUserId': finalOtherUserName,
-                              if (finalOtherUserPhoto != null) 'participantPhotos.$otherUserId': finalOtherUserPhoto,
+                              'participantPhotos.$otherUserId': finalOtherUserPhoto,
                             }).catchError((_) {});
                           }
                         }

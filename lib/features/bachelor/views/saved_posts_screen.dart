@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
+import '../../../core/utils/app_logger.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
@@ -24,7 +25,7 @@ class SavedPostsScreen extends StatelessWidget {
           : const Color(0xFF059669);
 
       final posts = postController.savedPosts;
-      print('DEBUG: SavedPostsScreen built. allPosts=${postController.allPosts.length}, savedPostIds=${postController.savedPostIds.length}, savedPosts=${posts.length}');
+      AppLogger.i('DEBUG: SavedPostsScreen built. allPosts=${postController.allPosts.length}, savedPostIds=${postController.savedPostIds.length}, savedPosts=${posts.length}', tag: 'SAVED_POSTS');
 
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
