@@ -329,28 +329,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                   ),
                                 ),
                               ),
-                                if (isMe)
-                                  Padding(
-                                    padding: EdgeInsets.only(bottom: 12.h, left: 8.w, right: 16.w),
-                                    child: Tooltip(
-                                      message: currentUserName,
-                                      triggerMode: TooltipTriggerMode.tap,
-                                      child: CircleAvatar(
-                                        radius: 12.r,
-                                        backgroundColor: Colors.grey.shade300,
-                                        backgroundImage: currentUserPhoto != null
-                                            ? NetworkImage(currentUserPhoto)
-                                            : null,
-                                        child: currentUserPhoto == null
-                                            ? Icon(
-                                                Icons.person_rounded,
-                                                size: 14.r,
-                                                color: Colors.grey.shade600,
-                                              )
-                                            : null,
-                                      ),
-                                    ),
-                                  ),
+                              // Removed isMe avatar block
                             ],
                           ),
                         ),

@@ -125,8 +125,12 @@ class ChatController extends GetxController {
       batch.set(messageRef, message.toMap());
       
       final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
+      final lastMsgText = imageUrl != null
+          ? (message.text.isNotEmpty ? '📷 ${message.text}' : '📷 Image')
+          : message.text;
+
       batch.update(chatRef, {
-        'lastMessage': imageUrl != null ? '📷 Image' : message.text,
+        'lastMessage': lastMsgText,
         'lastMessageTime': FieldValue.serverTimestamp(),
         'lastSenderId': currentUserId,
         'unreadCounts.$targetUserId': FieldValue.increment(1),
@@ -137,7 +141,9 @@ class ChatController extends GetxController {
       // Send Push Notification
       try {
         final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
-        final messagePreview = imageUrl != null ? '📷 Sent an image' : text.trim();
+        final messagePreview = imageUrl != null 
+            ? (text.trim().isNotEmpty ? '📷 ${text.trim()}' : '📷 Sent an image') 
+            : text.trim();
         await NotificationService().sendAndStore(
           receiverUid: targetUserId,
           title: 'New Message from $currentUserName',
