@@ -23,10 +23,14 @@ class NotificationController extends GetxController {
 
     _notifSub = _service.getNotificationsStream(uid).listen((list) {
       notifications.value = list;
+    }, onError: (e) {
+      print('Error listening to notifications: $e');
     });
 
     _unreadSub = _service.getUnreadCountStream(uid).listen((count) {
       unreadCount.value = count;
+    }, onError: (e) {
+      print('Error listening to unread count: $e');
     });
   }
 

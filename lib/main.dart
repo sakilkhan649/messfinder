@@ -12,24 +12,42 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'firebase_options.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
   try {
+    WidgetsFlutterBinding.ensureInitialized();
+    await dotenv.load(fileName: ".env");
+    
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
     }
-  } catch (e) {
-    debugPrint('Firebase init notice (test/dev fallback): $e');
+
+    // Register FCM background message handler (must be top-level)
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+    // NotificationService will be initialized later to prevent blocking the UI thread
+
+    runApp(const MessFinderApp());
+  } catch (e, stackTrace) {
+    debugPrint('Initialization Error: $e');
+    debugPrint('StackTrace: $stackTrace');
+    runApp(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Text(
+                'Failed to initialize app:\n$e',
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
-
-  // Register FCM background message handler (must be top-level)
-  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-  // NotificationService will be initialized later to prevent blocking the UI thread
-
-  runApp(const MessFinderApp());
 }
 
 class MessFinderApp extends StatelessWidget {
@@ -48,9 +66,10 @@ class MessFinderApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           initialBinding: AppBindings(),
           defaultTransition: Transition.fadeIn,
-          home: const SplashScreen(),
+          home: child,
         );
       },
+      child: const SplashScreen(),
     );
   }
 }
