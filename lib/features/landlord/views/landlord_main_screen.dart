@@ -9,31 +9,25 @@ import 'package:get/get.dart';
 import '../../profile/views/profile_screen.dart';
 import 'add_post_screen.dart';
 
-class LandlordMainScreen extends StatefulWidget {
+class LandlordMainScreen extends StatelessWidget {
   final UserModel user;
 
   const LandlordMainScreen({super.key, required this.user});
 
   @override
-  State<LandlordMainScreen> createState() => _LandlordMainScreenState();
-}
-
-class _LandlordMainScreenState extends State<LandlordMainScreen> {
-  int _currentIndex = 0;
-
-  @override
   Widget build(BuildContext context) {
+    final RxInt currentIndex = 0.obs;
     const emeraldTheme = Color(0xFF059669);
 
     final List<Widget> screens = [
-      MyPostsScreen(user: widget.user),
+      MyPostsScreen(user: user),
       ChatListScreen(),
-      ProfileScreen(user: widget.user),
+      ProfileScreen(user: user),
     ];
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
-      body: IndexedStack(index: _currentIndex, children: screens),
+      body: Obx(() => IndexedStack(index: currentIndex.value, children: screens)),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.to(() => const AddPostScreen()),
         backgroundColor: emeraldTheme,
@@ -60,6 +54,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                   children: [
                     _buildNavItem(
                       index: 0,
+                      currentIndex: currentIndex,
                       icon: Icons.home_work_outlined,
                       activeIcon: Icons.home_work_rounded,
                       label: 'Rooms',
@@ -77,6 +72,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                   children: [
                     _buildNavItem(
                       index: 1,
+                      currentIndex: currentIndex,
                       icon: Icons.chat_bubble_outline_rounded,
                       activeIcon: Icons.chat_bubble_rounded,
                       label: 'Chats',
@@ -84,6 +80,7 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
                     ),
                     _buildNavItem(
                       index: 2,
+                      currentIndex: currentIndex,
                       icon: Icons.person_outline_rounded,
                       activeIcon: Icons.person_rounded,
                       label: 'Profile',
@@ -101,15 +98,17 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
 
   Widget _buildNavItem({
     required int index,
+    required RxInt currentIndex,
     required IconData icon,
     required IconData activeIcon,
     required String label,
     required Color activeColor,
   }) {
-    final isSelected = _currentIndex == index;
+    return Obx(() {
+      final isSelected = currentIndex.value == index;
 
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      return GestureDetector(
+        onTap: () => currentIndex.value = index,
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -142,5 +141,6 @@ class _LandlordMainScreenState extends State<LandlordMainScreen> {
         ],
       ),
     );
+    });
   }
 }

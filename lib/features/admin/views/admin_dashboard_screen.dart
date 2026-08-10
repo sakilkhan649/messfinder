@@ -16,44 +16,32 @@ import 'tabs/admin_profile_tab.dart';
 /// [VIEW LAYER - MAIN SCAFFOLD (MVC PATTERN)]
 /// 
 /// ===================================================================
-class AdminDashboardScreen extends StatefulWidget {
+class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
-}
-
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  late AdminController _adminController;
-
-  @override
-  void initState() {
-    super.initState();
-    _adminController = Get.find<AdminController>();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final adminController = Get.find<AdminController>();
     return Scaffold(
       backgroundColor: AdminColors.pageBg,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(adminController),
       body: Obx(() {
-        final currentNav = _adminController.currentNavIndex.value;
+        final currentNav = adminController.currentNavIndex.value;
         return IndexedStack(
           index: currentNav,
           children: [
-            AdminOverviewTab(controller: _adminController),
-            AdminRequestsTab(controller: _adminController),
-            AdminUsersTab(controller: _adminController),
+            AdminOverviewTab(controller: adminController),
+            AdminRequestsTab(controller: adminController),
+            AdminUsersTab(controller: adminController),
             AdminProfileTab(),
           ],
         );
       }),
-      bottomNavigationBar: _buildBottomNav(),
+      bottomNavigationBar: _buildBottomNav(adminController),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(AdminController adminController) {
     return AppBar(
       backgroundColor: AdminColors.accentDark,
       elevation: 0,
@@ -89,9 +77,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  Widget _buildBottomNav() {
+  Widget _buildBottomNav(AdminController adminController) {
     return Obx(() {
-      final currentNav = _adminController.currentNavIndex.value;
+      final currentNav = adminController.currentNavIndex.value;
       return Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -105,7 +93,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         ),
         child: BottomNavigationBar(
           currentIndex: currentNav,
-          onTap: (index) => _adminController.changeNavIndex(index),
+          onTap: (index) => adminController.changeNavIndex(index),
           backgroundColor: Colors.white,
           selectedItemColor: AdminColors.accentDark,
           unselectedItemColor: AdminColors.accentLight,

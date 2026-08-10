@@ -3,27 +3,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../controllers/auth_controller.dart';
+import '../controllers/forgot_password_controller.dart';
 
-class ForgotPasswordScreen extends StatefulWidget {
+class ForgotPasswordScreen extends StatelessWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
-}
-
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final TextEditingController _emailController = TextEditingController();
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.find<AuthController>();
+    final controller = Get.put(ForgotPasswordController());
+    final authController = controller.authController;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -84,7 +72,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _emailController,
+                controller: controller.emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: InputDecoration(
                   hintText: 'example@email.com',
@@ -101,10 +89,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   return ElevatedButton(
                     onPressed: authController.isLoading.value
                         ? null
-                        : () {
-                            authController
-                                .resetPassword(_emailController.text);
-                          },
+                        : controller.resetPassword,
                     child: authController.isLoading.value
                         ? SizedBox(
                             height: 20.r,

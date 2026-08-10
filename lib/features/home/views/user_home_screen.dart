@@ -8,36 +8,29 @@ import '../../chat/views/chat_list_screen.dart';
 import '../../profile/views/profile_screen.dart';
 import '../../landlord/views/add_post_screen.dart';
 import 'bottom_nav_painter.dart';
-class UserHomeScreen extends StatefulWidget {
+import 'package:get/get.dart';
+class UserHomeScreen extends StatelessWidget {
   final UserModel user;
 
   const UserHomeScreen({super.key, required this.user});
 
   @override
-  State<UserHomeScreen> createState() => _UserHomeScreenState();
-}
-
-class _UserHomeScreenState extends State<UserHomeScreen> {
-  int _currentIndex = 0;
-  bool _isBottomNavVisible = true;
-
-  @override
   Widget build(BuildContext context) {
+    final RxInt currentIndex = 0.obs;
+    final RxBool isBottomNavVisible = true.obs;
     const primaryEmerald = Color(0xFF059669);
 
     final List<Widget> screens = [
-      BachelorHomeScreen(user: widget.user),
+      BachelorHomeScreen(user: user),
       const MessMapScreen(),
       AddPostScreen(
         showBackButton: false,
         onPostAdded: () {
-          setState(() {
-            _currentIndex = 0;
-          });
+          currentIndex.value = 0;
         },
       ),
       ChatListScreen(),
-      ProfileScreen(user: widget.user),
+      ProfileScreen(user: user),
     ];
 
     return Scaffold(
@@ -51,13 +44,13 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
               if (notification.direction == ScrollDirection.forward) {
-                if (!_isBottomNavVisible) setState(() => _isBottomNavVisible = true);
+                if (!isBottomNavVisible.value) isBottomNavVisible.value = true;
               } else if (notification.direction == ScrollDirection.reverse) {
-                if (_isBottomNavVisible) setState(() => _isBottomNavVisible = false);
+                if (isBottomNavVisible.value) isBottomNavVisible.value = false;
               }
               return false;
             },
-            child: IndexedStack(index: _currentIndex, children: screens),
+            child: Obx(() => IndexedStack(index: currentIndex.value, children: screens)),
           ),
 
           // 2. The Custom Bottom Navbar & FAB with absolute positioning
@@ -65,9 +58,9 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: AnimatedSlide(
+            child: Obx(() => AnimatedSlide(
               duration: const Duration(milliseconds: 300),
-              offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1.8),
+              offset: isBottomNavVisible.value ? Offset.zero : const Offset(0, 1.8),
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.bottomCenter,
@@ -92,12 +85,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 children: [
                                   _buildNavItem(
                                     index: 0,
+                                    currentIndex: currentIndex,
                                     icon: Icons.home_outlined,
                                     activeIcon: Icons.home_rounded,
                                     activeColor: primaryEmerald,
                                   ),
                                   _buildNavItem(
                                     index: 1,
+                                    currentIndex: currentIndex,
                                     icon: Icons.location_on_outlined,
                                     activeIcon: Icons.location_on_rounded,
                                     activeColor: primaryEmerald,
@@ -112,12 +107,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 children: [
                                   _buildNavItem(
                                     index: 3,
+                                    currentIndex: currentIndex,
                                     icon: Icons.chat_bubble_outline_rounded,
                                     activeIcon: Icons.chat_bubble_rounded,
                                     activeColor: primaryEmerald,
                                   ),
                                   _buildNavItem(
                                     index: 4,
+                                    currentIndex: currentIndex,
                                     icon: Icons.person_outline_rounded,
                                     activeIcon: Icons.person_rounded,
                                     activeColor: primaryEmerald,
@@ -140,7 +137,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                       elevation: 4,
                       child: InkWell(
                         customBorder: const CircleBorder(),
-                        onTap: () => setState(() => _currentIndex = 2),
+                        onTap: () => currentIndex.value = 2,
                         child: SizedBox(
                           height: 72,
                           width: 72,
@@ -151,25 +148,26 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                   ),
                 ],
               ),
-            ),
+            )),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNavItem({
+    Widget _buildNavItem({
     required int index,
+    required RxInt currentIndex,
     required IconData icon,
     required IconData activeIcon,
     required Color activeColor,
   }) {
-    final isSelected = _currentIndex == index;
-
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => currentIndex.value = index,
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
+      child: Obx(() {
+        final isSelected = currentIndex.value == index;
+        return SizedBox(
         width: 55,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -195,7 +193,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
             ),
           ],
         ),
-      ),
+      );
+      }),
     );
   }
 }

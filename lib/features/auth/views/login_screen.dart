@@ -5,41 +5,15 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/app_constants.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/login_controller.dart';
 import 'forgot_password_screen.dart';
 import 'phone_login_screen.dart';
 import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
 
-  @override
-  State<LoginScreen> createState() => _LoginScreenState();
-}
-
-class _LoginScreenState extends State<LoginScreen> {
-  late AuthController authController;
-  late TextEditingController emailController;
-  late TextEditingController passwordController;
-
-  // --- Hidden Admin Easter Egg ---
-  int _tapCount = 0;
-  DateTime _lastTapTime = DateTime.now();
-
-  void _handleLogoTap() {
-    final now = DateTime.now();
-    if (now.difference(_lastTapTime).inMilliseconds > 1000) {
-      _tapCount = 0;
-    }
-    _lastTapTime = now;
-    _tapCount++;
-
-    if (_tapCount >= 3) {
-      _tapCount = 0;
-      _showAdminLoginDialog();
-    }
-  }
-
-  void _showAdminLoginDialog() {
+  void _showAdminLoginDialog(AuthController authController) {
     final adminEmailCtrl = TextEditingController();
     final adminPassCtrl = TextEditingController();
     final obscure = true.obs;
@@ -198,22 +172,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    authController = Get.find<AuthController>();
-    emailController = TextEditingController();
-    passwordController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    emailController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(LoginController());
+    final authController = controller.authController;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -246,7 +207,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         // Glowing Role Emblem (৩ বার tap = Admin Portal)
                         GestureDetector(
-                          onTap: _handleLogoTap,
+                          onTap: () => controller.handleLogoTap(() => _showAdminLoginDialog(authController)),
                           child: Container(
                             width: 60.r,
                             height: 60.r,
@@ -341,7 +302,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _buildInputField(
                           label: 'Email Address',
                           hintText: 'example@email.com',
-                          controller: emailController,
+                          controller: controller.emailController,
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                         ),
@@ -352,7 +313,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         _buildInputField(
                           label: 'Password',
                           hintText: '••••••••',
-                          controller: passwordController,
+                          controller: controller.passwordController,
                           icon: Icons.lock_outline_rounded,
                           obscureText: obscurePassword,
                           suffixIcon: IconButton(
@@ -397,10 +358,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: authController.isLoading.value
                               ? null
                               : () {
-                                  authController.login(
-                                    emailController.text.trim(),
-                                    passwordController.text.trim(),
-                                  );
+                                  controller.login();
                                 },
                           child: Container(
                             width: double.infinity,

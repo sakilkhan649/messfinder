@@ -11,20 +11,13 @@ import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
 
-class MessMapScreen extends StatefulWidget {
+class MessMapScreen extends StatelessWidget {
   const MessMapScreen({super.key});
 
   @override
-  State<MessMapScreen> createState() => _MessMapScreenState();
-}
-
-class _MessMapScreenState extends State<MessMapScreen> {
-  final PostController _postController = Get.find<PostController>();
-  final MapController _mapController = MapController();
-
-
-  @override
   Widget build(BuildContext context) {
+    final PostController postController = Get.find<PostController>();
+    final MapController mapController = MapController();
     const emeraldTheme = Color(0xFF059669);
     final Color primaryColor = const Color(0xFF059669);
 
@@ -45,7 +38,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
         actions: [
           IconButton(
             icon: Icon(Icons.refresh_rounded, color: Colors.white, size: 24.r),
-            onPressed: () => _postController.refreshPosts(),
+            onPressed: () => postController.refreshPosts(),
           ),
           const NotificationBellAction(),
         ],
@@ -60,7 +53,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: TextField(
-                onChanged: (val) => _postController.searchQuery.value = val,
+                onChanged: (val) => postController.searchQuery.value = val,
                 style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white),
                 cursorColor: Colors.white,
                 decoration: InputDecoration(
@@ -83,19 +76,19 @@ class _MessMapScreenState extends State<MessMapScreen> {
         ),
       ),
       body: Obx(() {
-        if (_postController.isLoading.value && _postController.allPosts.isEmpty) {
+        if (postController.isLoading.value && postController.allPosts.isEmpty) {
           return const Center(child: CircularProgressIndicator(color: emeraldTheme));
         }
 
         // Use filteredPosts instead of allPosts so the search bar works!
-        final List<PostModel> activePosts = _postController.filteredPosts
+        final List<PostModel> activePosts = postController.filteredPosts
             .where((post) => post.isPublished && post.isAvailable)
             .toList();
 
         return Stack(
           children: [
             FlutterMap(
-              mapController: _mapController,
+              mapController: mapController,
               options: const MapOptions(
                 initialCenter: LatLng(23.8103, 90.4125),
                 initialZoom: 12.0,
@@ -167,9 +160,9 @@ class _MessMapScreenState extends State<MessMapScreen> {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      final currentZoom = _mapController.camera.zoom;
-                      final currentCenter = _mapController.camera.center;
-                      _mapController.move(currentCenter, currentZoom + 1);
+                      final currentZoom = mapController.camera.zoom;
+                      final currentCenter = mapController.camera.center;
+                      mapController.move(currentCenter, currentZoom + 1);
                     },
                     child: Icon(Icons.add_rounded, color: primaryColor),
                   ),
@@ -179,9 +172,9 @@ class _MessMapScreenState extends State<MessMapScreen> {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      final currentZoom = _mapController.camera.zoom;
-                      final currentCenter = _mapController.camera.center;
-                      _mapController.move(currentCenter, currentZoom - 1);
+                      final currentZoom = mapController.camera.zoom;
+                      final currentCenter = mapController.camera.center;
+                      mapController.move(currentCenter, currentZoom - 1);
                     },
                     child: Icon(Icons.remove_rounded, color: primaryColor),
                   ),

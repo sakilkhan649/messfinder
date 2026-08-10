@@ -3,7 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../controllers/auth_controller.dart';
+import '../controllers/signup_controller.dart';
 import 'phone_login_screen.dart';
 
 class SignupScreen extends StatelessWidget {
@@ -11,11 +11,8 @@ class SignupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AuthController authController = Get.find<AuthController>();
-    final TextEditingController nameController = TextEditingController();
-    final TextEditingController phoneController = TextEditingController();
-    final TextEditingController emailController = TextEditingController();
-    final TextEditingController passwordController = TextEditingController();
+    final controller = Get.put(SignupController());
+    final authController = controller.authController;
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
@@ -181,7 +178,7 @@ class SignupScreen extends StatelessWidget {
                         _buildInputField(
                           label: 'Full Name',
                           hintText: 'e.g. John Doe',
-                          controller: nameController,
+                          controller: controller.nameController,
                           icon: Icons.person_outline_rounded,
                         ),
 
@@ -191,7 +188,7 @@ class SignupScreen extends StatelessWidget {
                         _buildInputField(
                           label: 'Phone Number',
                           hintText: '01XXXXXXXXX',
-                          controller: phoneController,
+                          controller: controller.phoneController,
                           icon: Icons.phone_outlined,
                           keyboardType: TextInputType.phone,
                         ),
@@ -202,7 +199,7 @@ class SignupScreen extends StatelessWidget {
                         _buildInputField(
                           label: 'Email Address',
                           hintText: 'example@email.com',
-                          controller: emailController,
+                          controller: controller.emailController,
                           icon: Icons.email_outlined,
                           keyboardType: TextInputType.emailAddress,
                         ),
@@ -213,7 +210,7 @@ class SignupScreen extends StatelessWidget {
                         _buildInputField(
                           label: 'Create Password',
                           hintText: '••••••••',
-                          controller: passwordController,
+                          controller: controller.passwordController,
                           icon: Icons.lock_outline_rounded,
                           obscureText: obscurePassword,
                           suffixIcon: IconButton(
@@ -237,12 +234,7 @@ class SignupScreen extends StatelessWidget {
                           onTap: authController.isLoading.value
                               ? null
                               : () {
-                                  authController.signUp(
-                                    name: nameController.text.trim(),
-                                    phone: phoneController.text.trim(),
-                                    email: emailController.text.trim(),
-                                    password: passwordController.text.trim(),
-                                  );
+                                  controller.signUp();
                                 },
                           child: Container(
                             width: double.infinity,

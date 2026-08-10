@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/api_constants.dart';
@@ -16,6 +17,16 @@ class PaymentController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxString selectedMethod = 'bkash'.obs;
   final Rx<PaymentModel?> myLatestPayment = Rx<PaymentModel?>(null);
+
+  final senderNumberController = TextEditingController();
+  final trxIdController = TextEditingController();
+
+  @override
+  void onClose() {
+    senderNumberController.dispose();
+    trxIdController.dispose();
+    super.onClose();
+  }
 
   void selectMethod(String method) {
     selectedMethod.value = method;

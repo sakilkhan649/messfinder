@@ -6,28 +6,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 
 
-class MapLocationPickerScreen extends StatefulWidget {
+class MapLocationPickerScreen extends StatelessWidget {
   final LatLng? initialLocation;
 
   const MapLocationPickerScreen({super.key, this.initialLocation});
 
   @override
-  State<MapLocationPickerScreen> createState() => _MapLocationPickerScreenState();
-}
-
-class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
-  late LatLng _selectedLocation;
-  final MapController _mapController = MapController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Default to Dhaka if no location provided
-    _selectedLocation = widget.initialLocation ?? const LatLng(23.8103, 90.4125);
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final Rx<LatLng> selectedLocation = (initialLocation ?? const LatLng(23.8103, 90.4125)).obs;
+    final MapController mapController = MapController();
     const primaryColor = Color(0xFF059669);
 
     return Scaffold(
@@ -41,7 +28,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
         actions: [
           TextButton(
             onPressed: () {
-              Get.back(result: _selectedLocation);
+              Get.back(result: selectedLocation.value);
             },
             child: Text(
               'Confirm',
@@ -52,15 +39,13 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: _mapController,
+          Obx(() => FlutterMap(
+            mapController: mapController,
             options: MapOptions(
-              initialCenter: _selectedLocation,
+              initialCenter: selectedLocation.value,
               initialZoom: 14.0,
               onTap: (tapPosition, point) {
-                setState(() {
-                  _selectedLocation = point;
-                });
+                selectedLocation.value = point;
               },
             ),
             children: [
@@ -71,7 +56,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
               MarkerLayer(
                 markers: [
                   Marker(
-                    point: _selectedLocation,
+                    point: selectedLocation.value,
                     width: 40.r,
                     height: 40.r,
                     child: Icon(
@@ -83,7 +68,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                 ],
               ),
             ],
-          ),
+          )),
           Positioned(
             bottom: 32.h,
             left: 24.w,

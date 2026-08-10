@@ -224,7 +224,7 @@ class FacebookImageGrid extends StatelessWidget {
   }
 }
 
-class _FullScreenGallery extends StatefulWidget {
+class _FullScreenGallery extends StatelessWidget {
   final List<String> images;
   final int initialIndex;
 
@@ -234,50 +234,37 @@ class _FullScreenGallery extends StatefulWidget {
   });
 
   @override
-  State<_FullScreenGallery> createState() => _FullScreenGalleryState();
-}
-
-class _FullScreenGalleryState extends State<_FullScreenGallery> {
-  late int currentIndex;
-
-  @override
-  void initState() {
-    super.initState();
-    currentIndex = widget.initialIndex;
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final RxInt currentIndex = initialIndex.obs;
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(
-          '${currentIndex + 1} of ${widget.images.length}',
+        title: Obx(() => Text(
+          '${currentIndex.value + 1} of ${images.length}',
           style: const TextStyle(color: Colors.white),
-        ),
+        )),
       ),
       body: PhotoViewGallery.builder(
         scrollPhysics: const BouncingScrollPhysics(),
         builder: (BuildContext context, int index) {
           return PhotoViewGalleryPageOptions(
-            imageProvider: NetworkImage(widget.images[index]),
+            imageProvider: NetworkImage(images[index]),
             initialScale: PhotoViewComputedScale.contained,
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
-            heroAttributes: PhotoViewHeroAttributes(tag: widget.images[index]),
+            heroAttributes: PhotoViewHeroAttributes(tag: images[index]),
           );
         },
-        itemCount: widget.images.length,
+        itemCount: images.length,
         loadingBuilder: (context, event) => const Center(
           child: CircularProgressIndicator(color: Colors.white),
         ),
-        pageController: PageController(initialPage: widget.initialIndex),
+        pageController: PageController(initialPage: initialIndex),
         onPageChanged: (int index) {
-          setState(() {
-            currentIndex = index;
-          });
+          currentIndex.value = index;
         },
       ),
     );

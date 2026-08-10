@@ -1,73 +1,18 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../controllers/auth_controller.dart';
+import '../controllers/otp_verification_controller.dart';
 
-class OtpVerificationScreen extends StatefulWidget {
+class OtpVerificationScreen extends StatelessWidget {
   final String phone;
   const OtpVerificationScreen({super.key, required this.phone});
 
   @override
-  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
-}
-
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
-  final _otpController = TextEditingController();
-  final _authController = Get.find<AuthController>();
-  
-  Timer? _timer;
-  int _start = 60;
-  bool _canResend = false;
-
-  @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
-  void startTimer() {
-    setState(() {
-      _start = 60;
-      _canResend = false;
-    });
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_start == 0) {
-        setState(() {
-          _canResend = true;
-        });
-        timer.cancel();
-      } else {
-        setState(() {
-          _start--;
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _otpController.dispose();
-    super.dispose();
-  }
-
-  void _verifyOtp() {
-    final otp = _otpController.text.trim();
-    _authController.verifyOTP(otp, widget.phone);
-  }
-
-  void _resendOtp() {
-    if (_canResend) {
-      startTimer();
-      _authController.verifyPhoneNumber(widget.phone);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(OtpVerificationController(phone: phone));
+    final authController = controller.authController;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -95,7 +40,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               SizedBox(height: 12.h),
               Text(
-                'Enter the 6-digit verification code sent to ${widget.phone}.',
+                'Enter the 6-digit verification code sent to $phone.',
                 style: GoogleFonts.poppins(
                   fontSize: 14.sp,
                   color: AppTheme.textSecondary,
@@ -113,7 +58,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _otpController,
+                controller: controller.otpController,
                 keyboardType: TextInputType.number,
                 maxLength: 6,
                 textAlign: TextAlign.center,
@@ -153,7 +98,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                 height: 54.h,
                 child: Obx(() {
                   return ElevatedButton(
-                    onPressed: _authController.isLoading.value ? null : _verifyOtp,
+                    onPressed: authController.isLoading.value ? null : controller.verifyOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       shape: RoundedRectangleBorder(
@@ -161,7 +106,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: _authController.isLoading.value
+                    child: authController.isLoading.value
                         ? SizedBox(
                             height: 24.r,
                             width: 24.r,
@@ -191,15 +136,15 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
                       ),
                     ),
                     GestureDetector(
-                      onTap: _resendOtp,
-                      child: Text(
-                        _canResend ? "Resend OTP" : "Resend in ${_start}s",
+                      onTap: controller.resendOtp,
+                      child: Obx(() => Text(
+                        controller.canResend.value ? "Resend OTP" : "Resend in ${controller.start.value}s",
                         style: GoogleFonts.poppins(
                           fontSize: 14.sp,
                           fontWeight: FontWeight.bold,
-                          color: _canResend ? AppTheme.primaryColor : Colors.grey,
+                          color: controller.canResend.value ? AppTheme.primaryColor : Colors.grey,
                         ),
-                      ),
+                      )),
                     ),
                   ],
                 ),

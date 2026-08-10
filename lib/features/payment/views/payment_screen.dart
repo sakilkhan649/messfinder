@@ -10,50 +10,29 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
 import '../controllers/payment_controller.dart';
 
-class PaymentScreen extends StatefulWidget {
+class PaymentScreen extends StatelessWidget {
   final UserModel user;
 
   const PaymentScreen({super.key, required this.user});
-
-  @override
-  State<PaymentScreen> createState() => _PaymentScreenState();
-}
-
-class _PaymentScreenState extends State<PaymentScreen> {
-  final TextEditingController _senderNumberController = TextEditingController();
-  final TextEditingController _trxIdController = TextEditingController();
-  late PaymentController _paymentController;
-
-  @override
-  void initState() {
-    super.initState();
-    _paymentController = Get.find<PaymentController>();
-  }
-
-  @override
-  void dispose() {
-    _senderNumberController.dispose();
-    _trxIdController.dispose();
-    super.dispose();
-  }
 
   void _copyToClipboard(String number) {
     Clipboard.setData(ClipboardData(text: number));
     ApiChecker.showSuccess('Number copied to clipboard: $number', title: 'Copied');
   }
 
-  String _getAdminNumber() {
-    final method = _paymentController.selectedMethod.value;
+  String _getAdminNumber(PaymentController controller) {
+    final method = controller.selectedMethod.value;
     if (method == 'rocket') {
       return '018685691625';
     }
     return '01868569162';
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
-    // widget.user.role is correctly set by auth flow before navigation
-    final isLandlord = widget.user.isLandlord;
+    final controller = Get.find<PaymentController>();
+    // user.role is correctly set by auth flow before navigation
+    final isLandlord = user.isLandlord;
     final int fee = isLandlord
         ? AppConstants.landlordFee
         : AppConstants.bachelorFee;
@@ -140,11 +119,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
               Obx(() {
                 return Row(
                   children: [
-                    _buildMethodTab('bkash', 'bKash', const Color(0xFFE2136E)),
-                    SizedBox(width: 10.w),
-                    _buildMethodTab('nagad', 'Nagad', const Color(0xFFED1C24)),
-                    SizedBox(width: 10.w),
-                    _buildMethodTab('rocket', 'Rocket', const Color(0xFF8C3494)),
+                    _buildMethodTab('bkash', 'bKash', const Color(0xFFE11471), controller),
+                    SizedBox(width: 12.w),
+                    _buildMethodTab('nagad', 'Nagad', const Color(0xFFF36C21), controller),
+                    SizedBox(width: 12.w),
+                    _buildMethodTab('rocket', 'Rocket', const Color(0xFF8C3494), controller),
                   ],
                 );
               }),
@@ -173,12 +152,12 @@ class _PaymentScreenState extends State<PaymentScreen> {
                     ),
                     SizedBox(height: 12.h),
                     Obx(() {
-                      final adminNum = _getAdminNumber();
-                      final methodLabel = _paymentController
+                      final adminNum = _getAdminNumber(controller);
+                      final methodLabel = controller
                                   .selectedMethod.value ==
                               'rocket'
                           ? 'Rocket Personal'
-                          : (_paymentController.selectedMethod.value == 'nagad'
+                          : (controller.selectedMethod.value == 'nagad'
                               ? 'Nagad Personal'
                               : 'bKash Personal');
 
@@ -212,7 +191,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () => _copyToClipboard(adminNum),
+                            onPressed: () => _copyToClipboard(_getAdminNumber(controller)),
                             icon: Icon(
                               Icons.copy_rounded,
                               size: 24.r,
@@ -239,7 +218,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _senderNumberController,
+                controller: controller.senderNumberController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   hintText: 'e.g. 01XXXXXXXXX',
@@ -260,7 +239,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _trxIdController,
+                controller: controller.trxIdController,
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
                   hintText: 'e.g. 8N7A6D5S',
@@ -275,16 +254,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 width: double.infinity,
                 child: Obx(() {
                   return ElevatedButton(
-                    onPressed: _paymentController.isLoading.value
+                    onPressed: controller.isLoading.value
                         ? null
                         : () {
-                            _paymentController.submitTrxId(
-                              trxId: _trxIdController.text,
-                              senderNumber: _senderNumberController.text,
-                              user: widget.user,
+                            controller.submitTrxId(
+                              trxId: controller.trxIdController.text,
+                              senderNumber: controller.senderNumberController.text,
+                              user: user,
                             );
                           },
-                    child: _paymentController.isLoading.value
+                    child: controller.isLoading.value
                         ? SizedBox(
                             height: 20.r,
                             width: 20.r,
@@ -305,11 +284,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  Widget _buildMethodTab(String key, String title, Color color) {
-    final isSelected = _paymentController.selectedMethod.value == key;
+  Widget _buildMethodTab(String key, String title, Color color, PaymentController controller) {
+    final isSelected = controller.selectedMethod.value == key;
     return Expanded(
       child: GestureDetector(
-        onTap: () => _paymentController.selectMethod(key),
+        onTap: () => controller.selectMethod(key),
         child: Container(
           padding: EdgeInsets.symmetric(vertical: 12.h),
           decoration: BoxDecoration(

@@ -1,81 +1,22 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
+import '../controllers/edit_profile_controller.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditProfileScreen extends StatelessWidget {
   final UserModel user;
 
   const EditProfileScreen({super.key, required this.user});
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
-}
-
-class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _phoneController;
-
-  final ImagePicker _picker = ImagePicker();
-  File? _selectedImageFile;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.user.name);
-    _phoneController = TextEditingController(text: widget.user.phone);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-      );
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to load image from gallery',
-        backgroundColor: Colors.red.shade600,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
-
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      final authCtrl = Get.find<AuthController>();
-      authCtrl.updateProfile(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        photoUrl: _selectedImageFile?.path ?? widget.user.photoUrl,
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isLandlord = widget.user.isLandlord;
+    final controller = Get.put(EditProfileController(user: user));
+    final isLandlord = user.isLandlord;
     final Color primaryColor = isLandlord
         ? const Color(0xFF059669) // Emerald for Landlord
         : const Color(0xFF059669); // Deep Indigo for Bachelor
@@ -101,13 +42,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 32.h),
           child: Form(
-            key: _formKey,
+            key: controller.formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 // Clean Avatar Selector
                 GestureDetector(
-                  onTap: _pickImageFromGallery,
+                  onTap: controller.pickImageFromGallery,
                   child: Stack(
                     clipBehavior: Clip.none,
                     alignment: Alignment.center,
@@ -119,16 +60,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           shape: BoxShape.circle,
                           color: const Color(0xFFF1F5F9),
                         ),
-                        child: ClipOval(
-                          child: _selectedImageFile != null
+                        child: Obx(() => ClipOval(
+                          child: controller.selectedImageFile.value != null
                               ? Image.file(
-                                  _selectedImageFile!,
+                                  controller.selectedImageFile.value!,
                                   fit: BoxFit.cover,
                                 )
-                              : (widget.user.photoUrl != null &&
-                                      widget.user.photoUrl!.isNotEmpty)
+                              : (user.photoUrl != null &&
+                                      user.photoUrl!.isNotEmpty)
                                   ? AppImageHelper.buildImage(
-                                      widget.user.photoUrl!,
+                                      user.photoUrl!,
                                       fit: BoxFit.cover,
                                     )
                                   : Icon(
@@ -136,7 +77,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       size: 55.r,
                                       color: Colors.grey.shade400,
                                     ),
-                        ),
+                        )),
                       ),
                       Positioned(
                         bottom: 0,
@@ -177,7 +118,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _buildLabel('Full Name'),
                     SizedBox(height: 8.h),
                     _buildTextField(
-                      controller: _nameController,
+                      controller: controller.nameController,
                       hint: 'Enter your full name',
                       icon: Icons.person_outline_rounded,
                       primaryColor: primaryColor,
@@ -188,7 +129,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     _buildLabel('Phone Number'),
                     SizedBox(height: 8.h),
                     _buildTextField(
-                      controller: _phoneController,
+                      controller: controller.phoneController,
                       hint: 'e.g. 01700112233',
                       icon: Icons.phone_outlined,
                       primaryColor: primaryColor,
@@ -209,7 +150,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     final isLoading = authCtrl.isLoading.value;
                     
                     return ElevatedButton(
-                      onPressed: isLoading ? null : _submit,
+                      onPressed: isLoading ? null : controller.submit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: primaryColor,
                         shape: RoundedRectangleBorder(

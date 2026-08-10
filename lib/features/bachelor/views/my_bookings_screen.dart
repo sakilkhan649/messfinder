@@ -243,79 +243,44 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
-class _BookingCard extends StatefulWidget {
+class _BookingCard extends StatelessWidget {
   final BookingModel booking;
   const _BookingCard({required this.booking});
 
-  @override
-  State<_BookingCard> createState() => _BookingCardState();
-}
-
-class _BookingCardState extends State<_BookingCard> {
-  String _postTitle = '...';
-  String _postAddress = '...';
-  double _postRent = 0;
-  String _ownerPhone = '';
-  String _ownerName = 'Loading...';
-  String? _ownerPhotoUrl;
-  String _ownerUid = '';
-
-  final Color primaryColor = const Color(0xFF059669);
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchPostInfo();
-  }
-
-  Future<void> _fetchPostInfo() async {
-    try {
-      final doc = await FirebaseFirestore.instance
-          .collection(ApiConstants.postsCollection)
-          .doc(widget.booking.postId)
-          .get();
-      if (mounted && doc.exists && doc.data() != null) {
-        final data = doc.data()!;
-        
-        String ownerUid = data['ownerUid']?.toString() ?? '';
-        String ownerName = 'Unknown Landlord';
-        String? ownerPhoto;
-        
-        if (ownerUid.isNotEmpty) {
-          final userDoc = await FirebaseFirestore.instance
-              .collection(ApiConstants.usersCollection)
-              .doc(ownerUid)
-              .get();
-          if (userDoc.exists && userDoc.data() != null) {
-            ownerName = userDoc.data()!['name']?.toString() ?? 'Unknown Landlord';
-            ownerPhoto = userDoc.data()!['photoUrl']?.toString();
-          }
+  Future<Map<String, dynamic>> _fetchPostInfo() async {
+    final doc = await FirebaseFirestore.instance
+        .collection(ApiConstants.postsCollection)
+        .doc(booking.postId)
+        .get();
+    if (doc.exists && doc.data() != null) {
+      final data = doc.data()!;
+      
+      String ownerUid = data['ownerUid']?.toString() ?? '';
+      String ownerName = 'Unknown Landlord';
+      String? ownerPhoto;
+      
+      if (ownerUid.isNotEmpty) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection(ApiConstants.usersCollection)
+            .doc(ownerUid)
+            .get();
+        if (userDoc.exists && userDoc.data() != null) {
+          ownerName = userDoc.data()!['name']?.toString() ?? 'Unknown Landlord';
+          ownerPhoto = userDoc.data()!['photoUrl']?.toString();
         }
+      }
 
-        setState(() {
-          _postTitle = data['title']?.toString() ?? 'Unknown Room';
-          _postAddress = data['address']?.toString() ?? '—';
-          _postRent = (data['rent'] ?? 0).toDouble();
-          _ownerPhone = data['ownerPhone']?.toString() ?? '';
-          _ownerName = ownerName;
-          _ownerPhotoUrl = ownerPhoto;
-          _ownerUid = ownerUid;
-        });
-      } else if (mounted) {
-        setState(() {
-          _postTitle = 'Room not found';
-          _postAddress = '—';
-          _ownerName = 'Unknown';
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _postTitle = 'Room info unavailable';
-          _ownerName = 'Unknown';
-        });
-      }
+      return {
+        'postTitle': data['title']?.toString() ?? 'Unknown Room',
+        'postAddress': data['address']?.toString() ?? '—',
+        'postRent': (data['rent'] ?? 0).toDouble(),
+        'ownerPhone': data['ownerPhone']?.toString() ?? '',
+        'ownerName': ownerName,
+        'ownerPhotoUrl': ownerPhoto,
+        'ownerUid': ownerUid,
+      };
     }
+    throw Exception('Not found');
   }
 
   String _statusLabel(String status) {
@@ -330,6 +295,7 @@ class _BookingCardState extends State<_BookingCard> {
   }
 
   Color _statusColor(String status) {
+    final primaryColor = const Color(0xFF059669);
     switch (status.trim().toLowerCase()) {
       case 'approved':
         return primaryColor;
@@ -341,6 +307,7 @@ class _BookingCardState extends State<_BookingCard> {
   }
 
   Color _statusBg(String status) {
+    final primaryColor = const Color(0xFF059669);
     switch (status.trim().toLowerCase()) {
       case 'approved':
         return primaryColor.withValues(alpha: 0.08);
@@ -363,11 +330,40 @@ class _BookingCardState extends State<_BookingCard> {
 
   @override
   Widget build(BuildContext context) {
-    final b = widget.booking;
+    final b = booking;
     final isApproved = b.paymentStatus.trim().toLowerCase() == 'approved';
     final isRejected = b.paymentStatus.trim().toLowerCase() == 'rejected';
+    final primaryColor = const Color(0xFF059669);
 
-    return Dismissible(
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _fetchPostInfo(),
+      builder: (context, snapshot) {
+        String postTitle = '...';
+        String postAddress = '...';
+        double postRent = 0;
+        String ownerPhone = '';
+        String ownerName = 'Loading...';
+        String? ownerPhotoUrl;
+        String ownerUid = '';
+
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasData) {
+            final data = snapshot.data!;
+            postTitle = data['postTitle'];
+            postAddress = data['postAddress'];
+            postRent = data['postRent'];
+            ownerPhone = data['ownerPhone'];
+            ownerName = data['ownerName'];
+            ownerPhotoUrl = data['ownerPhotoUrl'];
+            ownerUid = data['ownerUid'];
+          } else {
+            postTitle = 'Room not found';
+            postAddress = '—';
+            ownerName = 'Unknown';
+          }
+        }
+
+        return Dismissible(
       key: Key(b.bookingId),
       direction: DismissDirection.horizontal,
       onDismissed: (direction) {
@@ -467,10 +463,10 @@ class _BookingCardState extends State<_BookingCard> {
                     CircleAvatar(
                       radius: 18.r,
                       backgroundColor: Colors.grey.shade200,
-                      backgroundImage: _ownerPhotoUrl != null && _ownerPhotoUrl!.isNotEmpty
-                          ? NetworkImage(_ownerPhotoUrl!)
+                      backgroundImage: ownerPhotoUrl != null && ownerPhotoUrl.isNotEmpty
+                          ? NetworkImage(ownerPhotoUrl)
                           : null,
-                      child: _ownerPhotoUrl == null || _ownerPhotoUrl!.isEmpty
+                      child: ownerPhotoUrl == null || ownerPhotoUrl.isEmpty
                           ? Icon(Icons.person_rounded, size: 20.r, color: Colors.grey.shade500)
                           : null,
                     ),
@@ -480,7 +476,7 @@ class _BookingCardState extends State<_BookingCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _ownerName,
+                            ownerName,
                             style: GoogleFonts.poppins(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w600,
@@ -513,7 +509,7 @@ class _BookingCardState extends State<_BookingCard> {
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
-                        _postTitle,
+                        postTitle,
                         style: GoogleFonts.poppins(
                           fontSize: 15.sp,
                           fontWeight: FontWeight.bold,
@@ -523,9 +519,9 @@ class _BookingCardState extends State<_BookingCard> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (_postRent > 0)
+                    if (postRent > 0)
                       Text(
-                        'Tk.${_postRent.toInt()}/mo',
+                        'Tk.${postRent.toInt()}/mo',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.bold,
@@ -543,7 +539,7 @@ class _BookingCardState extends State<_BookingCard> {
                     SizedBox(width: 4.w),
                     Expanded(
                       child: Text(
-                        _postAddress,
+                        postAddress,
                         style: GoogleFonts.poppins(
                           fontSize: 12.sp,
                           color: Colors.grey.shade600,
@@ -629,8 +625,8 @@ class _BookingCardState extends State<_BookingCard> {
                             Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () async {
-                                  if (_ownerPhone.isEmpty) return;
-                                  final url = Uri.parse('tel:$_ownerPhone');
+                                  if (ownerPhone.isEmpty) return;
+                                  final url = Uri.parse('tel:$ownerPhone');
                                   if (await canLaunchUrl(url)) {
                                     await launchUrl(url);
                                   }
@@ -652,19 +648,19 @@ class _BookingCardState extends State<_BookingCard> {
                             Expanded(
                               child: ElevatedButton.icon(
                                 onPressed: () async {
-                                  if (_ownerUid.isNotEmpty) {
+                                  if (ownerUid.isNotEmpty) {
                                     final chatController = Get.find<ChatController>();
                                     // Use a loading dialog if needed, but for now just navigate quickly
                                     final roomId = await chatController.createOrGetChatRoom(
-                                      _ownerUid,
-                                      _ownerName,
-                                      _ownerPhotoUrl,
+                                      ownerUid,
+                                      ownerName,
+                                      ownerPhotoUrl,
                                     );
                                     Get.to(() => ChatScreen(
                                       chatRoomId: roomId,
-                                      targetUserId: _ownerUid,
-                                      targetUserName: _ownerName,
-                                      targetUserPhoto: _ownerPhotoUrl,
+                                      targetUserId: ownerUid,
+                                      targetUserName: ownerName,
+                                      targetUserPhoto: ownerPhotoUrl,
                                     ));
                                   } else {
                                     Get.snackbar('Error', 'Landlord ID not found.');
@@ -730,6 +726,8 @@ class _BookingCardState extends State<_BookingCard> {
         ],
       ),
     ),
+  );
+      },
     );
   }
 }

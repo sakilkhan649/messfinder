@@ -8,7 +8,7 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends StatelessWidget {
   final String chatRoomId;
   final String targetUserId;
   final String targetUserName;
@@ -22,38 +22,18 @@ class ChatScreen extends StatefulWidget {
     this.targetUserPhoto,
   });
 
-  @override
-  State<ChatScreen> createState() => _ChatScreenState();
-}
-
-class _ChatScreenState extends State<ChatScreen> {
-  final ChatController _chatController = Get.find<ChatController>();
-
-  final TextEditingController _messageController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    // Mark messages as read when opening the chat
-    _chatController.markMessagesAsRead(widget.chatRoomId);
-  }
+  ChatScreenController get _screenController => Get.find<ChatScreenController>(tag: chatRoomId);
+  ChatController get _chatController => Get.find<ChatController>();
+  TextEditingController get _messageController => _screenController.messageController;
 
   void _sendMessage() {
-    final text = _messageController.text;
-    if (text.trim().isNotEmpty) {
-      _chatController.sendMessage(widget.chatRoomId, text, widget.targetUserId);
-      _messageController.clear();
-    }
+    _screenController.sendMessage(targetUserId);
   }
 
-  @override
-  void dispose() {
-    _messageController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
+    Get.put(ChatScreenController(chatRoomId), tag: chatRoomId);
     return Obx(() {
       final authController = Get.find<AuthController>();
       final isLandlord = authController.currentUser.value?.isLandlord ?? false;
@@ -80,10 +60,10 @@ class _ChatScreenState extends State<ChatScreen> {
               CircleAvatar(
                 radius: 18.r,
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
-                backgroundImage: widget.targetUserPhoto != null
-                    ? NetworkImage(widget.targetUserPhoto!)
+                backgroundImage: targetUserPhoto != null
+                    ? NetworkImage(targetUserPhoto!)
                     : null,
-                child: widget.targetUserPhoto == null
+                child: targetUserPhoto == null
                     ? Icon(
                         Icons.person_rounded,
                         size: 20.r,
@@ -97,7 +77,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      widget.targetUserName,
+                      targetUserName,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -122,7 +102,7 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Expanded(
               child: StreamBuilder<List<MessageModel>>(
-                stream: _chatController.getMessages(widget.chatRoomId),
+                stream: _chatController.getMessages(chatRoomId),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Center(
@@ -159,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
                           ),
                           SizedBox(height: 16.h),
                           Text(
-                            'Say hi to ${widget.targetUserName}!',
+                            'Say hi to $targetUserName!',
                             style: GoogleFonts.poppins(
                               color: AppTheme.textSecondary,
                               fontSize: 16.sp,
@@ -206,18 +186,18 @@ class _ChatScreenState extends State<ChatScreen> {
                                     left: 16.w,
                                   ),
                                   child: Tooltip(
-                                    message: widget.targetUserName,
+                                    message: targetUserName,
                                     triggerMode: TooltipTriggerMode.tap,
                                     child: CircleAvatar(
                                       radius: 12.r,
                                       backgroundColor: Colors.grey.shade300,
                                       backgroundImage:
-                                          widget.targetUserPhoto != null
+                                          targetUserPhoto != null
                                           ? NetworkImage(
-                                              widget.targetUserPhoto!,
+                                              targetUserPhoto!,
                                             )
                                           : null,
-                                      child: widget.targetUserPhoto == null
+                                      child: targetUserPhoto == null
                                           ? Icon(
                                               Icons.person_rounded,
                                               size: 14.r,
@@ -422,8 +402,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 onPressed: _chatController.isSending.value
                     ? null
                     : () => _chatController.sendImageMessage(
-                        widget.chatRoomId,
-                        widget.targetUserId,
+                        chatRoomId,
+                        targetUserId,
                       ),
                 icon: Icon(
                   Icons.image_rounded,
@@ -570,7 +550,7 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () {
               if (editController.text.trim().isNotEmpty) {
                 _chatController.editMessage(
-                  widget.chatRoomId,
+                  chatRoomId,
                   message.id,
                   editController.text,
                 );
@@ -608,7 +588,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           TextButton(
             onPressed: () {
-              _chatController.deleteMessage(widget.chatRoomId, message.id);
+              _chatController.deleteMessage(chatRoomId, message.id);
               Get.back();
             },
             child: Text(
@@ -629,5 +609,35 @@ class _ChatScreenState extends State<ChatScreen> {
     if (hour > 12) hour -= 12;
     String minuteStr = minute < 10 ? '0$minute' : '$minute';
     return '$hour:$minuteStr $period';
+  }
+}
+
+class ChatScreenController extends GetxController {
+  final String chatRoomId;
+  late final ChatController chatController;
+  final TextEditingController messageController = TextEditingController();
+
+  ChatScreenController(this.chatRoomId) {
+    chatController = Get.find<ChatController>();
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
+    chatController.markMessagesAsRead(chatRoomId);
+  }
+
+  void sendMessage(String targetUserId) {
+    final text = messageController.text;
+    if (text.trim().isNotEmpty) {
+      chatController.sendMessage(chatRoomId, text, targetUserId);
+      messageController.clear();
+    }
+  }
+
+  @override
+  void onClose() {
+    messageController.dispose();
+    super.onClose();
   }
 }

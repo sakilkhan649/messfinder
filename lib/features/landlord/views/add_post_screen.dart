@@ -3,16 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
 import '../../../core/utils/image_helper.dart';
+import '../controllers/add_post_controller.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
 import 'map_location_picker_screen.dart';
 
-class AddPostScreen extends StatefulWidget {
+class AddPostScreen extends StatelessWidget {
   final PostModel? existingPost;
   final bool showBackButton;
   final VoidCallback? onPostAdded;
@@ -23,180 +22,6 @@ class AddPostScreen extends StatefulWidget {
     this.showBackButton = true,
     this.onPostAdded,
   });
-
-  @override
-  State<AddPostScreen> createState() => _AddPostScreenState();
-}
-
-class _AddPostScreenState extends State<AddPostScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _rentController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _phoneController = TextEditingController();
-  final _seatDescController = TextEditingController();
-
-  final ImagePicker _picker = ImagePicker();
-  final List<XFile> _pickedLocalImages = [];
-
-  String _bachelorType = 'male'; // 'male', 'female', 'both'
-  String _preferredTenant =
-      'Student / Job holder'; // 'Student', 'Job', 'Student / Job holder'
-  final List<String> _selectedFacilities = ['WiFi', '24/7 Water'];
-
-  final List<String> _allFacilities = AppConstants.availableFacilities;
-  LatLng _selectedLocation = const LatLng(23.8103, 90.4125);
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.existingPost != null) {
-      final p = widget.existingPost!;
-      _titleController.text = p.title;
-      _rentController.text = p.rent.toInt().toString();
-      _addressController.text = p.address;
-      _seatDescController.text = p.seatDescription ?? p.seatCount.toString();
-      _phoneController.text = p.ownerPhone ?? '';
-      _bachelorType = p.bachelorType;
-      _preferredTenant = p.preferredTenant;
-      _selectedFacilities.clear();
-      _selectedFacilities.addAll(p.facilities);
-      _selectedLocation = LatLng(p.latitude, p.longitude);
-    }
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _rentController.dispose();
-    _addressController.dispose();
-    _phoneController.dispose();
-    _seatDescController.dispose();
-    super.dispose();
-  }
-
-  void _clearForm() {
-    _titleController.clear();
-    _rentController.clear();
-    _addressController.clear();
-    _seatDescController.clear();
-    _phoneController.clear();
-    setState(() {
-      _pickedLocalImages.clear();
-      _selectedFacilities.clear();
-      _selectedFacilities.addAll(['WiFi', '24/7 Water']);
-    });
-  }
-
-  bool get isEditing => widget.existingPost != null;
-
-  int _parseSeatCount(String desc) {
-    if (desc.isEmpty) return 1;
-    final RegExp regExp = RegExp(r'\d+');
-    final matches = regExp.allMatches(desc);
-    if (matches.isNotEmpty) {
-      return int.tryParse(matches.last.group(0)!) ?? 1;
-    }
-    return 1;
-  }
-
-  Future<void> _pickImagesFromGallery() async {
-    try {
-      final List<XFile> images = await _picker.pickMultiImage(imageQuality: 80);
-      if (images.isNotEmpty) {
-        setState(() {
-          _pickedLocalImages.addAll(images);
-        });
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Failed to pick images from gallery.',
-        backgroundColor: AppTheme.errorColor,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
-
-  void _submit() {
-    if (_formKey.currentState!.validate()) {
-      if (!isEditing && _pickedLocalImages.isEmpty) {
-        Get.snackbar(
-          'Photo Required',
-          'Please select at least 1 real photo of your room from gallery.',
-          backgroundColor: AppTheme.errorColor,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return;
-      }
-      _publishPostData();
-    } else {
-      Get.snackbar(
-        'Incomplete Information',
-        'Please fill all required fields properly.',
-        backgroundColor: AppTheme.errorColor,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
-
-  Future<void> _publishPostData({String? trxId, String? senderNumber}) async {
-    final postCtrl = Get.find<PostController>();
-    final List<String> imagesToUse = _pickedLocalImages.isNotEmpty
-        ? _pickedLocalImages.map((e) => e.path).toList()
-        : (widget.existingPost?.images ?? []);
-
-    final parsedSeats = _parseSeatCount(_seatDescController.text);
-
-    if (isEditing) {
-      final updatedPost = widget.existingPost!.copyWith(
-        title: _titleController.text.trim(),
-        rent: double.tryParse(_rentController.text.trim()) ?? 4500,
-        address: _addressController.text.trim(),
-        seatCount: parsedSeats,
-        seatDescription: _seatDescController.text.trim(),
-        ownerPhone: _phoneController.text.trim().isNotEmpty
-            ? _phoneController.text.trim()
-            : widget.existingPost!.ownerPhone,
-        bachelorType: _bachelorType,
-        preferredTenant: _preferredTenant,
-        facilities: _selectedFacilities,
-        images: imagesToUse,
-      );
-      final success = await postCtrl.updateMessPost(updatedPost);
-      if (success) {
-        Get.back();
-      }
-    } else {
-      final success = await postCtrl.addMessPost(
-        title: _titleController.text.trim(),
-        rent: double.tryParse(_rentController.text.trim()) ?? 4500,
-        address: _addressController.text.trim(),
-        seatCount: parsedSeats,
-        seatDescription: _seatDescController.text.trim(),
-        ownerPhone: _phoneController.text.trim(),
-        bachelorType: _bachelorType,
-        preferredTenant: _preferredTenant,
-        facilities: _selectedFacilities,
-        images: imagesToUse,
-        latitude: _selectedLocation.latitude,
-        longitude: _selectedLocation.longitude,
-        senderNumber: senderNumber,
-        trxId: trxId,
-      );
-      if (success) {
-        if (widget.onPostAdded != null) {
-          _clearForm();
-          widget.onPostAdded!();
-        } else {
-          Get.back();
-        }
-      }
-    }
-  }
 
   InputDecoration _buildInputDecoration({
     required String hintText,
@@ -241,8 +66,12 @@ class _AddPostScreenState extends State<AddPostScreen> {
     );
   }
 
-  @override
+    @override
   Widget build(BuildContext context) {
+    final controller = Get.put(AddPostController(
+      existingPost: existingPost,
+      onPostAdded: onPostAdded,
+    ));
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 
@@ -252,7 +81,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         backgroundColor: darkEmerald,
         elevation: 0,
         title: Text(
-          isEditing ? 'Edit Room Listing' : 'Add New Room',
+          controller.isEditing ? 'Edit Room Listing' : 'Add New Room',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
             color: Colors.white,
@@ -260,7 +89,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
           ),
         ),
         automaticallyImplyLeading: false,
-        leading: widget.showBackButton 
+        leading: showBackButton 
             ? IconButton(
                 onPressed: () => Get.back(),
                 icon: const Icon(
@@ -275,7 +104,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
           physics: const BouncingScrollPhysics(),
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
           child: Form(
-            key: _formKey,
+            key: controller.formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -306,7 +135,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       SizedBox(width: 12.w),
                       Expanded(
                         child: Text(
-                          isEditing
+                          controller.isEditing
                               ? 'Update your room listing details below.'
                               : 'Fill in accurate room details & upload real photos to attract verified bachelors.',
                           style: GoogleFonts.poppins(
@@ -338,7 +167,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
                 SizedBox(height: 8.h),
                 TextFormField(
-                  controller: _titleController,
+                  controller: controller.titleController,
                   keyboardType: TextInputType.text,
                   textCapitalization: TextCapitalization.words,
                   decoration: _buildInputDecoration(
@@ -367,7 +196,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                           ),
                           SizedBox(height: 8.h),
                           TextFormField(
-                            controller: _rentController,
+                            controller: controller.rentController,
                             keyboardType: TextInputType.number,
                             decoration: _buildInputDecoration(
                               hintText: '4500',
@@ -395,7 +224,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                           ),
                           SizedBox(height: 8.h),
                           TextFormField(
-                            controller: _seatDescController,
+                            controller: controller.seatDescController,
                             keyboardType: TextInputType.number,
                             decoration: _buildInputDecoration(
                               hintText: 'e.g. 2',
@@ -430,11 +259,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 8.h),
                 Row(
                   children: [
-                    _buildGenderRadio('male', 'Male Only'),
+                    _buildGenderRadio('male', 'Male Only', controller),
                     SizedBox(width: 10.w),
-                    _buildGenderRadio('female', 'Female Only'),
+                    _buildGenderRadio('female', 'Female Only', controller),
                     SizedBox(width: 10.w),
-                    _buildGenderRadio('both', 'Any Bachelor'),
+                    _buildGenderRadio('both', 'Any Bachelor', controller),
                   ],
                 ),
                 SizedBox(height: 18.h),
@@ -450,13 +279,13 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 8.h),
                 Row(
                   children: [
-                    _buildTenantRadio('Student', 'Student'),
+                    _buildTenantRadio('Student', 'Student', controller),
                     SizedBox(width: 8.w),
-                    _buildTenantRadio('Job', 'Job'),
+                    _buildTenantRadio('Job', 'Job', controller),
                     SizedBox(width: 8.w),
                     _buildTenantRadio(
                       'Student / Job holder',
-                      'Student / Job holder',
+                      'Student / Job holder', controller
                     ),
                   ],
                 ),
@@ -472,7 +301,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
                 SizedBox(height: 8.h),
                 TextFormField(
-                  controller: _addressController,
+                  controller: controller.addressController,
                   keyboardType: TextInputType.streetAddress,
                   textCapitalization: TextCapitalization.words,
                   maxLines: 2,
@@ -487,11 +316,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 12.h),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: _selectedLocation));
+                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: controller.selectedLocation.value));
                     if (picked != null) {
-                      setState(() {
-                        _selectedLocation = picked;
-                      });
+                      controller.selectedLocation.value = picked;
                       Get.snackbar(
                         'Location Selected',
                         'Map location has been updated successfully.',
@@ -523,7 +350,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
                 SizedBox(height: 8.h),
                 TextFormField(
-                  controller: _phoneController,
+                  controller: controller.phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: _buildInputDecoration(
                     hintText: 'e.g. 01712345678',
@@ -542,11 +369,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 ),
                 SizedBox(height: 12.h),
 
-                Wrap(
+                Obx(() => Wrap(
                   spacing: 8.w,
                   runSpacing: 8.h,
-                  children: _allFacilities.map((facility) {
-                    final isSelected = _selectedFacilities.contains(facility);
+                  children: controller.allFacilities.map((facility) {
+                    final isSelected = controller.selectedFacilities.contains(facility);
                     return FilterChip(
                       label: Text(
                         facility,
@@ -573,17 +400,15 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         ),
                       ),
                       onSelected: (selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedFacilities.add(facility);
-                          } else {
-                            _selectedFacilities.remove(facility);
-                          }
-                        });
+                        if (selected) {
+                          controller.selectedFacilities.add(facility);
+                        } else {
+                          controller.selectedFacilities.remove(facility);
+                        }
                       },
                     );
                   }).toList(),
-                ),
+                )),
                 SizedBox(height: 24.h),
 
                 // Section 4: Photo Selection (Gallery Only, No Demo Pictures)
@@ -594,7 +419,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 12.h),
 
                 GestureDetector(
-                  onTap: _pickImagesFromGallery,
+                  onTap: controller.pickImagesFromGallery,
                   child: Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 24.h),
@@ -645,12 +470,16 @@ class _AddPostScreenState extends State<AddPostScreen> {
                 SizedBox(height: 14.h),
 
                 // Display selected local images or existing images
-                if (_pickedLocalImages.isNotEmpty) ...[
+                Obx(() {
+                  if (controller.pickedLocalImages.isNotEmpty) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Selected Photos (${_pickedLocalImages.length})',
+                        'Selected Photos (${controller.pickedLocalImages.length})',
                         style: GoogleFonts.poppins(
                           fontSize: 13.sp,
                           fontWeight: FontWeight.w600,
@@ -658,7 +487,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () => setState(() => _pickedLocalImages.clear()),
+                        onTap: () => controller.pickedLocalImages.clear(),
                         child: Text(
                           'Clear All',
                           style: GoogleFonts.poppins(
@@ -675,9 +504,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     height: 105.h,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _pickedLocalImages.length,
+                      itemCount: controller.pickedLocalImages.length,
                       itemBuilder: (context, index) {
-                        final file = _pickedLocalImages[index];
+                        final file = controller.pickedLocalImages[index];
                         return Stack(
                           children: [
                             Container(
@@ -700,9 +529,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               right: 18.w,
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() {
-                                    _pickedLocalImages.removeAt(index);
-                                  });
+                                  controller.pickedLocalImages.removeAt(index);
                                 },
                                 child: Container(
                                   padding: EdgeInsets.all(5.r),
@@ -723,8 +550,11 @@ class _AddPostScreenState extends State<AddPostScreen> {
                       },
                     ),
                   ),
-                ] else if (isEditing &&
-                    widget.existingPost!.images.isNotEmpty) ...[
+                    ]);
+                  } else if (controller.isEditing && existingPost!.images.isNotEmpty) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                   Text(
                     'Existing Room Photos',
                     style: GoogleFonts.poppins(
@@ -738,9 +568,9 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     height: 105.h,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
-                      itemCount: widget.existingPost!.images.length,
+                      itemCount: existingPost!.images.length,
                       itemBuilder: (context, index) {
-                        final img = widget.existingPost!.images[index];
+                        final img = existingPost!.images[index];
                         return Container(
                           width: 120.w,
                           margin: EdgeInsets.only(right: 12.w),
@@ -758,8 +588,10 @@ class _AddPostScreenState extends State<AddPostScreen> {
                         );
                       },
                     ),
-                  ),
-                ],
+                  )]);
+                  }
+                  return const SizedBox.shrink();
+                }),
                 SizedBox(height: 32.h),
 
                 // Submit Button
@@ -769,7 +601,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                     width: double.infinity,
                     height: 52.h,
                     child: ElevatedButton(
-                      onPressed: postController.isLoading.value ? null : _submit,
+                      onPressed: postController.isLoading.value ? null : controller.submit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: emeraldTheme,
                         shape: RoundedRectangleBorder(
@@ -787,7 +619,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
                               ),
                             )
                           : Text(
-                              isEditing
+                              controller.isEditing
                                   ? 'Update Room Listing'
                                   : 'Publish Room Listing',
                               style: GoogleFonts.poppins(
@@ -826,63 +658,67 @@ class _AddPostScreenState extends State<AddPostScreen> {
     );
   }
 
-  Widget _buildGenderRadio(String value, String label) {
+  Widget _buildGenderRadio(String value, String label, AddPostController controller) {
     const emeraldTheme = Color(0xFF059669);
-    final selected = _bachelorType == value;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _bachelorType = value),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h),
-          decoration: BoxDecoration(
-            color: selected ? emeraldTheme : Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: selected ? emeraldTheme : const Color(0xFFE2E8F0),
+        onTap: () => controller.bachelorType.value = value,
+        child: Obx(() {
+          final selected = controller.bachelorType.value == value;
+          return Container(
+            padding: EdgeInsets.symmetric(vertical: 12.h),
+            decoration: BoxDecoration(
+              color: selected ? emeraldTheme : Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: selected ? emeraldTheme : const Color(0xFFE2E8F0),
+              ),
             ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 12.5.sp,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : AppTheme.textPrimary,
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 12.5.sp,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppTheme.textPrimary,
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }
 
-  Widget _buildTenantRadio(String value, String label) {
+  Widget _buildTenantRadio(String value, String label, AddPostController controller) {
     const emeraldTheme = Color(0xFF059669);
-    final selected = _preferredTenant == value;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _preferredTenant = value),
-        child: Container(
-          padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
-          decoration: BoxDecoration(
-            color: selected ? emeraldTheme : Colors.white,
-            borderRadius: BorderRadius.circular(12.r),
-            border: Border.all(
-              color: selected ? emeraldTheme : const Color(0xFFE2E8F0),
+        onTap: () => controller.preferredTenant.value = value,
+        child: Obx(() {
+          final selected = controller.preferredTenant.value == value;
+          return Container(
+            padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 4.w),
+            decoration: BoxDecoration(
+              color: selected ? emeraldTheme : Colors.white,
+              borderRadius: BorderRadius.circular(12.r),
+              border: Border.all(
+                color: selected ? emeraldTheme : const Color(0xFFE2E8F0),
+              ),
             ),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.poppins(
-              fontSize: 11.5.sp,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : AppTheme.textPrimary,
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.poppins(
+                fontSize: 11.5.sp,
+                fontWeight: FontWeight.w600,
+                color: selected ? Colors.white : AppTheme.textPrimary,
+              ),
             ),
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

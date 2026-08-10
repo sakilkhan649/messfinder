@@ -9,28 +9,23 @@ import '../../chat/views/chat_list_screen.dart';
 import '../../profile/views/profile_screen.dart';
 import 'package:get/get.dart';
 
-class BachelorMainScreen extends StatefulWidget {
+import '../controllers/bachelor_main_controller.dart';
+
+class BachelorMainScreen extends StatelessWidget {
   final UserModel user;
 
   const BachelorMainScreen({super.key, required this.user});
 
   @override
-  State<BachelorMainScreen> createState() => _BachelorMainScreenState();
-}
-
-class _BachelorMainScreenState extends State<BachelorMainScreen> {
-  int _currentIndex = 0;
-  bool _isBottomNavVisible = true;
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(BachelorMainController());
     const primaryColor = Color(0xFF059669);
 
     final List<Widget> screens = [
-      BachelorHomeScreen(user: widget.user),
+      BachelorHomeScreen(user: user),
       const MessMapScreen(),
       ChatListScreen(),
-      ProfileScreen(user: widget.user),
+      ProfileScreen(user: user),
     ];
 
     return Scaffold(
@@ -42,17 +37,17 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
               if (notification.direction == ScrollDirection.reverse) {
-                if (_isBottomNavVisible) {
-                  setState(() => _isBottomNavVisible = false);
+                if (controller.isBottomNavVisible.value) {
+                  controller.setNavVisible(false);
                 }
               } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isBottomNavVisible) {
-                  setState(() => _isBottomNavVisible = true);
+                if (!controller.isBottomNavVisible.value) {
+                  controller.setNavVisible(true);
                 }
               }
               return false;
             },
-            child: IndexedStack(index: _currentIndex, children: screens),
+            child: Obx(() => IndexedStack(index: controller.currentIndex.value, children: screens)),
           ),
 
           // Floating bottom navbar
@@ -60,9 +55,9 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: AnimatedSlide(
+            child: Obx(() => AnimatedSlide(
               duration: const Duration(milliseconds: 300),
-              offset: _isBottomNavVisible ? Offset.zero : const Offset(0, 1),
+              offset: controller.isBottomNavVisible.value ? Offset.zero : const Offset(0, 1),
               child: Padding(
                 padding: EdgeInsets.only(left: 20.w, right: 20.w, bottom: 20.h),
                 child: Stack(
@@ -100,6 +95,7 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                                   activeIcon: Icons.home_rounded,
                                   label: 'Home',
                                   activeColor: primaryColor,
+                                  controller: controller,
                                 ),
                                 _buildNavItem(
                                   index: 1,
@@ -107,6 +103,7 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                                   activeIcon: Icons.location_on_rounded,
                                   label: 'Map',
                                   activeColor: primaryColor,
+                                  controller: controller,
                                 ),
                               ],
                             ),
@@ -124,6 +121,7 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                                   activeIcon: Icons.chat_bubble_rounded,
                                   label: 'Chats',
                                   activeColor: primaryColor,
+                                  controller: controller,
                                 ),
                                 _buildNavItem(
                                   index: 3,
@@ -131,6 +129,7 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                                   activeIcon: Icons.person_rounded,
                                   label: 'Profile',
                                   activeColor: primaryColor,
+                                  controller: controller,
                                 ),
                               ],
                             ),
@@ -162,13 +161,12 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
                       ),
                     ),
                   ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+                  ), // Ends Stack
+                ), // Ends Padding
+              ))), // Ends AnimatedSlide, Obx, Positioned
+          ], // Ends Stack children
+        ), // Ends Stack
+      ); // Ends Scaffold
   }
 
   Widget _buildNavItem({
@@ -177,11 +175,12 @@ class _BachelorMainScreenState extends State<BachelorMainScreen> {
     required IconData activeIcon,
     required String label,
     required Color activeColor,
+    required BachelorMainController controller,
   }) {
-    final isSelected = _currentIndex == index;
+    final isSelected = controller.currentIndex.value == index;
 
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => controller.setIndex(index),
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
         width: 55.w,

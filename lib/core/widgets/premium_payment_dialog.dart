@@ -38,7 +38,7 @@ class PremiumPaymentDialog {
   }
 }
 
-class _PremiumPaymentSheet extends StatefulWidget {
+class _PremiumPaymentSheet extends StatelessWidget {
   final UserModel user;
   final bool isLandlord;
   final Function(String trxId, String senderNumber)? onPaymentSubmitted;
@@ -51,30 +51,8 @@ class _PremiumPaymentSheet extends StatefulWidget {
     this.onSuccess,
   });
 
-  @override
-  State<_PremiumPaymentSheet> createState() => _PremiumPaymentSheetState();
-}
-
-class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
-  final TextEditingController _senderController = TextEditingController();
-  final TextEditingController _trxIdController = TextEditingController();
-  late PaymentController _paymentController;
-
-  @override
-  void initState() {
-    super.initState();
-    _paymentController = Get.find<PaymentController>();
-  }
-
-  @override
-  void dispose() {
-    _senderController.dispose();
-    _trxIdController.dispose();
-    super.dispose();
-  }
-
-  String _getAdminNumber() {
-    final method = _paymentController.selectedMethod.value;
+  String _getAdminNumber(PaymentController paymentController) {
+    final method = paymentController.selectedMethod.value;
     if (method == 'rocket') {
       return '018685691625';
     }
@@ -88,8 +66,10 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final screenController = Get.put(PremiumPaymentController());
+    final paymentController = Get.find<PaymentController>();
     final int fee =
-        widget.isLandlord ? AppConstants.landlordFee : AppConstants.bachelorFee;
+        isLandlord ? AppConstants.landlordFee : AppConstants.bachelorFee;
 
     return Container(
       padding: EdgeInsets.only(
@@ -129,7 +109,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
 
               // Pending Status Card
               Obx(() {
-                final lastPayment = _paymentController.myLatestPayment.value;
+                final lastPayment = paymentController.myLatestPayment.value;
                 if (lastPayment != null && lastPayment.isPending) {
                   return Container(
                     margin: EdgeInsets.only(bottom: 16.h),
@@ -158,7 +138,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                           onPressed: () {
                             Get.back();
                             Get.to(() =>
-                                PaymentPendingScreen(user: widget.user));
+                                PaymentPendingScreen(user: user));
                           },
                           child: const Text('View Status'),
                         ),
@@ -203,7 +183,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                         SizedBox(width: 12.w),
                         Expanded(
                           child: Text(
-                            widget.isLandlord
+                            isLandlord
                                 ? 'Listing Verification'
                                 : 'Unlock Contact Info',
                             style: GoogleFonts.poppins(
@@ -217,7 +197,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                     ),
                     SizedBox(height: 12.h),
                     Text(
-                      widget.isLandlord
+                      isLandlord
                           ? 'Pay per listing to publish your mess room and connect with verified bachelors.'
                           : 'Pay once per booking to unlock the landlord phone number and call directly.',
                       textAlign: TextAlign.center,
@@ -236,7 +216,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                         borderRadius: BorderRadius.circular(30.r),
                       ),
                       child: Text(
-                        widget.isLandlord
+                        isLandlord
                             ? 'Only Tk.$fee (per listing)'
                             : 'Only Tk.$fee (per booking)',
                         style: GoogleFonts.poppins(
@@ -261,25 +241,22 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
               ),
               SizedBox(height: 12.h),
               Obx(() {
-                final currentMethod = _paymentController.selectedMethod.value;
+                final currentMethod = paymentController.selectedMethod.value;
                 return Row(
                   children: [
-                    _buildMethodTab('bkash', 'bKash',
-                        Icons.account_balance_wallet_rounded, currentMethod),
+                    _buildMethodTab('bkash', 'bKash', Icons.account_balance_wallet_rounded, currentMethod, paymentController),
                     SizedBox(width: 10.w),
-                    _buildMethodTab(
-                        'nagad', 'Nagad', Icons.payments_rounded, currentMethod),
+                    _buildMethodTab('nagad', 'Nagad', Icons.payments_rounded, currentMethod, paymentController),
                     SizedBox(width: 10.w),
-                    _buildMethodTab('rocket', 'Rocket',
-                        Icons.rocket_launch_rounded, currentMethod),
+                    _buildMethodTab('rocket', 'Rocket', Icons.rocket_launch_rounded, currentMethod, paymentController),
                   ],
                 );
               }),
               SizedBox(height: 16.h),
 
               Obx(() {
-                final number = _getAdminNumber();
-                final method = _paymentController.selectedMethod.value;
+                final number = _getAdminNumber(paymentController);
+                final method = paymentController.selectedMethod.value;
                 final methodName = method == 'bkash'
                     ? 'bKash'
                     : method == 'nagad'
@@ -355,7 +332,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _senderController,
+                controller: screenController.senderController,
                 keyboardType: TextInputType.phone,
                 style: GoogleFonts.poppins(fontSize: 14.sp),
                 decoration: InputDecoration(
@@ -380,7 +357,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _trxIdController,
+                controller: screenController.trxIdController,
                 style: GoogleFonts.poppins(fontSize: 14.sp),
                 textCapitalization: TextCapitalization.characters,
                 decoration: InputDecoration(
@@ -396,7 +373,7 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
               SizedBox(height: 28.h),
 
               Obx(() {
-                final isLoading = _paymentController.isLoading.value;
+                final isLoading = paymentController.isLoading.value;
                 return SizedBox(
                   width: double.infinity,
                   height: 52.h,
@@ -404,25 +381,25 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
                     onPressed: isLoading
                         ? null
                         : () {
-                            final sender = _senderController.text.trim();
-                            final trxId = _trxIdController.text.trim();
+                            final sender = screenController.senderController.text.trim();
+                            final trxId = screenController.trxIdController.text.trim();
                             if (sender.isEmpty || trxId.isEmpty) {
                               ApiChecker.showError(
                                   'Please enter Sender Number and TrxID');
                               return;
                             }
                             Get.back();
-                            if (widget.onPaymentSubmitted != null) {
-                              widget.onPaymentSubmitted!(trxId, sender);
+                            if (onPaymentSubmitted != null) {
+                              onPaymentSubmitted!(trxId, sender);
                             } else {
-                              _paymentController.submitTrxId(
+                              paymentController.submitTrxId(
                                 trxId: trxId,
                                 senderNumber: sender,
-                                user: widget.user,
+                                user: user,
                               );
                             }
-                            if (widget.onSuccess != null) {
-                              widget.onSuccess!();
+                            if (onSuccess != null) {
+                              onSuccess!();
                             }
                           },
                     style: ElevatedButton.styleFrom(
@@ -460,11 +437,11 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
   }
 
   Widget _buildMethodTab(
-      String key, String title, IconData icon, String current) {
+      String key, String title, IconData icon, String current, PaymentController paymentController) {
     final isSelected = current == key;
     return Expanded(
       child: GestureDetector(
-        onTap: () => _paymentController.selectMethod(key),
+        onTap: () => paymentController.selectMethod(key),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           padding: EdgeInsets.symmetric(vertical: 12.h),
@@ -506,3 +483,15 @@ class _PremiumPaymentSheetState extends State<_PremiumPaymentSheet> {
   }
 }
 
+
+class PremiumPaymentController extends GetxController {
+  final TextEditingController senderController = TextEditingController();
+  final TextEditingController trxIdController = TextEditingController();
+
+  @override
+  void onClose() {
+    senderController.dispose();
+    trxIdController.dispose();
+    super.onClose();
+  }
+}

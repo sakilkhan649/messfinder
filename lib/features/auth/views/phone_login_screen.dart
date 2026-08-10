@@ -3,43 +3,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../controllers/auth_controller.dart';
-import 'otp_verification_screen.dart';
+import '../controllers/phone_login_controller.dart';
 
-class PhoneLoginScreen extends StatefulWidget {
+class PhoneLoginScreen extends StatelessWidget {
   const PhoneLoginScreen({super.key});
 
   @override
-  State<PhoneLoginScreen> createState() => _PhoneLoginScreenState();
-}
-
-class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
-  final _phoneController = TextEditingController();
-  final _authController = Get.find<AuthController>();
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  void _sendOtp() {
-    final phone = _phoneController.text.trim();
-    if (phone.isNotEmpty) {
-      _authController.verifyPhoneNumber(phone);
-      Get.to(() => OtpVerificationScreen(phone: phone), transition: Transition.rightToLeft);
-    } else {
-      Get.snackbar(
-        'Error',
-        'Please enter a valid phone number',
-        backgroundColor: AppTheme.errorColor,
-        colorText: Colors.white,
-      );
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final controller = Get.put(PhoneLoginController());
+    final authController = controller.authController;
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -85,7 +57,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
               ),
               SizedBox(height: 8.h),
               TextField(
-                controller: _phoneController,
+                controller: controller.phoneController,
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(
                   hintText: 'e.g. 01712345678',
@@ -117,7 +89,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                 height: 54.h,
                 child: Obx(() {
                   return ElevatedButton(
-                    onPressed: _authController.isLoading.value ? null : _sendOtp,
+                    onPressed: authController.isLoading.value ? null : controller.sendOtp,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryColor,
                       shape: RoundedRectangleBorder(
@@ -125,7 +97,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
                       ),
                       elevation: 0,
                     ),
-                    child: _authController.isLoading.value
+                    child: authController.isLoading.value
                         ? SizedBox(
                             height: 24.r,
                             width: 24.r,

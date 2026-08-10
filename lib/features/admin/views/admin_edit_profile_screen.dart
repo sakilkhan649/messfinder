@@ -9,73 +9,18 @@ import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
 import 'utils/admin_colors.dart';
 
-class AdminEditProfileScreen extends StatefulWidget {
+class AdminEditProfileScreen extends StatelessWidget {
   final UserModel user;
 
   const AdminEditProfileScreen({super.key, required this.user});
 
-  @override
-  State<AdminEditProfileScreen> createState() => _AdminEditProfileScreenState();
-}
+  AdminEditProfileController get controller => Get.find<AdminEditProfileController>(tag: 'admin_edit_profile');
 
-class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _nameController;
-  late TextEditingController _phoneController;
-
-  final ImagePicker _picker = ImagePicker();
-  File? _selectedImageFile;
-
-  final authController = Get.find<AuthController>();
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.user.name);
-    _phoneController = TextEditingController(text: widget.user.phone);
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _phoneController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _pickImageFromGallery() async {
-    try {
-      final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
-      );
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Could not load image from gallery: $e',
-        backgroundColor: Colors.red,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
-  }
-
-  void _submitUpdate() {
-    if (_formKey.currentState!.validate()) {
-      authController.updateProfile(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        photoUrl: _selectedImageFile?.path ?? widget.user.photoUrl,
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    Get.put(AdminEditProfileController(user), tag: 'admin_edit_profile');
+    final authController = Get.find<AuthController>();
     return Scaffold(
       backgroundColor: AdminColors.pageBg,
       appBar: AppBar(
@@ -102,7 +47,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.w),
         child: Form(
-          key: _formKey,
+          key: controller.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -130,7 +75,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
 
               // Avatar Upload
               GestureDetector(
-                onTap: _pickImageFromGallery,
+                onTap: controller.pickImageFromGallery,
                 child: Center(
                   child: Stack(
                     children: [
@@ -148,17 +93,17 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
                           ),
                         ),
                         child: ClipOval(
-                          child: _selectedImageFile != null
+                          child: Obx(() => controller.selectedImageFile.value != null
                               ? Image.file(
-                                  _selectedImageFile!,
+                                  controller.selectedImageFile.value!,
                                   fit: BoxFit.cover,
                                   width: 100.r,
                                   height: 100.r,
                                 )
-                              : (widget.user.photoUrl != null &&
-                                    widget.user.photoUrl!.isNotEmpty)
+                              : (user.photoUrl != null &&
+                                    user.photoUrl!.isNotEmpty)
                               ? AppImageHelper.buildImage(
-                                  widget.user.photoUrl!,
+                                  user.photoUrl!,
                                   fit: BoxFit.cover,
                                   width: 100.r,
                                   height: 100.r,
@@ -172,7 +117,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
                                     size: 50.r,
                                     color: AdminColors.accentDark,
                                   ),
-                                ),
+                                )),
                         ),
                       ),
                       Positioned(
@@ -220,7 +165,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
               ),
               SizedBox(height: 8.h),
               TextFormField(
-                controller: _nameController,
+                controller: controller.nameController,
                 style: GoogleFonts.poppins(fontSize: 14.sp),
                 decoration: _inputDecoration(
                   'Enter your name',
@@ -246,7 +191,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
               ),
               SizedBox(height: 8.h),
               TextFormField(
-                controller: _phoneController,
+                controller: controller.phoneController,
                 keyboardType: TextInputType.phone,
                 style: GoogleFonts.poppins(fontSize: 14.sp),
                 decoration: _inputDecoration(
@@ -271,7 +216,7 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
                   child: ElevatedButton(
                     onPressed: authController.isLoading.value
                         ? null
-                        : _submitUpdate,
+                        : controller.submitUpdate,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AdminColors.accentDark,
                       shape: RoundedRectangleBorder(
@@ -334,5 +279,63 @@ class _AdminEditProfileScreenState extends State<AdminEditProfileScreen> {
         borderSide: const BorderSide(color: AdminColors.statusRejected),
       ),
     );
+  }
+}
+
+class AdminEditProfileController extends GetxController {
+  final UserModel user;
+  
+  final formKey = GlobalKey<FormState>();
+  late final TextEditingController nameController;
+  late final TextEditingController phoneController;
+  
+  final ImagePicker _picker = ImagePicker();
+  final Rx<File?> selectedImageFile = Rx<File?>(null);
+
+  AdminEditProfileController(this.user);
+
+  @override
+  void onInit() {
+    super.onInit();
+    nameController = TextEditingController(text: user.name);
+    phoneController = TextEditingController(text: user.phone);
+  }
+
+  @override
+  void onClose() {
+    nameController.dispose();
+    phoneController.dispose();
+    super.onClose();
+  }
+
+  Future<void> pickImageFromGallery() async {
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (pickedFile != null) {
+        selectedImageFile.value = File(pickedFile.path);
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Could not load image from gallery: $e',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  void submitUpdate() {
+    if (formKey.currentState!.validate()) {
+      final authController = Get.find<AuthController>();
+      authController.updateProfile(
+        name: nameController.text.trim(),
+        phone: phoneController.text.trim(),
+        photoUrl: selectedImageFile.value?.path ?? user.photoUrl,
+      );
+    }
   }
 }
