@@ -116,7 +116,7 @@ class ChatController extends GetxController {
         senderId: currentUserId,
         text: text.trim(),
         imageUrl: imageUrl,
-        createdAt: DateTime.now(),
+        // Omit createdAt to use FieldValue.serverTimestamp() in toMap()
       );
 
       // Run in batch to ensure both updates happen together

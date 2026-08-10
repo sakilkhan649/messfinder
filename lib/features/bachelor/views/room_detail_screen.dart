@@ -59,67 +59,7 @@ class RoomDetailScreen extends StatelessWidget {
     }
   }
 
-  Future<void> _callLandlord(
-    BuildContext context,
-    bool isUnlocked,
-    bool isPending,
-  ) async {
-    if (isUnlocked) {
-      final phone = post.ownerPhone ?? '01700000000';
-      final Uri url = Uri.parse('tel:$phone');
-      if (await canLaunchUrl(url)) {
-        await launchUrl(url);
-      } else {
-        Get.snackbar('Error', 'Unable to initiate call');
-      }
-    } else if (isPending) {
-      Get.snackbar(
-        'Booking Request Pending ⏳',
-        'Your request is awaiting landlord approval. Once approved, you can view the number and call.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFF59E0B),
-        colorText: Colors.white,
-      );
-    } else {
-      _requestPaymentAndUnlock(context);
-    }
-  }
 
-  Future<void> _messageLandlord(
-    BuildContext context,
-    bool isUnlocked,
-    bool isPending,
-  ) async {
-    if (isUnlocked) {
-      if (post.ownerUid.isNotEmpty) {
-        final chatController = Get.find<ChatController>();
-        final roomId = await chatController.createOrGetChatRoom(
-          post.ownerUid,
-          '',
-          null,
-        );
-        Get.to(
-          () => ChatScreen(
-            chatRoomId: roomId,
-            targetUserId: post.ownerUid,
-            targetUserName: 'Landlord',
-          ),
-        );
-      } else {
-        Get.snackbar('Error', 'Landlord ID not found.');
-      }
-    } else if (isPending) {
-      Get.snackbar(
-        'Booking Request Pending ⏳',
-        'Your request is awaiting landlord approval. Once approved, you can view the number and send messages.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFF59E0B),
-        colorText: Colors.white,
-      );
-    } else {
-      _requestPaymentAndUnlock(context);
-    }
-  }
 
   void _showReportDialog(BuildContext context) {
     showDialog(
@@ -753,52 +693,7 @@ class RoomDetailScreen extends StatelessWidget {
                 child: SafeArea(
                   child: Row(
                     children: [
-                      // Call button
-                      Container(
-                        height: 48.h,
-                        width: 48.h,
-                        margin: EdgeInsets.only(right: 8.w),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: primaryColor.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: () =>
-                              _callLandlord(context, isUnlocked, isPending),
-                          icon: Icon(
-                            Icons.call_rounded,
-                            color: primaryColor,
-                            size: 22.r,
-                          ),
-                          tooltip: 'Call Landlord',
-                        ),
-                      ),
-                      // Message button
-                      Container(
-                        height: 48.h,
-                        width: 48.h,
-                        margin: EdgeInsets.only(right: 10.w),
-                        decoration: BoxDecoration(
-                          color: primaryColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12.r),
-                          border: Border.all(
-                            color: primaryColor.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: IconButton(
-                          onPressed: () =>
-                              _messageLandlord(context, isUnlocked, isPending),
-                          icon: Icon(
-                            Icons.message_rounded,
-                            color: primaryColor,
-                            size: 22.r,
-                          ),
-                          tooltip: 'Send SMS',
-                        ),
-                      ),
+
                       // Booking Button (Main Action)
                       Expanded(
                         child: ElevatedButton.icon(
