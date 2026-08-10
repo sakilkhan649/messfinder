@@ -19,6 +19,7 @@ class PostController extends GetxController {
   final RxList<PostModel> myPosts = <PostModel>[].obs;
   final RxSet<String> savedPostIds = <String>{}.obs;
   final RxBool isLoading = true.obs;
+  final RxBool isFetchingMore = false.obs;
 
   final RxInt postLimit = 20.obs;
   StreamSubscription<List<PostModel>>? _postsSubscription;
@@ -104,7 +105,7 @@ class PostController extends GetxController {
     feedScrollController.addListener(() {
       if (feedScrollController.position.pixels >=
           feedScrollController.position.maxScrollExtent - 200) {
-        if (!isLoading.value) {
+        if (!isLoading.value && !isFetchingMore.value) {
           loadMorePosts();
         }
       }
@@ -164,18 +165,22 @@ class PostController extends GetxController {
             _updateSavedPostsList();
             if (!hasEmitted) {
               isLoading.value = false;
+              isFetchingMore.value = false;
               hasEmitted = true;
             }
           },
           onError: (e) {
             AppLogger.e('Post stream error: $e', e, null, 'POST_CTRL');
             isLoading.value = false;
+            isFetchingMore.value = false;
             hasEmitted = true;
           },
         );
   }
 
   void loadMorePosts() {
+    if (isFetchingMore.value) return;
+    isFetchingMore.value = true;
     postLimit.value += 20;
     _listenToPosts();
   }
