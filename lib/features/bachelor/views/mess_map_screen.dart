@@ -98,9 +98,14 @@ class _MessMapScreenState extends State<MessMapScreen> {
           children: [
             FlutterMap(
               mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _center,
+              options: const MapOptions(
+                initialCenter: LatLng(23.8103, 90.4125),
                 initialZoom: 12.0,
+                minZoom: 6.0,
+                maxZoom: 18.0,
+                interactionOptions: InteractionOptions(
+                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
+                ),
               ),
               children: [
                 TileLayer(

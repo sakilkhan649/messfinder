@@ -43,6 +43,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       extendBody: true,
+      resizeToAvoidBottomInset: false,
       body: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -72,73 +73,77 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                 alignment: Alignment.bottomCenter,
                 children: [
                   // Navbar Background, Shadow, Border, and Icons
-                  CustomPaint(
-                    painter: BottomNavBorderPainter(
-                      borderColor: Colors.grey.shade400,
-                      shadowColor: Colors.black.withValues(alpha: 0.15),
-                    ),
-                    child: Container(
-                      height: 85, // Slightly taller than 70 to give breathing room
-                      padding: const EdgeInsets.only(bottom: 15), // Pushes icons up away from the gesture bar
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildNavItem(
-                                  index: 0,
-                                  icon: Icons.home_outlined,
-                                  activeIcon: Icons.home_rounded,
-                                  activeColor: primaryEmerald,
-                                ),
-                                _buildNavItem(
-                                  index: 1,
-                                  icon: Icons.location_on_outlined,
-                                  activeIcon: Icons.location_on_rounded,
-                                  activeColor: primaryEmerald,
-                                ),
-                              ],
+                  Padding(
+                    padding: const EdgeInsets.only(top: 36),
+                    child: CustomPaint(
+                      painter: BottomNavBorderPainter(
+                        borderColor: Colors.grey.shade400,
+                        shadowColor: Colors.black.withValues(alpha: 0.15),
+                      ),
+                      child: Container(
+                        height: 85, // Slightly taller than 70 to give breathing room
+                        padding: const EdgeInsets.only(bottom: 15), // Pushes icons up away from the gesture bar
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildNavItem(
+                                    index: 0,
+                                    icon: Icons.home_outlined,
+                                    activeIcon: Icons.home_rounded,
+                                    activeColor: primaryEmerald,
+                                  ),
+                                  _buildNavItem(
+                                    index: 1,
+                                    icon: Icons.location_on_outlined,
+                                    activeIcon: Icons.location_on_rounded,
+                                    activeColor: primaryEmerald,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 75), // Notch gap
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                _buildNavItem(
-                                  index: 3,
-                                  icon: Icons.chat_bubble_outline_rounded,
-                                  activeIcon: Icons.chat_bubble_rounded,
-                                  activeColor: primaryEmerald,
-                                ),
-                                _buildNavItem(
-                                  index: 4,
-                                  icon: Icons.person_outline_rounded,
-                                  activeIcon: Icons.person_rounded,
-                                  activeColor: primaryEmerald,
-                                ),
-                              ],
+                            const SizedBox(width: 75), // Notch gap
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  _buildNavItem(
+                                    index: 3,
+                                    icon: Icons.chat_bubble_outline_rounded,
+                                    activeIcon: Icons.chat_bubble_rounded,
+                                    activeColor: primaryEmerald,
+                                  ),
+                                  _buildNavItem(
+                                    index: 4,
+                                    icon: Icons.person_outline_rounded,
+                                    activeIcon: Icons.person_rounded,
+                                    activeColor: primaryEmerald,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
 
                   // The Floating Action Button (placed perfectly inside the notch)
                   Positioned(
-                    top: -36, // Half of 72px FAB size
-                    child: SizedBox(
-                      height: 72,
-                      width: 72,
-                      child: FittedBox(
-                        child: FloatingActionButton(
-                          onPressed: () => setState(() => _currentIndex = 2),
-                          backgroundColor: primaryEmerald,
-                          elevation: 4,
-                          shape: const CircleBorder(),
+                    top: 0,
+                    child: Material(
+                      type: MaterialType.circle,
+                      color: primaryEmerald,
+                      elevation: 4,
+                      child: InkWell(
+                        customBorder: const CircleBorder(),
+                        onTap: () => setState(() => _currentIndex = 2),
+                        child: SizedBox(
+                          height: 72,
+                          width: 72,
                           child: const Icon(Icons.add, color: Colors.white, size: 36),
                         ),
                       ),
