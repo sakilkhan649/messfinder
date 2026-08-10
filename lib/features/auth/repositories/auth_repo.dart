@@ -145,15 +145,27 @@ class AuthRepository {
     try {
       AppLogger.i('Fetching user data from Firestore: $uid',
           tag: 'AUTH_REPO');
-      final doc = await _firestore
-          .collection(ApiConstants.usersCollection)
-          .doc(uid)
-          .get()
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw 'Timeout fetching user data. Please check your internet connection.',
-          );
-      if (doc.exists && doc.data() != null) {
+      DocumentSnapshot<Map<String, dynamic>>? doc;
+      
+      try {
+        doc = await _firestore
+            .collection(ApiConstants.usersCollection)
+            .doc(uid)
+            .get(const GetOptions(source: Source.serverAndCache))
+            .timeout(const Duration(seconds: 10));
+      } catch (e) {
+        AppLogger.w('Server fetch timed out or failed. Falling back to cache for $uid', tag: 'AUTH_REPO');
+        try {
+          doc = await _firestore
+              .collection(ApiConstants.usersCollection)
+              .doc(uid)
+              .get(const GetOptions(source: Source.cache));
+        } catch (cacheError) {
+          throw 'Timeout fetching user data. Please check your internet connection.';
+        }
+      }
+
+      if (doc != null && doc.exists && doc.data() != null) {
         AppLogger.s('User data retrieved -> Role: ${doc.data()!['role']}',
             tag: 'AUTH_REPO');
         return UserModel.fromMap(doc.data()!, doc.id);

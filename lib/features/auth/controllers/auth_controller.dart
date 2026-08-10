@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
+import 'package:mess_finder/core/utils/api_constants.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/network/api_checker.dart';
@@ -300,6 +302,29 @@ class AuthController extends GetxController {
         photoUrl: finalPhotoUrl,
       );
       await _authRepo.saveUserData(updatedUser);
+      
+      // Update cached names and photos in all chat rooms
+      try {
+        final chatRoomsSnapshot = await FirebaseFirestore.instance
+            .collection(ApiConstants.chatsCollection)
+            .where('participants', arrayContains: user.uid)
+            .get();
+            
+        if (chatRoomsSnapshot.docs.isNotEmpty) {
+          final batch = FirebaseFirestore.instance.batch();
+          for (var doc in chatRoomsSnapshot.docs) {
+            batch.update(doc.reference, {
+              'participantNames.${user.uid}': updatedUser.name,
+              if (updatedUser.photoUrl != null)
+                'participantPhotos.${user.uid}': updatedUser.photoUrl,
+            });
+          }
+          await batch.commit();
+        }
+      } catch (e) {
+        AppLogger.e('Failed to update chat rooms cache', e, null, 'AUTH_CTRL');
+      }
+
       currentUser.value = updatedUser;
       currentUser.refresh();
       Get.back();

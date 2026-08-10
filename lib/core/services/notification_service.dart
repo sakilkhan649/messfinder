@@ -300,6 +300,13 @@ class NotificationService {
         .update({'isRead': true});
   }
 
+  Future<void> deleteNotification(String notificationId) async {
+    await _firestore
+        .collection('notifications')
+        .doc(notificationId)
+        .delete();
+  }
+
   Future<void> markAllAsRead(String uid) async {
     final batch = _firestore.batch();
     final query = await _firestore

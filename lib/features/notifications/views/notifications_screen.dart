@@ -65,18 +65,43 @@ class NotificationsScreen extends StatelessWidget {
           itemCount: list.length,
           separatorBuilder: (_, __) => SizedBox(height: 8.h),
           itemBuilder: (context, i) {
-            return _NotificationTile(
-                  notification: list[i],
-                  onTap: () => ctrl.markRead(list[i].id),
-                )
-                .animate()
-                .fadeIn(duration: 300.ms, delay: (i * 50).ms)
-                .slideY(
-                  begin: 0.1,
-                  end: 0,
-                  duration: 300.ms,
-                  delay: (i * 50).ms,
-                );
+            return Dismissible(
+              key: Key(list[i].id),
+              direction: DismissDirection.horizontal,
+              onDismissed: (direction) {
+                ctrl.deleteNotification(list[i].id);
+              },
+              background: Container(
+                alignment: Alignment.centerLeft,
+                padding: EdgeInsets.only(left: 20.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Icon(Icons.delete_outline_rounded, color: Colors.red, size: 24.r),
+              ),
+              secondaryBackground: Container(
+                alignment: Alignment.centerRight,
+                padding: EdgeInsets.only(right: 20.w),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(14.r),
+                ),
+                child: Icon(Icons.delete_outline_rounded, color: Colors.red, size: 24.r),
+              ),
+              child: _NotificationTile(
+                notification: list[i],
+                onTap: () => ctrl.markRead(list[i].id),
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 300.ms, delay: (i * 50).ms)
+            .slideY(
+              begin: 0.1,
+              end: 0,
+              duration: 300.ms,
+              delay: (i * 50).ms,
+            );
           },
         );
       }),

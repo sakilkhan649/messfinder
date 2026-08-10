@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -126,126 +127,156 @@ class ChatListScreen extends StatelessWidget {
                   final isMeLastSender = chat.lastSenderId == _chatController.currentUserId;
                   final prefix = isMeLastSender ? 'You: ' : '';
 
-                  return Container(
-                    margin: EdgeInsets.only(bottom: 12.h),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16.r),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.03),
-                          blurRadius: 10.r,
-                          offset: Offset(0, 4.h),
-                        ),
-                      ],
-                    ),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(16.r),
-                        onTap: () {
-                          Get.to(
-                            () => ChatScreen(
-                              chatRoomId: chat.id,
-                              targetUserId: otherUserId,
-                              targetUserName: otherUserName,
-                              targetUserPhoto: otherUserPhoto,
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(otherUserId)
+                        .get(const GetOptions(source: Source.serverAndCache)),
+                    builder: (context, userSnap) {
+                      String finalOtherUserName = otherUserName;
+                      String? finalOtherUserPhoto = otherUserPhoto;
+
+                      if (userSnap.hasData && userSnap.data != null && userSnap.data!.exists) {
+                        final data = userSnap.data!.data() as Map<String, dynamic>?;
+                        if (data != null) {
+                          finalOtherUserName = data['name']?.toString() ?? otherUserName;
+                          finalOtherUserPhoto = data['photoUrl']?.toString() ?? otherUserPhoto;
+                          
+                          // Auto-heal the stale chat room cache in the background
+                          if (finalOtherUserName != otherUserName || finalOtherUserPhoto != otherUserPhoto) {
+                            FirebaseFirestore.instance
+                                .collection('chats')
+                                .doc(chat.id)
+                                .update({
+                              'participantNames.$otherUserId': finalOtherUserName,
+                              if (finalOtherUserPhoto != null) 'participantPhotos.$otherUserId': finalOtherUserPhoto,
+                            }).catchError((_) {});
+                          }
+                        }
+                      }
+
+                      return Container(
+                        margin: EdgeInsets.only(bottom: 12.h),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 10.r,
+                              offset: Offset(0, 4.h),
                             ),
-                          );
-                        },
-                        child: Padding(
-                          padding: EdgeInsets.all(12.r),
-                          child: Row(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: rolePrimaryColor.withValues(
-                                      alpha: 0.2,
-                                    ),
-                                    width: 2,
-                                  ),
+                          ],
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(16.r),
+                            onTap: () {
+                              Get.to(
+                                () => ChatScreen(
+                                  chatRoomId: chat.id,
+                                  targetUserId: otherUserId,
+                                  targetUserName: finalOtherUserName,
+                                  targetUserPhoto: finalOtherUserPhoto,
                                 ),
-                                child: CircleAvatar(
-                                  radius: 26.r,
-                                  backgroundColor: rolePrimaryColor.withValues(
-                                    alpha: 0.1,
-                                  ),
-                                  backgroundImage:
-                                      otherUserPhoto != null &&
-                                          otherUserPhoto.isNotEmpty
-                                      ? NetworkImage(otherUserPhoto)
-                                      : null,
-                                  child:
-                                      otherUserPhoto == null ||
-                                          otherUserPhoto.isEmpty
-                                      ? Icon(
-                                          Icons.person_rounded,
-                                          size: 28.r,
-                                          color: rolePrimaryColor,
-                                        )
-                                      : null,
-                                ),
-                              ),
-                              SizedBox(width: 16.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      otherUserName,
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: unreadCount > 0
-                                            ? FontWeight.bold
-                                            : FontWeight.w600,
-                                        fontSize: 15.sp,
-                                        color: AppTheme.textPrimary,
+                              );
+                            },
+                            child: Padding(
+                              padding: EdgeInsets.all(12.r),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: rolePrimaryColor.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        width: 2,
                                       ),
                                     ),
-                                    SizedBox(height: 4.h),
-                                    Text(
-                                      chat.lastMessage.isEmpty
-                                          ? 'Say hi!'
-                                          : '$prefix${chat.lastMessage}',
-                                      style: GoogleFonts.poppins(
-                                        color: unreadCount > 0
-                                            ? AppTheme.textPrimary
-                                            : AppTheme.textSecondary,
-                                        fontWeight: unreadCount > 0
-                                            ? FontWeight.w600
-                                            : FontWeight.normal,
-                                        fontSize: 13.sp,
+                                    child: CircleAvatar(
+                                      radius: 26.r,
+                                      backgroundColor: rolePrimaryColor.withValues(
+                                        alpha: 0.1,
                                       ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      backgroundImage:
+                                          finalOtherUserPhoto != null &&
+                                              finalOtherUserPhoto.isNotEmpty
+                                          ? NetworkImage(finalOtherUserPhoto)
+                                          : null,
+                                      child:
+                                          finalOtherUserPhoto == null ||
+                                              finalOtherUserPhoto.isEmpty
+                                          ? Icon(
+                                              Icons.person_rounded,
+                                              size: 28.r,
+                                              color: rolePrimaryColor,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+                                  SizedBox(width: 16.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          finalOtherUserName,
+                                          style: GoogleFonts.poppins(
+                                            fontWeight: unreadCount > 0
+                                                ? FontWeight.bold
+                                                : FontWeight.w600,
+                                            fontSize: 15.sp,
+                                            color: AppTheme.textPrimary,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          chat.lastMessage.isEmpty
+                                              ? 'Say hi!'
+                                              : '$prefix${chat.lastMessage}',
+                                          style: GoogleFonts.poppins(
+                                            color: unreadCount > 0
+                                                ? AppTheme.textPrimary
+                                                : AppTheme.textSecondary,
+                                            fontWeight: unreadCount > 0
+                                                ? FontWeight.w600
+                                                : FontWeight.normal,
+                                            fontSize: 13.sp,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (unreadCount > 0) ...[
+                                    SizedBox(width: 8.w),
+                                    Container(
+                                      padding: EdgeInsets.all(8.r),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.errorColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        unreadCount.toString(),
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 11.sp,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
-                              if (unreadCount > 0) ...[
-                                SizedBox(width: 8.w),
-                                Container(
-                                  padding: EdgeInsets.all(8.r),
-                                  decoration: const BoxDecoration(
-                                    color: AppTheme.errorColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Text(
-                                    unreadCount.toString(),
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 11.sp,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    },
                   );
                 },
               ),

@@ -43,6 +43,10 @@ class NotificationController extends GetxController {
     await _service.markAsRead(id);
   }
 
+  Future<void> deleteNotification(String id) async {
+    await _service.deleteNotification(id);
+  }
+
   @override
   void onClose() {
     _notifSub?.cancel();
