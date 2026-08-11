@@ -47,16 +47,17 @@ class MessMapScreen extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
             child: Container(
-              height: 42.h,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8.r),
               ),
               child: TextField(
+                textAlignVertical: TextAlignVertical.center,
                 onChanged: (val) => postController.searchQuery.value = val,
                 style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white),
                 cursorColor: Colors.white,
                 decoration: InputDecoration(
+                  isDense: true,
                   filled: true,
                   fillColor: Colors.transparent,
                   hintText: 'Search rooms, areas...',

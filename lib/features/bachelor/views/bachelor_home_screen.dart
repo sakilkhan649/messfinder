@@ -62,12 +62,12 @@ class BachelorHomeScreen extends StatelessWidget {
                     Padding(
                       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
                       child: Container(
-                        height: 38.h,
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: TextField(
+                          textAlignVertical: TextAlignVertical.center,
                           onChanged: (val) =>
                               postController.searchQuery.value = val,
                           style: GoogleFonts.poppins(
@@ -76,6 +76,7 @@ class BachelorHomeScreen extends StatelessWidget {
                           ),
                           cursorColor: Colors.white,
                           decoration: InputDecoration(
+                            isDense: true,
                             filled: true,
                             fillColor: Colors.transparent,
                             hintText: 'Search rooms, areas...',
@@ -93,7 +94,7 @@ class BachelorHomeScreen extends StatelessWidget {
                             focusedBorder: InputBorder.none,
                             contentPadding: EdgeInsets.symmetric(
                               horizontal: 12.w,
-                              vertical: 10.h,
+                              vertical: 12.h,
                             ),
                           ),
                         ),

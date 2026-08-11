@@ -21,9 +21,11 @@ class AdminSearchBar extends StatelessWidget {
     return Container(
       margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 8.h),
       child: TextField(
+        textAlignVertical: TextAlignVertical.center,
         onChanged: onChanged,
         style: GoogleFonts.poppins(fontSize: 13.5.sp),
         decoration: InputDecoration(
+          isDense: true,
           hintText: hintText,
           hintStyle: GoogleFonts.poppins(
             fontSize: 13.sp,

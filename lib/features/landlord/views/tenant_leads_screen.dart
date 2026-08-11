@@ -138,9 +138,11 @@ class TenantLeadsScreen extends StatelessWidget {
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
                 child: TextField(
+                  textAlignVertical: TextAlignVertical.center,
                   onChanged: controller.updateSearch,
                   style: GoogleFonts.poppins(fontSize: 13.sp),
                   decoration: InputDecoration(
+                    isDense: true,
                     hintText: 'Search by Name or Phone...',
                     hintStyle: GoogleFonts.poppins(
                       fontSize: 12.sp,
