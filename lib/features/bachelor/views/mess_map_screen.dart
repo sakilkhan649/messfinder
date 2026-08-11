@@ -50,7 +50,7 @@ class MessMapScreen extends StatelessWidget {
               height: 42.h,
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(50.r),
               ),
               child: TextField(
                 onChanged: (val) => postController.searchQuery.value = val,
