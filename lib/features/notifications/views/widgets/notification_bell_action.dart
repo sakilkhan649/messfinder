@@ -32,32 +32,33 @@ class NotificationBellAction extends StatelessWidget {
           icon: Icon(
             Icons.notifications,
             color: color ?? Colors.white,
-            size: 24.r, // Made a bit smaller
+            size: 26.r, // Smaller icon size
           ),
         ),
         if (count > 0)
           Positioned(
-            right: 10.w,
-            top: 10.h,
+            right: 7.w,
+            top: 7.h,
             child: Container(
-              padding: EdgeInsets.all(3.r),
+              padding: EdgeInsets.all(2.r),
               constraints: BoxConstraints(
-                minWidth: 16.r,
-                minHeight: 16.r,
+                minWidth: 14.r,
+                minHeight: 14.r,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFE50000), // Pure red for the badge
+                color: const Color(0xFFE50000), // vivid red
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.5),
               ),
               alignment: Alignment.center,
               child: Text(
                 count > 9 ? '9+' : '$count',
+                textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 10.sp,
-                  fontWeight: FontWeight.bold,
-                  height: 1, // To ensure it centers properly
+                  fontSize: 8.sp,
+                  height: 1,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
             ),
