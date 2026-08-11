@@ -339,6 +339,7 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     await _authRepo.logout();
     currentUser.value = null;
+    selectedRole.value = AppConstants.roleBachelor;
     Get.offAll(() => const LoginScreen(),
         transition: Transition.fadeIn);
   }
@@ -354,6 +355,7 @@ class AuthController extends GetxController {
     try {
       await _authRepo.deleteCurrentAccount(user.uid);
       currentUser.value = null;
+      selectedRole.value = AppConstants.roleBachelor;
       ApiChecker.showSuccess('Your account has been deleted successfully.');
       Get.offAll(() => const LoginScreen(), transition: Transition.fadeIn);
     } catch (e) {
