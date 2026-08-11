@@ -82,18 +82,9 @@ class AuthController extends GetxController {
           }
 
           // Sync role: update users doc if selected role is different
-          // IMPORTANT: Never override an admin user's role
-          if (userData.role != AppConstants.roleAdmin &&
-              selectedRole.value != AppConstants.roleAdmin &&
-              userData.role != selectedRole.value) {
+          // This allows corrupted admin accounts to revert back to their selected role
+          if (userData.role != selectedRole.value) {
             updatedUser = updatedUser.copyWith(role: selectedRole.value);
-            await _authRepo.saveUserData(updatedUser);
-          }
-
-          // If logging in via admin dialog but role was corrupted, restore it
-          if (selectedRole.value == AppConstants.roleAdmin &&
-              updatedUser.role != AppConstants.roleAdmin) {
-            updatedUser = updatedUser.copyWith(role: AppConstants.roleAdmin);
             await _authRepo.saveUserData(updatedUser);
           }
 
