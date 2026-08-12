@@ -49,7 +49,7 @@ class MessMapScreen extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8.r),
+                borderRadius: BorderRadius.circular(50.r),
               ),
               child: TextField(
                 textAlignVertical: TextAlignVertical.center,

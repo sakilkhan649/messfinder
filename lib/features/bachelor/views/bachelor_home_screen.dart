@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
-
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import '../../landlord/controllers/post_controller.dart';
@@ -64,7 +63,7 @@ class BachelorHomeScreen extends StatelessWidget {
                       child: Container(
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8.r),
+                          borderRadius: BorderRadius.circular(50.r),
                         ),
                         child: TextField(
                           textAlignVertical: TextAlignVertical.center,
