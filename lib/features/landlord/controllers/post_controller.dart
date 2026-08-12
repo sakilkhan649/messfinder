@@ -350,9 +350,6 @@ class PostController extends GetxController {
       );
 
       await _postRepo.addPost(newPost);
-      ApiChecker.showSuccess(
-        'Room listing published successfully! 🎉',
-      );
       
       // Broadcast push notification to bachelors (and others) about the new room
       try {
@@ -396,6 +393,7 @@ class PostController extends GetxController {
       
       final storageService = ImgbbService();
       final List<String> finalImageUrls = [];
+      bool anyLocalUploadFailed = false;
       
       for (String path in updatedPost.images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
@@ -404,16 +402,22 @@ class PostController extends GetxController {
           final url = await storageService.uploadImage(path);
           if (url != null) {
             finalImageUrls.add(url);
+          } else {
+            anyLocalUploadFailed = true;
           }
         }
       }
       
-      if (finalImageUrls.isEmpty && updatedPost.images.isNotEmpty) {
-        throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
+      // Only fail if there are no images at all after processing
+      if (finalImageUrls.isEmpty) {
+        throw 'Failed to upload images. Please check your internet connection.';
+      }
+
+      if (anyLocalUploadFailed) {
+        ApiChecker.showError('Some images failed to upload and were skipped.');
       }
       
       await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls));
-      ApiChecker.showSuccess('Room listing updated successfully! 🎉');
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());

@@ -68,10 +68,14 @@ class AddPostScreen extends StatelessWidget {
 
     @override
   Widget build(BuildContext context) {
-    final controller = Get.put(AddPostController(
-      existingPost: existingPost,
-      onPostAdded: onPostAdded,
-    ));
+    final tag = existingPost?.postId ?? 'new';
+    final controller = Get.put(
+      AddPostController(
+        existingPost: existingPost,
+        onPostAdded: onPostAdded,
+      ),
+      tag: tag,
+    );
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 

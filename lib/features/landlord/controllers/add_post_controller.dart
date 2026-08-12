@@ -122,7 +122,9 @@ class AddPostController extends GetxController {
   }
 
   Future<void> publishPostData({String? trxId, String? senderNumber}) async {
-    final postCtrl = Get.find<PostController>();
+    final postCtrl = Get.isRegistered<PostController>()
+        ? Get.find<PostController>()
+        : Get.put(PostController());
     final List<String> imagesToUse = pickedLocalImages.isNotEmpty
         ? pickedLocalImages.map((e) => e.path).toList()
         : (existingPost?.images ?? []);
@@ -147,6 +149,18 @@ class AddPostController extends GetxController {
       final success = await postCtrl.updateMessPost(updatedPost);
       if (success) {
         Get.back();
+        // Delay slightly so the snackbar doesn't get dismissed by any lingering transitions
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Get.snackbar(
+            'Success!',
+            'Room listing updated successfully! 🎉',
+            backgroundColor: const Color(0xFF059669), // AppTheme.statusApproved
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 3),
+          );
+        });
       }
     } else {
       final success = await postCtrl.addMessPost(
@@ -172,6 +186,17 @@ class AddPostController extends GetxController {
         } else {
           Get.back();
         }
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Get.snackbar(
+            'Success!',
+            'Room listing published successfully! 🎉',
+            backgroundColor: const Color(0xFF059669),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+            margin: const EdgeInsets.all(16),
+            duration: const Duration(seconds: 3),
+          );
+        });
       }
     }
   }

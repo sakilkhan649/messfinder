@@ -22,7 +22,9 @@ class MyPostsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Get.find<PostController>();
+    final postController = Get.isRegistered<PostController>()
+        ? Get.find<PostController>()
+        : Get.put(PostController());
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 
