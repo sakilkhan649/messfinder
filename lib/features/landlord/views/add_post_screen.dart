@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
+import '../../../core/utils/location_data.dart';
 import '../controllers/add_post_controller.dart';
 import '../controllers/post_controller.dart';
 import '../models/post_model.dart';
@@ -296,7 +297,60 @@ class AddPostScreen extends StatelessWidget {
                 SizedBox(height: 18.h),
 
                 Text(
-                  'Full Address',
+                  'Division',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Obx(() => DropdownButtonFormField<String>(
+                      value: controller.selectedDivision.value,
+                      decoration: _buildInputDecoration(hintText: 'Select Division', prefixIcon: Icons.map_rounded),
+                      items: LocationData.divisions.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          controller.selectedDivision.value = newValue;
+                          controller.selectedDistrict.value = LocationData.getDistricts(newValue).first;
+                        }
+                      },
+                    )),
+                SizedBox(height: 18.h),
+
+                Text(
+                  'District',
+                  style: GoogleFonts.poppins(
+                    fontSize: 13.5.sp,
+                    fontWeight: FontWeight.w600,
+                    color: AppTheme.textPrimary,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                Obx(() => DropdownButtonFormField<String>(
+                      value: controller.selectedDistrict.value,
+                      decoration: _buildInputDecoration(hintText: 'Select District', prefixIcon: Icons.location_city_rounded),
+                      items: LocationData.getDistricts(controller.selectedDivision.value).map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        if (newValue != null) {
+                          controller.selectedDistrict.value = newValue;
+                        }
+                      },
+                    )),
+                SizedBox(height: 18.h),
+
+                Text(
+                  'Full Address (Area/Road)',
                   style: GoogleFonts.poppins(
                     fontSize: 13.5.sp,
                     fontWeight: FontWeight.w600,

@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
+import '../../../core/utils/location_data.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
@@ -121,7 +122,14 @@ class BachelorHomeScreen extends StatelessWidget {
                             primaryColor,
                             accentColor,
                           ),
-                          SizedBox(width: 12.w),
+                          SizedBox(width: 8.w),
+                          _buildLocationFilterButton(
+                            context,
+                            postController,
+                            primaryColor,
+                            accentColor,
+                          ),
+                          SizedBox(width: 8.w),
                           Expanded(
                             child: SingleChildScrollView(
                               scrollDirection: Axis.horizontal,
@@ -235,7 +243,32 @@ class BachelorHomeScreen extends StatelessWidget {
               );
             }),
 
-            SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+            SliverToBoxAdapter(
+              child: Obx(() {
+                if (postController.isFetchingMore.value) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                    child: Center(
+                      child: CircularProgressIndicator(color: primaryColor),
+                    ),
+                  );
+                } else if (!postController.hasMorePosts.value && postController.allPosts.isNotEmpty) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                    child: Center(
+                      child: Text(
+                        'No more rooms to show',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.sp,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return SizedBox(height: 24.h);
+              }),
+            ),
           ],
         ),
       ),
@@ -321,6 +354,190 @@ class BachelorHomeScreen extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Widget _buildLocationFilterButton(
+    BuildContext context,
+    PostController controller,
+    Color primaryColor,
+    Color accentColor,
+  ) {
+    return Obx(() {
+      final isFiltered = controller.selectedDivisionFilter.value != 'All';
+      return InkWell(
+        onTap: () => _showLocationFilterSheet(context, controller, primaryColor),
+        borderRadius: BorderRadius.circular(20.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: isFiltered ? primaryColor : Colors.white,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: isFiltered ? primaryColor : Colors.grey.shade300,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_on_rounded,
+                size: 16.r,
+                color: isFiltered ? Colors.white : Colors.grey.shade700,
+              ),
+              SizedBox(width: 4.w),
+              Text(
+                isFiltered ? controller.selectedDistrictFilter.value : 'Location',
+                style: GoogleFonts.poppins(
+                  fontSize: 13.sp,
+                  fontWeight: isFiltered ? FontWeight.bold : FontWeight.w500,
+                  color: isFiltered ? Colors.white : AppTheme.textPrimary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  void _showLocationFilterSheet(
+      BuildContext context, PostController controller, Color primaryColor) {
+    String tempDiv = controller.selectedDivisionFilter.value;
+    String tempDist = controller.selectedDistrictFilter.value;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: EdgeInsets.all(20.r),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Filter by Location',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.pop(ctx),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16.h),
+                  Text(
+                    'Division',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13.5.sp,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+                  DropdownButtonFormField<String>(
+                    value: tempDiv == 'All' ? null : tempDiv,
+                    hint: Text('Select Division', style: GoogleFonts.poppins(fontSize: 14.sp)),
+                    decoration: InputDecoration(
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                    ),
+                    items: ['All', ...LocationData.divisions].map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value == 'All' ? null : value,
+                        child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
+                      );
+                    }).toList(),
+                    onChanged: (newValue) {
+                      setState(() {
+                        tempDiv = newValue ?? 'All';
+                        if (tempDiv == 'All') {
+                          tempDist = 'All';
+                        } else {
+                          tempDist = LocationData.getDistricts(tempDiv).first;
+                        }
+                      });
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  if (tempDiv != 'All') ...[
+                    Text(
+                      'District',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    DropdownButtonFormField<String>(
+                      value: tempDist == 'All' ? null : tempDist,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFFF8FAFC),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
+                      ),
+                      items: ['All', ...LocationData.getDistricts(tempDiv)].map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value == 'All' ? null : value,
+                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          tempDist = newValue ?? 'All';
+                        });
+                      },
+                    ),
+                    SizedBox(height: 24.h),
+                  ],
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        controller.updateLocationFilter(tempDiv, tempDist);
+                        Navigator.pop(ctx);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14.h),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Apply Filter',
+                        style: GoogleFonts.poppins(
+                          fontSize: 15.sp,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showBudgetBottomSheet(

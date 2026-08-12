@@ -20,8 +20,10 @@ class PostController extends GetxController {
   final RxSet<String> savedPostIds = <String>{}.obs;
   final RxBool isLoading = true.obs;
   final RxBool isFetchingMore = false.obs;
+  final RxBool hasMorePosts = true.obs;
 
-  final RxInt postLimit = 20.obs;
+  DocumentSnapshot? lastDocument;
+  final int postLimit = 10;
   StreamSubscription<List<PostModel>>? _postsSubscription;
   final ScrollController feedScrollController = ScrollController();
 
@@ -61,6 +63,9 @@ class PostController extends GetxController {
       'all'.obs; // 'all', 'male', 'female', 'both'
   final RxInt selectedBudgetFilter = 0.obs; // 0=All, 4000, 6000, 8000
   final RxString searchQuery = ''.obs;
+  
+  final RxString selectedDivisionFilter = 'All'.obs;
+  final RxString selectedDistrictFilter = 'All'.obs;
 
   bool isSaved(String postId) => savedPostIds.contains(postId);
 
@@ -127,18 +132,7 @@ class PostController extends GetxController {
 
     _loadSavedPostsFromFirebase();
 
-    _listenToPosts();
-
-    // Fallback if stream takes too long or Play Services is missing
-    Future.delayed(const Duration(seconds: 5), () {
-      if (isLoading.value) {
-        AppLogger.w(
-          'Firestore stream taking too long. Disabling loading spinner.',
-          tag: 'POST_CTRL',
-        );
-        isLoading.value = false;
-      }
-    });
+    await fetchInitialPosts();
 
     // Listen to current user's posts
     if (Get.isRegistered<AuthController>()) {
@@ -156,35 +150,60 @@ class PostController extends GetxController {
     }
   }
 
-  void _listenToPosts() {
-    bool hasEmitted = false;
-    _postsSubscription?.cancel();
-    _postsSubscription = _postRepo
-        .getAllPostsStream(limit: postLimit.value)
-        .listen(
-          (posts) {
-            allPosts.assignAll(posts);
-            _updateSavedPostsList();
-            if (!hasEmitted) {
-              isLoading.value = false;
-              isFetchingMore.value = false;
-              hasEmitted = true;
-            }
-          },
-          onError: (e) {
-            AppLogger.e('Post stream error: $e', e, null, 'POST_CTRL');
-            isLoading.value = false;
-            isFetchingMore.value = false;
-            hasEmitted = true;
-          },
-        );
+  Future<void> fetchInitialPosts() async {
+    isLoading.value = true;
+    hasMorePosts.value = true;
+    lastDocument = null;
+    final result = await _postRepo.getPaginatedPosts(
+      limit: postLimit,
+      division: selectedDivisionFilter.value == 'All' ? null : selectedDivisionFilter.value,
+      district: selectedDistrictFilter.value == 'All' ? null : selectedDistrictFilter.value,
+    );
+    final List<PostModel> fetchedPosts = result['posts'] as List<PostModel>;
+    lastDocument = result['lastDocument'] as DocumentSnapshot?;
+    
+    if (fetchedPosts.length < postLimit) {
+      hasMorePosts.value = false;
+    }
+    
+    allPosts.assignAll(fetchedPosts);
+    _updateSavedPostsList();
+    isLoading.value = false;
   }
 
-  void loadMorePosts() {
-    if (isFetchingMore.value) return;
+  void updateSearch(String query) {
+    searchQuery.value = query;
+  }
+
+  void updateLocationFilter(String division, String district) {
+    selectedDivisionFilter.value = division;
+    selectedDistrictFilter.value = district;
+    fetchInitialPosts();
+  }
+
+  Future<void> loadMorePosts() async {
+    if (isFetchingMore.value || !hasMorePosts.value) return;
     isFetchingMore.value = true;
-    postLimit.value += 20;
-    _listenToPosts();
+    final result = await _postRepo.getPaginatedPosts(
+      limit: postLimit,
+      startAfter: lastDocument,
+      division: selectedDivisionFilter.value == 'All' ? null : selectedDivisionFilter.value,
+      district: selectedDistrictFilter.value == 'All' ? null : selectedDistrictFilter.value,
+    );
+    
+    final List<PostModel> newPosts = result['posts'] as List<PostModel>;
+    lastDocument = result['lastDocument'] as DocumentSnapshot?;
+    
+    if (newPosts.length < postLimit) {
+      hasMorePosts.value = false;
+    }
+    
+    if (newPosts.isNotEmpty) {
+      allPosts.addAll(newPosts);
+      _updateSavedPostsList();
+    }
+    
+    isFetchingMore.value = false;
   }
 
   @override
@@ -286,6 +305,8 @@ class PostController extends GetxController {
     required String address,
     required int seatCount,
     String? seatDescription,
+    required String division,
+    required String district,
     String? ownerPhone,
     required String bachelorType,
     String preferredTenant = 'Student / Job holder',
@@ -338,6 +359,8 @@ class PostController extends GetxController {
           images: finalImageUrls,
           seatCount: seatCount,
           seatDescription: seatDescription,
+          division: division,
+          district: district,
           bachelorType: bachelorType,
         preferredTenant: preferredTenant,
         facilities: facilities,

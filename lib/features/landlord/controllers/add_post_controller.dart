@@ -19,6 +19,9 @@ class AddPostController extends GetxController {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController seatDescController = TextEditingController();
 
+  final RxString selectedDivision = 'Dhaka'.obs;
+  final RxString selectedDistrict = 'Dhaka'.obs;
+
   final ImagePicker _picker = ImagePicker();
   final RxList<XFile> pickedLocalImages = <XFile>[].obs;
 
@@ -43,6 +46,8 @@ class AddPostController extends GetxController {
       phoneController.text = p.ownerPhone ?? '';
       bachelorType.value = p.bachelorType;
       preferredTenant.value = p.preferredTenant;
+      selectedDivision.value = p.division;
+      selectedDistrict.value = p.district;
       selectedFacilities.clear();
       selectedFacilities.addAll(p.facilities);
       selectedLocation.value = LatLng(p.latitude, p.longitude);
@@ -68,6 +73,8 @@ class AddPostController extends GetxController {
     pickedLocalImages.clear();
     selectedFacilities.clear();
     selectedFacilities.addAll(['WiFi', '24/7 Water']);
+    selectedDivision.value = 'Dhaka';
+    selectedDistrict.value = 'Dhaka';
   }
 
   int _parseSeatCount(String desc) {
@@ -138,10 +145,12 @@ class AddPostController extends GetxController {
         address: addressController.text.trim(),
         seatCount: parsedSeats,
         seatDescription: seatDescController.text.trim(),
+        division: selectedDivision.value,
+        district: selectedDistrict.value,
+        bachelorType: bachelorType.value,
         ownerPhone: phoneController.text.trim().isNotEmpty
             ? phoneController.text.trim()
             : existingPost!.ownerPhone,
-        bachelorType: bachelorType.value,
         preferredTenant: preferredTenant.value,
         facilities: selectedFacilities,
         images: imagesToUse,
@@ -169,6 +178,8 @@ class AddPostController extends GetxController {
         address: addressController.text.trim(),
         seatCount: parsedSeats,
         seatDescription: seatDescController.text.trim(),
+        division: selectedDivision.value,
+        district: selectedDistrict.value,
         ownerPhone: phoneController.text.trim(),
         bachelorType: bachelorType.value,
         preferredTenant: preferredTenant.value,

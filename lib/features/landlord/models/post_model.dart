@@ -11,6 +11,8 @@ class PostModel {
   final List<String> images;
   final int seatCount;
   final String? seatDescription; // Custom input e.g. "1 Room & 2 Seats"
+  final String division;
+  final String district;
   final String bachelorType; // 'male', 'female', 'both'
   final String? _preferredTenant; // 'Student', 'Job', 'Student / Job holder'
   String get preferredTenant => _preferredTenant ?? 'Student / Job holder';
@@ -34,6 +36,8 @@ class PostModel {
     required this.images,
     required this.seatCount,
     this.seatDescription,
+    required this.division,
+    required this.district,
     required this.bachelorType,
     String? preferredTenant = 'Student / Job holder',
     required this.facilities,
@@ -65,6 +69,8 @@ class PostModel {
       images: List<String>.from(map['images'] ?? []),
       seatCount: map['seatCount'] ?? 1,
       seatDescription: map['seatDescription']?.toString(),
+      division: map['division']?.toString() ?? 'Dhaka',
+      district: map['district']?.toString() ?? 'Dhaka',
       bachelorType: map['bachelorType']?.toString() ?? 'male',
       preferredTenant: map['preferredTenant']?.toString() ?? 'Student / Job holder',
       facilities: List<String>.from(map['facilities'] ?? []),
@@ -92,6 +98,8 @@ class PostModel {
       'images': images,
       'seatCount': seatCount,
       'seatDescription': seatDescription,
+      'division': division,
+      'district': district,
       'bachelorType': bachelorType,
       'preferredTenant': preferredTenant,
       'facilities': facilities,
@@ -118,11 +126,12 @@ class PostModel {
     List<String>? images,
     int? seatCount,
     String? seatDescription,
+    String? division,
+    String? district,
     String? bachelorType,
     String? preferredTenant,
     List<String>? facilities,
     bool? isAvailable,
-    DateTime? createdAt,
     String? ownerPhone,
     String? paymentStatus,
     bool? isPublished,
@@ -140,11 +149,13 @@ class PostModel {
       images: images ?? this.images,
       seatCount: seatCount ?? this.seatCount,
       seatDescription: seatDescription ?? this.seatDescription,
+      division: division ?? this.division,
+      district: district ?? this.district,
       bachelorType: bachelorType ?? this.bachelorType,
       preferredTenant: preferredTenant ?? this.preferredTenant,
       facilities: facilities ?? this.facilities,
       isAvailable: isAvailable ?? this.isAvailable,
-      createdAt: createdAt ?? this.createdAt,
+      createdAt: createdAt,
       ownerPhone: ownerPhone ?? this.ownerPhone,
       paymentStatus: paymentStatus ?? this.paymentStatus,
       isPublished: isPublished ?? this.isPublished,

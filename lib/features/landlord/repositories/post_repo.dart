@@ -34,6 +34,55 @@ class PostRepository {
         });
   }
 
+  // Future-based paginated posts for Bachelor Feed
+  Future<Map<String, dynamic>> getPaginatedPosts({
+    int limit = 10,
+    DocumentSnapshot? startAfter,
+    String? division,
+    String? district,
+  }) async {
+    try {
+      Query query = _firestore
+          .collection(ApiConstants.postsCollection)
+          .where('isPublished', isEqualTo: true)
+          .where('isAvailable', isEqualTo: true);
+          
+      if (division != null) {
+        query = query.where('division', isEqualTo: division);
+      }
+      if (district != null) {
+        query = query.where('district', isEqualTo: district);
+      }
+          
+      query = query.orderBy('createdAt', descending: true).limit(limit);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final snapshot = await query.get();
+
+      final posts = snapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data() as Map<String, dynamic>, doc.id))
+          .where((post) {
+            if (post.isAvailable == false) return false;
+            final status = post.paymentStatus.trim().toLowerCase();
+            return status == 'approved' ||
+                status == 'paid' ||
+                status == 'success';
+          })
+          .toList();
+
+      return {
+        'posts': posts,
+        'lastDocument': snapshot.docs.isNotEmpty ? snapshot.docs.last : null,
+      };
+    } catch (e) {
+      AppLogger.e('Failed to fetch paginated posts: $e', e, null, 'POST_REPO');
+      return {'posts': <PostModel>[], 'lastDocument': null};
+    }
+  }
+
   Future<void> togglePostAvailability(String postId, bool isAvailable) async {
     try {
       await _firestore
