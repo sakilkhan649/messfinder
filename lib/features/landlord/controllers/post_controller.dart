@@ -63,6 +63,14 @@ class PostController extends GetxController {
       'all'.obs; // 'all', 'male', 'female', 'both'
   final RxInt selectedBudgetFilter = 0.obs; // 0=All, 4000, 6000, 8000
   final RxString searchQuery = ''.obs;
+  Timer? _searchDebounce;
+
+  void updateSearchQuery(String query) {
+    if (_searchDebounce?.isActive ?? false) _searchDebounce!.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      searchQuery.value = query;
+    });
+  }
   
   final RxString selectedDivisionFilter = 'All'.obs;
   final RxString selectedDistrictFilter = 'All'.obs;

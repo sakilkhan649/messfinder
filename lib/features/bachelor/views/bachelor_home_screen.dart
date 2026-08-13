@@ -69,7 +69,7 @@ class BachelorHomeScreen extends StatelessWidget {
                         child: TextField(
                           textAlignVertical: TextAlignVertical.center,
                           onChanged: (val) =>
-                              postController.searchQuery.value = val,
+                              postController.updateSearchQuery(val),
                           style: GoogleFonts.poppins(
                             fontSize: 13.sp,
                             color: Colors.white,
@@ -448,24 +448,15 @@ class BachelorHomeScreen extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 8.h),
-                  DropdownButtonFormField<String>(
-                    value: tempDiv == 'All' ? null : tempDiv,
-                    hint: Text('Select Division', style: GoogleFonts.poppins(fontSize: 14.sp)),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: const Color(0xFFF8FAFC),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                    ),
-                    items: ['All', ...LocationData.divisions].map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value == 'All' ? null : value,
-                        child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
-                      );
-                    }).toList(),
-                    onChanged: (newValue) {
+                  _buildPremiumSelector(
+                    context: context,
+                    hintText: 'Select Division',
+                    icon: Icons.map_rounded,
+                    value: tempDiv,
+                    items: ['All', ...LocationData.divisions],
+                    onSelect: (newValue) {
                       setState(() {
-                        tempDiv = newValue ?? 'All';
+                        tempDiv = newValue;
                         if (tempDiv == 'All') {
                           tempDist = 'All';
                         } else {
@@ -485,23 +476,15 @@ class BachelorHomeScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    DropdownButtonFormField<String>(
-                      value: tempDist == 'All' ? null : tempDist,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFFF8FAFC),
-                        contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r), borderSide: const BorderSide(color: Color(0xFFE2E8F0))),
-                      ),
-                      items: ['All', ...LocationData.getDistricts(tempDiv)].map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value == 'All' ? null : value,
-                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
+                    _buildPremiumSelector(
+                      context: context,
+                      hintText: 'Select District',
+                      icon: Icons.location_city_rounded,
+                      value: tempDist,
+                      items: ['All', ...LocationData.getDistricts(tempDiv)],
+                      onSelect: (newValue) {
                         setState(() {
-                          tempDist = newValue ?? 'All';
+                          tempDist = newValue;
                         });
                       },
                     ),
@@ -651,6 +634,169 @@ class BachelorHomeScreen extends StatelessWidget {
         ),
       ),
       isScrollControlled: true,
+    );
+  }
+
+  Widget _buildPremiumSelector({
+    required BuildContext context,
+    required String hintText,
+    required IconData icon,
+    required String value,
+    required List<String> items,
+    required Function(String) onSelect,
+  }) {
+    return InkWell(
+      onTap: () {
+        _showPremiumSelectionSheet(context, hintText, value, items, onSelect);
+      },
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF94A3B8), size: 22.r),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                color: const Color(0xFF94A3B8), size: 24.r),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPremiumSelectionSheet(
+    BuildContext context,
+    String title,
+    String currentValue,
+    List<String> items,
+    Function(String) onSelect,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              )
+            ],
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 12.h),
+              Container(
+                width: 50.w,
+                height: 5.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded,
+                          color: Colors.grey.shade600, size: 24.r),
+                      onPressed: () => Navigator.pop(ctx),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Divider(height: 1, color: Colors.grey.shade200),
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected = item == currentValue;
+                    return InkWell(
+                      onTap: () {
+                        onSelect(item);
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 24.w, vertical: 16.h),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF059669).withValues(alpha: 0.05)
+                              : Colors.transparent,
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Colors.grey.shade100, width: 1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item,
+                              style: GoogleFonts.poppins(
+                                fontSize: 15.sp,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? const Color(0xFF059669)
+                                    : AppTheme.textPrimary,
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: const Color(0xFF059669),
+                                size: 22.r,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

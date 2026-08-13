@@ -305,20 +305,16 @@ class AddPostScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => DropdownButtonFormField<String>(
+                Obx(() => _buildPremiumSelector(
+                      context: context,
+                      hintText: 'Select Division',
+                      icon: Icons.map_rounded,
                       value: controller.selectedDivision.value,
-                      decoration: _buildInputDecoration(hintText: 'Select Division', prefixIcon: Icons.map_rounded),
-                      items: LocationData.divisions.map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          controller.selectedDivision.value = newValue;
-                          controller.selectedDistrict.value = LocationData.getDistricts(newValue).first;
-                        }
+                      items: LocationData.divisions,
+                      onSelect: (newValue) {
+                        controller.selectedDivision.value = newValue;
+                        controller.selectedDistrict.value =
+                            LocationData.getDistricts(newValue).first;
                       },
                     )),
                 SizedBox(height: 18.h),
@@ -332,19 +328,15 @@ class AddPostScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => DropdownButtonFormField<String>(
+                Obx(() => _buildPremiumSelector(
+                      context: context,
+                      hintText: 'Select District',
+                      icon: Icons.location_city_rounded,
                       value: controller.selectedDistrict.value,
-                      decoration: _buildInputDecoration(hintText: 'Select District', prefixIcon: Icons.location_city_rounded),
-                      items: LocationData.getDistricts(controller.selectedDivision.value).map((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value, style: GoogleFonts.poppins(fontSize: 14.sp)),
-                        );
-                      }).toList(),
-                      onChanged: (newValue) {
-                        if (newValue != null) {
-                          controller.selectedDistrict.value = newValue;
-                        }
+                      items: LocationData.getDistricts(
+                          controller.selectedDivision.value),
+                      onSelect: (newValue) {
+                        controller.selectedDistrict.value = newValue;
                       },
                     )),
                 SizedBox(height: 18.h),
@@ -778,6 +770,169 @@ class AddPostScreen extends StatelessWidget {
           );
         }),
       ),
+    );
+  }
+
+  Widget _buildPremiumSelector({
+    required BuildContext context,
+    required String hintText,
+    required IconData icon,
+    required String value,
+    required List<String> items,
+    required Function(String) onSelect,
+  }) {
+    return InkWell(
+      onTap: () {
+        _showPremiumSelectionSheet(context, hintText, value, items, onSelect);
+      },
+      borderRadius: BorderRadius.circular(12.r),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12.r),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: const Color(0xFF94A3B8), size: 22.r),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Text(
+                value,
+                style: GoogleFonts.poppins(
+                  fontSize: 14.sp,
+                  color: AppTheme.textPrimary,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                color: const Color(0xFF94A3B8), size: 24.r),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPremiumSelectionSheet(
+    BuildContext context,
+    String title,
+    String currentValue,
+    List<String> items,
+    Function(String) onSelect,
+  ) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.6,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 10,
+                offset: const Offset(0, -5),
+              )
+            ],
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 12.h),
+              Container(
+                width: 50.w,
+                height: 5.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded,
+                          color: Colors.grey.shade600, size: 24.r),
+                      onPressed: () => Navigator.pop(ctx),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 16.h),
+              Divider(height: 1, color: Colors.grey.shade200),
+              Expanded(
+                child: ListView.builder(
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected = item == currentValue;
+                    return InkWell(
+                      onTap: () {
+                        onSelect(item);
+                        Navigator.pop(ctx);
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 24.w, vertical: 16.h),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF059669).withValues(alpha: 0.05)
+                              : Colors.transparent,
+                          border: Border(
+                            bottom: BorderSide(
+                                color: Colors.grey.shade100, width: 1),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item,
+                              style: GoogleFonts.poppins(
+                                fontSize: 15.sp,
+                                fontWeight: isSelected
+                                    ? FontWeight.w600
+                                    : FontWeight.w400,
+                                color: isSelected
+                                    ? const Color(0xFF059669)
+                                    : AppTheme.textPrimary,
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color: const Color(0xFF059669),
+                                size: 22.r,
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

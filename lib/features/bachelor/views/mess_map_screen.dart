@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
+import 'dart:async';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
@@ -11,13 +11,19 @@ import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
 
-class MessMapScreen extends StatelessWidget {
+class MessMapScreen extends StatefulWidget {
   const MessMapScreen({super.key});
+
+  @override
+  State<MessMapScreen> createState() => _MessMapScreenState();
+}
+
+class _MessMapScreenState extends State<MessMapScreen> {
+  GoogleMapController? _mapController;
 
   @override
   Widget build(BuildContext context) {
     final PostController postController = Get.find<PostController>();
-    final MapController mapController = MapController();
     const emeraldTheme = Color(0xFF059669);
     final Color primaryColor = const Color(0xFF059669);
 
@@ -53,7 +59,7 @@ class MessMapScreen extends StatelessWidget {
               ),
               child: TextField(
                 textAlignVertical: TextAlignVertical.center,
-                onChanged: (val) => postController.searchQuery.value = val,
+                onChanged: (val) => postController.updateSearchQuery(val),
                 style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white),
                 cursorColor: Colors.white,
                 decoration: InputDecoration(
@@ -86,67 +92,42 @@ class MessMapScreen extends StatelessWidget {
             .where((post) => post.isPublished && post.isAvailable)
             .toList();
 
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _fitMapToMarkers(activePosts);
+        });
+
         return Stack(
           children: [
-            FlutterMap(
-              mapController: mapController,
-              options: const MapOptions(
-                initialCenter: LatLng(23.8103, 90.4125),
-                initialZoom: 12.0,
-                minZoom: 6.0,
-                maxZoom: 18.0,
-                interactionOptions: InteractionOptions(
-                  flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                ),
+            GoogleMap(
+              onMapCreated: (GoogleMapController controller) {
+                _mapController = controller;
+                _fitMapToMarkers(activePosts);
+              },
+              initialCameraPosition: const CameraPosition(
+                target: LatLng(23.8103, 90.4125),
+                zoom: 12.0,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.example.mess_finder',
-                ),
-                MarkerLayer(
-                  markers: activePosts.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final post = entry.value;
-                    
-                    // Offset existing posts that have the exact same hardcoded default location
-                    double lat = post.latitude;
-                    double lng = post.longitude;
-                    if (lat == 23.8103 && lng == 90.4125) {
-                      lat += (index % 5) * 0.003 - 0.006;
-                      lng += (index ~/ 5) * 0.003 - 0.006;
-                    }
+              zoomControlsEnabled: false,
+              myLocationButtonEnabled: false,
+              markers: activePosts.asMap().entries.map((entry) {
+                final index = entry.key;
+                final post = entry.value;
+                
+                // Offset existing posts that have the exact same hardcoded default location
+                double lat = post.latitude;
+                double lng = post.longitude;
+                if (lat == 23.8103 && lng == 90.4125) {
+                  lat += (index % 5) * 0.003 - 0.006;
+                  lng += (index ~/ 5) * 0.003 - 0.006;
+                }
 
-                    return Marker(
-                      point: LatLng(lat, lng),
-                      width: 28.r,
-                      height: 28.r,
-                      child: GestureDetector(
-                        onTap: () => _showPostDetailsBottomSheet(context, post),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: emeraldTheme,
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                blurRadius: 4,
-                                offset: Offset(0, 2),
-                              )
-                            ],
-                          ),
-                          child: Icon(
-                            Icons.home_work_rounded,
-                            color: Colors.white,
-                            size: 14.r,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
+                return Marker(
+                  markerId: MarkerId('post_${post.postId}'),
+                  position: LatLng(lat, lng),
+                  icon: BitmapDescriptor.defaultMarkerWithHue(150.0), // Emerald green hue
+                  onTap: () => _showPostDetailsBottomSheet(context, post),
+                );
+              }).toSet(),
             ),
             
             // Zoom Buttons
@@ -161,9 +142,7 @@ class MessMapScreen extends StatelessWidget {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      final currentZoom = mapController.camera.zoom;
-                      final currentCenter = mapController.camera.center;
-                      mapController.move(currentCenter, currentZoom + 1);
+                      _mapController?.animateCamera(CameraUpdate.zoomIn());
                     },
                     child: Icon(Icons.add_rounded, color: primaryColor),
                   ),
@@ -173,9 +152,7 @@ class MessMapScreen extends StatelessWidget {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      final currentZoom = mapController.camera.zoom;
-                      final currentCenter = mapController.camera.center;
-                      mapController.move(currentCenter, currentZoom - 1);
+                      _mapController?.animateCamera(CameraUpdate.zoomOut());
                     },
                     child: Icon(Icons.remove_rounded, color: primaryColor),
                   ),
@@ -285,5 +262,38 @@ class MessMapScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _fitMapToMarkers(List<PostModel> posts) {
+    if (_mapController == null || posts.isEmpty) return;
+
+    if (posts.length == 1) {
+      // If only one post, just center it
+      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+        LatLng(posts.first.latitude, posts.first.longitude),
+        14.0,
+      ));
+      return;
+    }
+
+    double minLat = posts.first.latitude;
+    double maxLat = posts.first.latitude;
+    double minLng = posts.first.longitude;
+    double maxLng = posts.first.longitude;
+
+    for (var post in posts) {
+      if (post.latitude < minLat) minLat = post.latitude;
+      if (post.latitude > maxLat) maxLat = post.latitude;
+      if (post.longitude < minLng) minLng = post.longitude;
+      if (post.longitude > maxLng) maxLng = post.longitude;
+    }
+
+    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
+      LatLngBounds(
+        southwest: LatLng(minLat, minLng),
+        northeast: LatLng(maxLat, maxLng),
+      ),
+      50.0, // Padding
+    ));
   }
 }
