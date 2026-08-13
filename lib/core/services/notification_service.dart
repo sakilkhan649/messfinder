@@ -182,7 +182,6 @@ class NotificationService {
     String relatedId = '',
   }) async {
     try {
-      // TODO: Replace this URL with your actual Vercel deployed URL
       final vercelUrl = 'https://vercelbackend-ruby.vercel.app/api/send';
       
       final response = await http.post(

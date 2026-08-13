@@ -10,9 +10,14 @@ import '../../auth/controllers/auth_controller.dart';
 import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
+import '../../../core/services/location_service.dart';
+import 'package:geolocator/geolocator.dart';
 
 class PostController extends GetxController {
   final PostRepository _postRepo = PostRepository();
+
+  // Location
+  final Rx<Position?> userLocation = Rx<Position?>(null);
 
   // Reactive Lists
   final RxList<PostModel> allPosts = <PostModel>[].obs;
@@ -148,6 +153,13 @@ class PostController extends GetxController {
     });
   }
 
+  Future<void> fetchUserLocation() async {
+    final position = await LocationService.getCurrentLocation();
+    if (position != null) {
+      userLocation.value = position;
+    }
+  }
+
   Future<void> _initPosts() async {
     isLoading.value = true;
     try {
@@ -156,6 +168,8 @@ class PostController extends GetxController {
       // Ignore error
     }
 
+    // Attempt to fetch user location silently in the background
+    fetchUserLocation();
 
     _loadSavedPostsFromFirebase();
 

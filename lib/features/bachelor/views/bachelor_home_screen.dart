@@ -11,6 +11,7 @@ import '../../landlord/models/post_model.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
 import 'widgets/facebook_image_grid.dart';
+import '../../../core/services/location_service.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -930,16 +931,31 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                           ),
                           SizedBox(width: 6.w),
                           Expanded(
-                            child: Text(
-                              post.address,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12.5.sp,
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                            child: Obx(() {
+                              final postCtrl = Get.find<PostController>();
+                              final pos = postCtrl.userLocation.value;
+                              String distanceText = '';
+                              if (pos != null) {
+                                final distKm = LocationService.calculateDistanceInKm(
+                                  pos.latitude, pos.longitude, post.latitude, post.longitude,
+                                );
+                                if (distKm < 1.0) {
+                                  distanceText = ' • ${(distKm * 1000).toInt()}m away';
+                                } else {
+                                  distanceText = ' • ${distKm.toStringAsFixed(1)}km away';
+                                }
+                              }
+                              return Text(
+                                '${post.address}$distanceText',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.5.sp,
+                                  color: Colors.grey.shade600,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              );
+                            }),
                           ),
                         ],
                       ),

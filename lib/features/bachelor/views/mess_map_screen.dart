@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -10,6 +9,7 @@ import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
+import '../../../core/services/location_service.dart';
 
 class MessMapScreen extends StatefulWidget {
   const MessMapScreen({super.key});
@@ -110,7 +110,8 @@ class _MessMapScreenState extends State<MessMapScreen> {
                 zoom: 12.0,
               ),
               zoomControlsEnabled: false,
-              myLocationButtonEnabled: false,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
               markers: activePosts.asMap().entries.map((entry) {
                 final index = entry.key;
                 final post = entry.value;
@@ -229,6 +230,32 @@ class _MessMapScreenState extends State<MessMapScreen> {
                           color: emeraldTheme,
                         ),
                       ),
+                      SizedBox(height: 4.h),
+                      Obx(() {
+                        final postCtrl = Get.find<PostController>();
+                        final pos = postCtrl.userLocation.value;
+                        String distanceText = '';
+                        if (pos != null) {
+                          final distKm = LocationService.calculateDistanceInKm(
+                            pos.latitude, pos.longitude, post.latitude, post.longitude,
+                          );
+                          if (distKm < 1.0) {
+                            distanceText = ' • ${(distKm * 1000).toInt()}m away';
+                          } else {
+                            distanceText = ' • ${distKm.toStringAsFixed(1)}km away';
+                          }
+                        }
+                        return Text(
+                          '${post.address}$distanceText',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      }),
                     ],
                   ),
                 ),
@@ -278,24 +305,47 @@ class _MessMapScreenState extends State<MessMapScreen> {
       return;
     }
 
-    double minLat = posts.first.latitude;
-    double maxLat = posts.first.latitude;
-    double minLng = posts.first.longitude;
-    double maxLng = posts.first.longitude;
+    double minLat = double.infinity;
+    double maxLat = -double.infinity;
+    double minLng = double.infinity;
+    double maxLng = -double.infinity;
 
-    for (var post in posts) {
-      if (post.latitude < minLat) minLat = post.latitude;
-      if (post.latitude > maxLat) maxLat = post.latitude;
-      if (post.longitude < minLng) minLng = post.longitude;
-      if (post.longitude > maxLng) maxLng = post.longitude;
+    for (int i = 0; i < posts.length; i++) {
+      final post = posts[i];
+      double lat = post.latitude;
+      double lng = post.longitude;
+      
+      // Apply the same offset logic used for markers to calculate accurate bounds
+      if (lat == 23.8103 && lng == 90.4125) {
+        lat += (i % 5) * 0.003 - 0.006;
+        lng += (i ~/ 5) * 0.003 - 0.006;
+      }
+      
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
     }
 
-    _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
-      LatLngBounds(
-        southwest: LatLng(minLat, minLng),
-        northeast: LatLng(maxLat, maxLng),
-      ),
-      50.0, // Padding
-    ));
+    // If all posts are at the exact same location, bounds padding will crash the map
+    if (maxLat - minLat < 0.0001 && maxLng - minLng < 0.0001) {
+      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+        LatLng(minLat, minLng),
+        14.0,
+      ));
+      return;
+    }
+
+    try {
+      _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        50.0, // Padding
+      ));
+    } catch (e) {
+      debugPrint("Map bounds error: $e");
+    }
   }
 }

@@ -12,6 +12,7 @@ import '../../landlord/models/post_model.dart';
 import '../models/booking_model.dart';
 import '../repositories/booking_repo.dart';
 import 'widgets/facebook_image_grid.dart';
+import '../../../core/services/location_service.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
@@ -339,14 +340,29 @@ class RoomDetailScreen extends StatelessWidget {
                             ),
                             SizedBox(width: 6.w),
                             Expanded(
-                              child: Text(
-                                post.address,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14.sp,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
+                              child: Obx(() {
+                                final postCtrl = Get.find<PostController>();
+                                final pos = postCtrl.userLocation.value;
+                                String distanceText = '';
+                                if (pos != null) {
+                                  final distKm = LocationService.calculateDistanceInKm(
+                                    pos.latitude, pos.longitude, post.latitude, post.longitude,
+                                  );
+                                  if (distKm < 1.0) {
+                                    distanceText = '\n📍 ${(distKm * 1000).toInt()}m away from you';
+                                  } else {
+                                    distanceText = '\n📍 ${distKm.toStringAsFixed(1)}km away from you';
+                                  }
+                                }
+                                return Text(
+                                  '${post.address}$distanceText',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.sp,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                );
+                              }),
                             ),
                           ],
                         ),
