@@ -151,11 +151,7 @@ class PostController extends GetxController {
   Future<void> _initPosts() async {
     isLoading.value = true;
     try {
-      final demoIds = ['demo_1', 'demo_2', 'demo_3', 'demo_4'];
-      for (final id in demoIds) {
-        await _postRepo.deletePost(id);
-      }
-      AppLogger.s('DELETED DEMO POSTS FROM FIREBASE', tag: 'POST_CTRL');
+      // Demo post deletion removed so they don't disappear on reload
     } catch(e) {
       // Ignore error
     }
