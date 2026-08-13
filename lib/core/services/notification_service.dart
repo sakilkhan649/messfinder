@@ -172,89 +172,57 @@ class NotificationService {
     }
   }
 
-  // ── Send Push Notification via FCM HTTP Legacy API ───────────────────────
-  /// [token] — receiver's FCM token
-  /// [title] — notification title
-  /// [body] — notification body
-  /// [data] — extra data payload
-  Future<void> sendPushToToken({
-    required String token,
+  /// Send push via Vercel Backend (FCM HTTP v1 API)
+  Future<void> sendPush({
+    required String receiverUid,
     required String title,
     required String body,
-    Map<String, String> data = const {},
+    String type = '',
+    String relatedId = '',
   }) async {
-    // Get FCM Server Key from Firestore config (stored securely)
     try {
-      final configDoc = await _firestore
-          .collection('app_config')
-          .doc('fcm')
-          .get();
-      final serverKey = configDoc.data()?['serverKey'] ?? '';
-      if (serverKey.isEmpty) {
-        debugPrint('⚠️ [FCM] No server key found in Firestore config');
-        return;
-      }
-
+      // TODO: Replace this URL with your actual Vercel deployed URL
+      final vercelUrl = 'https://vercelbackend-ruby.vercel.app/api/send';
+      
       final response = await http.post(
-        Uri.parse('https://fcm.googleapis.com/fcm/send'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'key=$serverKey',
-        },
+        Uri.parse(vercelUrl),
+        headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'to': token,
-          'notification': {
-            'title': title,
-            'body': body,
-            'sound': 'default',
-          },
-          'data': data,
-          'priority': 'high',
-          'android': {
-            'notification': {
-              'channel_id': 'messfinder_high_importance',
-              'priority': 'high',
-            },
-          },
+          'receiverUid': receiverUid,
+          'title': title,
+          'body': body,
+          'type': type,
+          'relatedId': relatedId,
         }),
       );
 
       if (response.statusCode == 200) {
-        debugPrint('✅ [FCM] Push sent successfully');
+        debugPrint('✅ [Vercel] Push sent successfully');
       } else {
-        debugPrint('❌ [FCM] Push failed: ${response.body}');
+        debugPrint('❌ [Vercel] Push failed: ${response.body}');
       }
     } catch (e) {
-      debugPrint('❌ [FCM] sendPushToToken error: $e');
+      debugPrint('❌ [Vercel] sendPush error: $e');
     }
   }
 
-  /// Send push to a topic (e.g., 'bachelors', 'landlords', 'all_users')
+  /// Helper: Send push to a topic
   Future<void> sendPushToTopic({
     required String topic,
     required String title,
     required String body,
     Map<String, String> data = const {},
   }) async {
-    await sendPushToToken(
-      token: '/topics/$topic',
+    await sendPush(
+      receiverUid: '/topics/$topic',
       title: title,
       body: body,
-      data: data,
+      type: data['type'] ?? '',
+      relatedId: data['relatedId'] ?? '',
     );
   }
 
-  /// Helper: Get FCM token of a specific user from Firestore
-  Future<String?> getUserToken(String uid) async {
-    try {
-      final doc = await _firestore.collection('users').doc(uid).get();
-      return doc.data()?['fcmToken'] as String?;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Helper: Send push + store in Firestore notification center
+  /// Helper: Store in Firestore notification center and send via Vercel
   Future<void> sendAndStore({
     required String receiverUid,
     required String title,
@@ -276,20 +244,14 @@ class NotificationService {
       createdAt: DateTime.now(),
     ));
 
-    // 2. Send push notification
-    final token = await getUserToken(receiverUid);
-    if (token != null && token.isNotEmpty) {
-      await sendPushToToken(
-        token: token,
-        title: title,
-        body: body,
-        data: <String, String>{
-          'type': type.name,
-          ...extraData,
-          'relatedId': ?relatedId,
-        },
-      );
-    }
+    // 2. Send push notification via Vercel API
+    await sendPush(
+      receiverUid: receiverUid,
+      title: title,
+      body: body,
+      type: type.name,
+      relatedId: relatedId ?? '',
+    );
   }
 
   // ── Mark notification as read ────────────────────────────────────────────
