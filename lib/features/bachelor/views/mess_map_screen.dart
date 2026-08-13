@@ -91,6 +91,12 @@ class _MessMapScreenState extends State<MessMapScreen> {
         final List<PostModel> activePosts = postController.filteredPosts
             .where((post) => post.isPublished && post.isAvailable)
             .toList();
+            
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_mapController != null) {
+            _fitMapToMarkers(activePosts);
+          }
+        });
 
         return Stack(
           children: [

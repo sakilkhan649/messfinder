@@ -305,7 +305,9 @@ class PostController extends GetxController {
         final query = searchQuery.value.toLowerCase();
         final matchTitle = post.title.toLowerCase().contains(query);
         final matchAddress = post.address.toLowerCase().contains(query);
-        if (!matchTitle && !matchAddress) return false;
+        final matchDistrict = post.district.toLowerCase().contains(query);
+        final matchDivision = post.division.toLowerCase().contains(query);
+        if (!matchTitle && !matchAddress && !matchDistrict && !matchDivision) return false;
       }
       // 2. Gender filter
       if (selectedGenderFilter.value != 'all') {
@@ -427,6 +429,8 @@ class PostController extends GetxController {
         // ignore notification errors
       }
 
+      await fetchInitialPosts();
+      
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());

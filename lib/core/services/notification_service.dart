@@ -25,7 +25,7 @@ class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static const _androidChannel = AndroidNotificationChannel(
-    'messfinder_high_importance',
+    'messfinder_high_importance_v2',
     'MessFinder Notifications',
     description: 'Important notifications from MessFinder',
     importance: Importance.high,
@@ -101,6 +101,7 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          playSound: true,
         ),
         iOS: const DarwinNotificationDetails(
           presentAlert: true,

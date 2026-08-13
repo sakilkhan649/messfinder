@@ -8,7 +8,8 @@ class AuthMiddleware {
   /// Navigates to the appropriate home screen if authenticated,
   /// otherwise navigates to the role selection screen.
   static Future<void> checkAuthAndNavigate() async {
-    final user = FirebaseAuth.instance.currentUser;
+    // Wait for the Firebase Auth state to be fully initialized
+    final user = await FirebaseAuth.instance.authStateChanges().first;
 
     if (user != null) {
       final authController = Get.find<AuthController>();

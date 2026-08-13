@@ -44,7 +44,8 @@ app.post("/api/send", async (req, res) => {
     android: {
       priority: "high",
       notification: {
-        channelId: "messfinder_high_importance",
+        channelId: "messfinder_high_importance_v2",
+        sound: "default",
       },
     },
     apns: {
