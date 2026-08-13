@@ -29,6 +29,9 @@ class PostController extends GetxController {
 
   // Cache for Landlord Profiles to optimize scrolling
   final Map<String, Map<String, dynamic>> landlordProfilesCache = {};
+  
+  // Future cache to prevent concurrent identical requests
+  final Map<String, Future<Map<String, dynamic>?>> _profileFetchFutures = {};
 
   Future<Map<String, dynamic>?> getLandlordProfile(String uid) async {
     // If it's the current user, always return the latest local data
@@ -43,14 +46,34 @@ class PostController extends GetxController {
     if (landlordProfilesCache.containsKey(uid)) {
       return landlordProfilesCache[uid];
     }
+    
+    // If a fetch is already in progress for this uid, await and return it
+    if (_profileFetchFutures.containsKey(uid)) {
+      return await _profileFetchFutures[uid];
+    }
+
+    // Otherwise, create a new fetch Future and store it
+    final fetchFuture = _fetchProfileFromFirestore(uid);
+    _profileFetchFutures[uid] = fetchFuture;
+    
+    final result = await fetchFuture;
+    
+    // Once done, remove from pending futures
+    _profileFetchFutures.remove(uid);
+    
+    return result;
+  }
+
+  Future<Map<String, dynamic>?> _fetchProfileFromFirestore(String uid) async {
     try {
       final doc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
       if (doc.exists && doc.data() != null) {
-        landlordProfilesCache[uid] = doc.data() as Map<String, dynamic>;
-        return landlordProfilesCache[uid];
+        final data = doc.data() as Map<String, dynamic>;
+        landlordProfilesCache[uid] = data;
+        return data;
       }
     } catch (e) {
       AppLogger.e('Failed to fetch landlord profile: $e', e, null, 'POST_CTRL');

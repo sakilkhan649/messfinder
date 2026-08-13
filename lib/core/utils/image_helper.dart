@@ -24,6 +24,8 @@ class AppImageHelper {
         width: width,
         height: height,
         fit: fit,
+        memCacheWidth: 400, // Optimize memory usage
+        memCacheHeight: 400, // Optimize memory usage
         placeholder: (context, url) => Container(
           width: width,
           height: height,

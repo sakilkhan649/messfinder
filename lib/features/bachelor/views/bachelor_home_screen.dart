@@ -229,16 +229,7 @@ class BachelorHomeScreen extends StatelessWidget {
 
               return SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
-                  return _BachelorPostCard(post: posts[index])
-                      .animate()
-                      .fade(duration: 400.ms)
-                      .slideY(
-                        begin: 0.1,
-                        end: 0,
-                        duration: 400.ms,
-                        curve: Curves.easeOutQuad,
-                        delay: (index * 50).ms,
-                      );
+                  return _BachelorPostCard(post: posts[index]);
                 }, childCount: posts.length),
               );
             }),

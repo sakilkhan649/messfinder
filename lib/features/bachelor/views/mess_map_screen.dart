@@ -92,10 +92,6 @@ class _MessMapScreenState extends State<MessMapScreen> {
             .where((post) => post.isPublished && post.isAvailable)
             .toList();
 
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _fitMapToMarkers(activePosts);
-        });
-
         return Stack(
           children: [
             GoogleMap(
