@@ -6,8 +6,7 @@ class AppConstants {
   static const String appSlogan = 'Find your perfect room easily';
 
   // User Roles
-  static const String roleLandlord = 'landlord';
-  static const String roleBachelor = 'bachelor';
+  static const String roleUser = 'user';
   static const String roleAdmin = 'admin';
 
   // Registration Fees (in BDT)

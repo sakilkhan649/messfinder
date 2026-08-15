@@ -12,7 +12,7 @@ import 'edit_profile_screen.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../bachelor/views/my_bookings_screen.dart';
 import '../../bachelor/views/saved_posts_screen.dart';
-import '../../landlord/views/landlord_home_screen.dart';
+import 'my_posts_screen.dart';
 import '../../landlord/views/tenant_leads_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -27,10 +27,7 @@ class ProfileScreen extends StatelessWidget {
           ? (Get.find<AuthController>().currentUser.value ?? user)
           : user;
 
-      final isLandlord = activeUser.isLandlord;
-      final Color primaryColor = isLandlord
-          ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF059669); // Deep Indigo for Bachelor
+      final Color primaryColor = const Color(0xFF059669);
 
       return Scaffold(
         backgroundColor: const Color(0xFFF8FAFC),
@@ -115,24 +112,25 @@ class ProfileScreen extends StatelessWidget {
                         ),
                       ),
                     SizedBox(height: 12.h),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(16.r),
-                      ),
-                      child: Text(
-                        isLandlord ? 'Verified Landlord' : 'Verified Bachelor',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                    if (activeUser.isPaid || activeUser.isAdmin)
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 4.h,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16.r),
+                        ),
+                        child: Text(
+                          'Verified User',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -162,8 +160,8 @@ class ProfileScreen extends StatelessWidget {
                       index: 0,
                     ),
                     _buildMenuItem(
-                      icon: Icons.bookmark_rounded,
-                      title: 'My Bookings',
+                      icon: Icons.history_rounded,
+                      title: 'Contacted Rooms',
                       onTap: () => Get.to(() => const MyBookingsScreen()),
                       index: 1,
                     ),
@@ -181,7 +179,7 @@ class ProfileScreen extends StatelessWidget {
                     ),
                     _buildMenuItem(
                       icon: Icons.people_alt_rounded,
-                      title: 'Room Requests',
+                      title: 'Interested Tenants',
                       onTap: () => Get.to(() => const TenantLeadsScreen()),
                       index: 4,
                     ),

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../core/utils/location_data.dart';
@@ -366,7 +365,8 @@ class AddPostScreen extends StatelessWidget {
                 SizedBox(height: 12.h),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: controller.selectedLocation.value));
+                    final LatLng? initial = controller.isEditing ? controller.selectedLocation.value : null;
+                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: initial));
                     if (picked != null) {
                       controller.selectedLocation.value = picked;
                       Get.snackbar(

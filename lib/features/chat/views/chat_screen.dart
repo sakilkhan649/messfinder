@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mess_finder/core/theme/app_theme.dart';
-import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -34,21 +33,14 @@ class ChatScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Get.put(ChatScreenController(chatRoomId), tag: chatRoomId);
-    return Obx(() {
-      final authController = Get.find<AuthController>();
-      final isLandlord = authController.currentUser.value?.isLandlord ?? false;
-      final Color rolePrimaryColor = isLandlord
-          ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF059669); // Deep Indigo for Bachelor
-      final LinearGradient rolePrimaryGradient = LinearGradient(
-        colors: isLandlord
-            ? [const Color(0xFF059669), const Color(0xFF10B981)]
-            : [const Color(0xFF059669), const Color(0xFF047857)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      );
+    final Color rolePrimaryColor = const Color(0xFF059669);
+    final LinearGradient rolePrimaryGradient = const LinearGradient(
+      colors: [Color(0xFF059669), Color(0xFF047857)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
 
-      return Scaffold(
+    return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
           backgroundColor: rolePrimaryColor,
@@ -375,7 +367,6 @@ class ChatScreen extends StatelessWidget {
           ],
         ),
       );
-    });
   }
 
   Widget _buildMessageInput(

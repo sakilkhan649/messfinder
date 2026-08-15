@@ -140,7 +140,7 @@ class AdminController extends GetxController {
       }
     }
 
-    if (user.isLandlord || user.role.trim().toLowerCase() == 'landlord') {
+    if (true) {
       for (final post in allPosts) {
         if (post.ownerUid == user.uid ||
             (post.ownerPhone != null &&

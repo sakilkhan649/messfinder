@@ -1,5 +1,4 @@
 import 'package:geolocator/geolocator.dart';
-import 'package:flutter/foundation.dart';
 import '../utils/app_logger.dart';
 
 class LocationService {
@@ -36,7 +35,9 @@ class LocationService {
       // When we reach here, permissions are granted and we can
       // continue accessing the position of the device.
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
     } catch (e) {
       AppLogger.e('Error getting location: $e', null, null, 'LOCATION');

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/utils/app_constants.dart';
 import '../models/post_model.dart';
 import 'post_controller.dart';
@@ -79,7 +79,8 @@ class AddPostController extends GetxController {
 
   int _parseSeatCount(String desc) {
     if (desc.isEmpty) return 1;
-    final RegExp regExp = RegExp(r'\d+');
+    // ignore: deprecated_member_use
+    final regExp = RegExp(r'\d+');
     final matches = regExp.allMatches(desc);
     if (matches.isNotEmpty) {
       return int.tryParse(matches.last.group(0)!) ?? 1;
@@ -154,6 +155,8 @@ class AddPostController extends GetxController {
         preferredTenant: preferredTenant.value,
         facilities: selectedFacilities,
         images: imagesToUse,
+        latitude: selectedLocation.value.latitude,
+        longitude: selectedLocation.value.longitude,
       );
       final success = await postCtrl.updateMessPost(updatedPost);
       if (success) {

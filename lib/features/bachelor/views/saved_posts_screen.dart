@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
@@ -16,13 +15,10 @@ class SavedPostsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final postController = Get.find<PostController>();
-    final authController = Get.find<AuthController>();
+
 
     return Obx(() {
-      final isLandlord = authController.currentUser.value?.isLandlord ?? false;
-      final rolePrimaryColor = isLandlord
-          ? const Color(0xFF059669)
-          : const Color(0xFF059669);
+      final rolePrimaryColor = const Color(0xFF059669);
 
       final posts = postController.savedPosts;
       AppLogger.i('DEBUG: SavedPostsScreen built. allPosts=${postController.allPosts.length}, savedPostIds=${postController.savedPostIds.length}, savedPosts=${posts.length}', tag: 'SAVED_POSTS');
@@ -153,6 +149,7 @@ class SavedPostsScreen extends StatelessWidget {
                                         'Landlord / Manager';
                                     final photoUrl = profile?['photoUrl']
                                         ?.toString();
+                                    final isPaid = profile?['isPaid'] ?? false;
                                     final fullPhone =
                                         post.ownerPhone ??
                                         profile?['phone']?.toString() ??
@@ -188,15 +185,25 @@ class SavedPostsScreen extends StatelessWidget {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              Text(
-                                                name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.poppins(
-                                                  fontSize: 14.sp,
-                                                  fontWeight: FontWeight.bold,
-                                                  color: AppTheme.textPrimary,
-                                                ),
+                                              Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      name,
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: GoogleFonts.poppins(
+                                                        fontSize: 14.sp,
+                                                        fontWeight: FontWeight.bold,
+                                                        color: AppTheme.textPrimary,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (isPaid) ...[
+                                                    SizedBox(width: 4.w),
+                                                    Icon(Icons.verified_rounded, color: Colors.blue, size: 14.r),
+                                                  ],
+                                                ],
                                               ),
                                               Text(
                                                 maskedPhone,

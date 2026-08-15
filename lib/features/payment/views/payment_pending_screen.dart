@@ -119,7 +119,7 @@ class PaymentPendingScreen extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          user.isLandlord ? 'Landlord' : 'Bachelor',
+                          'User',
                           style: GoogleFonts.poppins(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,

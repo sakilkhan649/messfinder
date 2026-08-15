@@ -3,13 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/image_helper.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/models/user_model.dart';
-import '../controllers/post_controller.dart';
-import '../models/post_model.dart';
-import 'add_post_screen.dart';
-
+import '../../landlord/controllers/post_controller.dart';
+import '../../landlord/models/post_model.dart';
+import '../../landlord/controllers/add_post_controller.dart';
+import '../../landlord/views/add_post_screen.dart';
+import '../../bachelor/views/widgets/facebook_image_grid.dart';
 
 class MyPostsScreen extends StatelessWidget {
   final UserModel user;
@@ -17,7 +17,12 @@ class MyPostsScreen extends StatelessWidget {
   const MyPostsScreen({super.key, required this.user});
 
   void _onAddPostPressed(BuildContext context) {
-    Get.to(() => const AddPostScreen(), transition: Transition.rightToLeft);
+    // Delete any existing controller to ensure fresh state and prevent GlobalKey crashes
+    if (Get.isRegistered<AddPostController>(tag: 'new')) {
+      Get.delete<AddPostController>(tag: 'new');
+    }
+    // Remove const to avoid state caching issues in GetX
+    Get.to(() => AddPostScreen(), transition: Transition.rightToLeft);
   }
 
   @override
@@ -78,158 +83,31 @@ class MyPostsScreen extends StatelessWidget {
           child: CustomScrollView(
             physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
             slivers: [
-              // Luxury Emerald Stats Banner
-              SliverToBoxAdapter(
+            // Minimalist Stats Row
+            SliverToBoxAdapter(
               child: Container(
                 margin: EdgeInsets.all(16.r),
-                padding: EdgeInsets.all(18.r),
+                padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 16.w),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [darkEmerald, emeraldTheme],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16.r),
+                  border: Border.all(color: Colors.grey.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: emeraldTheme.withValues(alpha: 0.28),
-                      blurRadius: 12.r,
-                      offset: Offset(0, 5.h),
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(8.r),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Icon(
-                                Icons.home_work_rounded,
-                                color: Colors.white,
-                                size: 18.r,
-                              ),
-                            ),
-                            SizedBox(width: 12.w),
-                            Text(
-                              'Room Overview',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10.w,
-                            vertical: 4.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20.r),
-                          ),
-                          child: Text(
-                            'Live Stats',
-                            style: GoogleFonts.poppins(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 14.h),
-                    Divider(
-                      color: Colors.white.withValues(alpha: 0.22),
-                      height: 1,
-                      thickness: 1,
-                    ),
-                    SizedBox(height: 16.h),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildStatItem('Total Posts', '$totalPosts'),
-                        ),
-                        _buildVerticalDivider(),
-                        Expanded(
-                          child: _buildStatItem(
-                            'Active Posts',
-                            '$availablePosts',
-                          ),
-                        ),
-                        _buildVerticalDivider(),
-                        Expanded(
-                          child: _buildStatItem('Total Seats', '$totalSeats'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Section Title
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 12.h),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(7.r),
-                          decoration: BoxDecoration(
-                            color: emeraldTheme.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(10.r),
-                          ),
-                          child: Icon(
-                            Icons.bedroom_parent_rounded,
-                            color: emeraldTheme,
-                            size: 18.r,
-                          ),
-                        ),
-                        SizedBox(width: 10.w),
-                        Text(
-                          'My Posts',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (totalPosts > 0)
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 4.h,
-                        ),
-                        decoration: BoxDecoration(
-                          color: emeraldTheme.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20.r),
-                        ),
-                        child: Text(
-                          '$totalPosts Added',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: emeraldTheme,
-                          ),
-                        ),
-                      ),
+                    _buildStatItem('Total Posts', '$totalPosts', emeraldTheme),
+                    Container(height: 40.h, width: 1, color: Colors.grey.shade200),
+                    _buildStatItem('Active Posts', '$availablePosts', const Color(0xFF10B981)),
+                    Container(height: 40.h, width: 1, color: Colors.grey.shade200),
+                    _buildStatItem('Total Seats', '$totalSeats', const Color(0xFF3B82F6)),
                   ],
                 ),
               ),
@@ -247,7 +125,7 @@ class MyPostsScreen extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate((context, index) {
                     final post = posts[index];
-                    return _LandlordPostCard(
+                    return _MyPostCard(
                       post: post,
                       postController: postController,
                     );
@@ -262,39 +140,31 @@ class MyPostsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStatItem(String label, String value) {
+  Widget _buildStatItem(String label, String value, Color color) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text(
-          label,
+          value,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            fontSize: 11.5.sp,
-            color: Colors.white70,
-            fontWeight: FontWeight.w500,
+            fontSize: 24.sp,
+            fontWeight: FontWeight.bold,
+            color: color,
           ),
         ),
         SizedBox(height: 4.h),
         Text(
-          value,
+          label,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            fontSize: 22.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+            fontSize: 11.5.sp,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVerticalDivider() {
-    return Container(
-      height: 42.h,
-      width: 1,
-      color: Colors.white.withValues(alpha: 0.22),
     );
   }
 
@@ -344,11 +214,11 @@ class MyPostsScreen extends StatelessWidget {
   }
 }
 
-class _LandlordPostCard extends StatelessWidget {
+class _MyPostCard extends StatelessWidget {
   final PostModel post;
   final PostController postController;
 
-  const _LandlordPostCard({required this.post, required this.postController});
+  const _MyPostCard({required this.post, required this.postController});
 
   void _confirmDelete() {
     Get.dialog(
@@ -570,6 +440,20 @@ class _LandlordPostCard extends StatelessWidget {
 
             SizedBox(height: 12.h),
 
+            // Toggle Availability Option
+            _buildActionTile(
+              icon: post.isAvailable ? Icons.event_busy_rounded : Icons.event_available_rounded,
+              title: post.isAvailable ? 'Mark as Rented Out' : 'Mark as Available',
+              subtitle: post.isAvailable ? 'Hide this room from search results' : 'Show this room in search results',
+              color: post.isAvailable ? const Color(0xFFEF4444) : emeraldTheme,
+              onTap: () {
+                Get.back();
+                postController.togglePostStatus(post.postId, post.isAvailable);
+              },
+            ),
+
+            SizedBox(height: 12.h),
+
             // Delete Option
             _buildActionTile(
               icon: Icons.delete_outline_rounded,
@@ -662,6 +546,7 @@ class _LandlordPostCard extends StatelessWidget {
   }
 
   String _cleanEnglishText(String input) {
+    // ignore: deprecated_member_use
     return input.replaceAll(RegExp(r'\s+'), ' ').trim();
   }
 
@@ -699,11 +584,12 @@ class _LandlordPostCard extends StatelessWidget {
               ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
                 child: post.images.isNotEmpty
-                    ? AppImageHelper.buildImage(
-                        post.images.first,
+                    ? SizedBox(
                         height: 180.h,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
+                        child: FacebookImageGrid(
+                          images: post.images,
+                          borderRadius: 0,
+                        ),
                       )
                     : Container(
                         height: 180.h,
@@ -815,41 +701,7 @@ class _LandlordPostCard extends StatelessWidget {
                   ),
                 ),
               ),
-              // Bottom-Right Photo Counter Badge (if multiple photos)
-              if (post.images.length > 1)
-                Positioned(
-                  bottom: 12.h,
-                  right: 14.w,
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.65),
-                      borderRadius: BorderRadius.circular(14.r),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.photo_library_rounded,
-                          color: Colors.white,
-                          size: 12.r,
-                        ),
-                        SizedBox(width: 4.w),
-                        Text(
-                          '${post.images.length} Photos',
-                          style: GoogleFonts.poppins(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              // Bottom-Right Photo Counter Badge (Removed to prevent overlap)
             ],
           ),
 
@@ -883,7 +735,8 @@ class _LandlordPostCard extends StatelessWidget {
                     SizedBox(width: 4.w),
                     Expanded(
                       child: Text(
-                        _cleanEnglishText(post.address),
+                        // ignore: deprecated_member_use
+                        _cleanEnglishText(post.address.replaceAll(RegExp(r', Bangladesh$'), '')),
                         style: GoogleFonts.poppins(
                           fontSize: 12.5.sp,
                           color: const Color(0xFF64748B),

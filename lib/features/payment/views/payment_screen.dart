@@ -31,13 +31,8 @@ class PaymentScreen extends StatelessWidget {
     @override
   Widget build(BuildContext context) {
     final controller = Get.find<PaymentController>();
-    // user.role is correctly set by auth flow before navigation
-    final isLandlord = user.isLandlord;
-    final int fee = isLandlord
-        ? AppConstants.landlordFee
-        : AppConstants.bachelorFee;
-    final String roleTitle =
-        isLandlord ? 'Landlord' : 'Bachelor';
+    final int fee = AppConstants.landlordFee;
+    final String roleTitle = 'User';
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,

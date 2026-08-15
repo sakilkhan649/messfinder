@@ -112,21 +112,10 @@ class _MessMapScreenState extends State<MessMapScreen> {
               zoomControlsEnabled: false,
               myLocationEnabled: true,
               myLocationButtonEnabled: true,
-              markers: activePosts.asMap().entries.map((entry) {
-                final index = entry.key;
-                final post = entry.value;
-                
-                // Offset existing posts that have the exact same hardcoded default location
-                double lat = post.latitude;
-                double lng = post.longitude;
-                if (lat == 23.8103 && lng == 90.4125) {
-                  lat += (index % 5) * 0.003 - 0.006;
-                  lng += (index ~/ 5) * 0.003 - 0.006;
-                }
-
+              markers: activePosts.map((post) {
                 return Marker(
                   markerId: MarkerId('post_${post.postId}'),
-                  position: LatLng(lat, lng),
+                  position: LatLng(post.latitude, post.longitude),
                   icon: BitmapDescriptor.defaultMarkerWithHue(150.0), // Emerald green hue
                   onTap: () => _showPostDetailsBottomSheet(context, post),
                 );
@@ -294,7 +283,19 @@ class _MessMapScreenState extends State<MessMapScreen> {
   }
 
   void _fitMapToMarkers(List<PostModel> posts) {
-    if (_mapController == null || posts.isEmpty) return;
+    if (_mapController == null) return;
+
+    if (posts.isEmpty) {
+      final postCtrl = Get.find<PostController>();
+      final pos = postCtrl.userLocation.value;
+      if (pos != null) {
+        _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(pos.latitude, pos.longitude),
+          14.0,
+        ));
+      }
+      return;
+    }
 
     if (posts.length == 1) {
       // If only one post, just center it
@@ -314,12 +315,6 @@ class _MessMapScreenState extends State<MessMapScreen> {
       final post = posts[i];
       double lat = post.latitude;
       double lng = post.longitude;
-      
-      // Apply the same offset logic used for markers to calculate accurate bounds
-      if (lat == 23.8103 && lng == 90.4125) {
-        lat += (i % 5) * 0.003 - 0.006;
-        lng += (i ~/ 5) * 0.003 - 0.006;
-      }
       
       if (lat < minLat) minLat = lat;
       if (lat > maxLat) maxLat = lat;

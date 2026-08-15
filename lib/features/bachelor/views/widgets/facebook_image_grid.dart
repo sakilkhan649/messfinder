@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/utils/image_helper.dart';
 
 class FacebookImageGrid extends StatelessWidget {
@@ -251,11 +252,12 @@ class _FullScreenGallery extends StatelessWidget {
         scrollPhysics: const BouncingScrollPhysics(),
         builder: (BuildContext context, int index) {
           return PhotoViewGalleryPageOptions(
-            imageProvider: NetworkImage(images[index]),
+            imageProvider: CachedNetworkImageProvider(images[index]),
             initialScale: PhotoViewComputedScale.contained,
             minScale: PhotoViewComputedScale.contained,
             maxScale: PhotoViewComputedScale.covered * 2,
-            heroAttributes: PhotoViewHeroAttributes(tag: images[index]),
+            // Removed heroAttributes to prevent "Multiple heroes share the same tag" crashes
+            // when the same post appears in multiple places in the app.
           );
         },
         itemCount: images.length,

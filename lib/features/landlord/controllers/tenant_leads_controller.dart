@@ -40,6 +40,7 @@ class TenantLeadsController extends GetxController {
   static String _formatEmailToName(String? email) {
     if (email == null || !email.contains('@')) return '';
     final prefix = email.split('@').first;
+    // ignore: deprecated_member_use
     final cleaned = prefix.replaceAll(RegExp(r'[^a-zA-Z]'), ' ').trim();
     if (cleaned.isEmpty) return '';
     return cleaned

@@ -16,10 +16,7 @@ class EditProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = Get.put(EditProfileController(user: user));
-    final isLandlord = user.isLandlord;
-    final Color primaryColor = isLandlord
-        ? const Color(0xFF059669) // Emerald for Landlord
-        : const Color(0xFF059669); // Deep Indigo for Bachelor
+    final Color primaryColor = const Color(0xFF059669);
 
     return Scaffold(
       backgroundColor: Colors.white,

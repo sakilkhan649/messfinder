@@ -81,16 +81,7 @@ class TenantLeadsScreen extends StatelessWidget {
 
           final allLeads = snapshot.data ?? [];
 
-          // Calculate statistics
-          final pendingCount = allLeads
-              .where((b) => b.paymentStatus.trim().toLowerCase() == 'pending')
-              .length;
-          final approvedCount = allLeads
-              .where((b) => b.paymentStatus.trim().toLowerCase() == 'approved')
-              .length;
-          final rejectedCount = allLeads
-              .where((b) => b.paymentStatus.trim().toLowerCase() == 'rejected')
-              .length;
+
 
           return Column(
             children: [
@@ -171,50 +162,12 @@ class TenantLeadsScreen extends StatelessWidget {
                 ),
               ),
 
-              // ── Simple Tab Selector (Pending / Approved / Rejected) ──
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
-                child: Obx(() {
-                  final activeTab = controller.selectedTabIndex.value;
-                  return Row(
-                    children: [
-                      Expanded(
-                        child: _buildTabChip(
-                          title: 'Pending ($pendingCount)',
-                          isSelected: activeTab == 0,
-                          selectedColor: const Color(0xFFF59E0B),
-                          onTap: () => controller.setTab(0),
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: _buildTabChip(
-                          title: 'Approved ($approvedCount)',
-                          isSelected: activeTab == 1,
-                          selectedColor: primaryEmerald,
-                          onTap: () => controller.setTab(1),
-                        ),
-                      ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: _buildTabChip(
-                          title: 'Rejected ($rejectedCount)',
-                          isSelected: activeTab == 2,
-                          selectedColor: const Color(0xFFEF4444),
-                          onTap: () => controller.setTab(2),
-                        ),
-                      ),
-                    ],
-                  );
-                }),
-              ),
-
               // ── Leads List ───────────────────────────────────────────
               Expanded(
                 child: Obx(() {
                   final filteredLeads = controller.filterLeads(
                     allLeads,
-                    controller.selectedTabIndex.value,
+                    1, // Force it to look at 'approved' leads since all leads are now instantly approved
                     controller.searchQuery.value,
                   );
 
@@ -230,7 +183,7 @@ class TenantLeadsScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 12.h),
                           Text(
-                            'No requests found',
+                            'No leads found',
                             style: GoogleFonts.poppins(
                               fontSize: 15.sp,
                               fontWeight: FontWeight.bold,
@@ -239,7 +192,7 @@ class TenantLeadsScreen extends StatelessWidget {
                           ),
                           SizedBox(height: 4.h),
                           Text(
-                            'When bachelors request your room,\nthey will appear here.',
+                            'When bachelors view your contact,\nthey will appear here.',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.poppins(
                               fontSize: 13.sp,
@@ -288,7 +241,7 @@ class TenantLeadsScreen extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                               fontSize: 18.sp,
                             ),
-                            middleText: 'Are you sure you want to permanently delete this request?',
+                            middleText: 'Are you sure you want to permanently delete this lead?',
                             middleTextStyle: GoogleFonts.poppins(
                               fontSize: 14.sp,
                             ),
@@ -321,46 +274,6 @@ class TenantLeadsScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildTabChip({
-    required String title,
-    required bool isSelected,
-    required Color selectedColor,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(vertical: 10.h),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: isSelected ? selectedColor : Colors.white,
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(
-            color: isSelected ? selectedColor : Colors.grey.shade300,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: selectedColor.withValues(alpha: 0.25),
-                    blurRadius: 6.r,
-                    offset: Offset(0, 2.h),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 12.sp,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 // ── Lead Card Widget with Clean Alignment & Easy Text ─────────────────
@@ -379,38 +292,9 @@ class _LeadCard extends StatelessWidget {
     return '${diff.inDays}d ago';
   }
 
-  ({Color bg, Color text, String label, IconData icon}) _statusInfo(
-    String status,
-  ) {
-    switch (status.trim().toLowerCase()) {
-      case 'approved':
-        return (
-          bg: const Color(0xFFD1FAE5),
-          text: const Color(0xFF047857),
-          label: 'Approved',
-          icon: Icons.check_circle_rounded,
-        );
-      case 'rejected':
-        return (
-          bg: const Color(0xFFFEE2E2),
-          text: const Color(0xFFB91C1C),
-          label: 'Rejected',
-          icon: Icons.cancel_rounded,
-        );
-      default:
-        return (
-          bg: const Color(0xFFFEF3C7),
-          text: const Color(0xFFB45309),
-          label: 'Pending Review',
-          icon: Icons.pending_actions_rounded,
-        );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     const primaryEmerald = Color(0xFF059669);
-    final st = _statusInfo(booking.paymentStatus);
 
     return Container(
       padding: EdgeInsets.all(16.r),
@@ -431,10 +315,6 @@ class _LeadCard extends StatelessWidget {
         builder: (context, snapshot) {
           final userInfo =
               snapshot.data ?? {'name': 'Loading...', 'phone': '—'};
-          final isApproved = booking.isUnlocked ||
-              booking.paymentStatus.trim().toLowerCase() == 'approved';
-          final isRejected =
-              booking.paymentStatus.trim().toLowerCase() == 'rejected';
           final name = userInfo['name']!;
           final phone = userInfo['phone']!;
           final rawPhone = (phone.isNotEmpty && phone != '—' && phone != '')
@@ -442,11 +322,7 @@ class _LeadCard extends StatelessWidget {
               : (booking.senderNumber.isNotEmpty
                   ? booking.senderNumber
                   : 'Not provided');
-          final displayPhone = isApproved
-              ? rawPhone
-              : (isRejected
-                  ? 'Locked (Rejected by Admin) 🔒'
-                  : 'Locked until Admin Approval 🔒');
+          final displayPhone = rawPhone;
           final initials = name.isNotEmpty && name != 'Loading...'
               ? name[0].toUpperCase()
               : '?';
@@ -500,20 +376,20 @@ class _LeadCard extends StatelessWidget {
                       vertical: 4.h,
                     ),
                     decoration: BoxDecoration(
-                      color: st.bg,
+                      color: const Color(0xFFD1FAE5),
                       borderRadius: BorderRadius.circular(20.r),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(st.icon, size: 14.r, color: st.text),
+                        Icon(Icons.check_circle_rounded, size: 14.r, color: const Color(0xFF047857)),
                         SizedBox(width: 4.w),
                         Text(
-                          st.label,
+                          'Viewed Contact',
                           style: GoogleFonts.poppins(
                             fontSize: 11.sp,
                             fontWeight: FontWeight.bold,
-                            color: st.text,
+                            color: const Color(0xFF047857),
                           ),
                         ),
                       ],
@@ -526,104 +402,48 @@ class _LeadCard extends StatelessWidget {
               Divider(height: 1, color: Colors.grey.shade200),
               SizedBox(height: 12.h),
 
-              // ── Simple Info Row (Phone locked until approved for security) ────────────
+              // ── Simple Info Row ────────────
               _buildInfoRow(
-                icon: isApproved
-                    ? Icons.phone_rounded
-                    : Icons.lock_outline_rounded,
+                icon: Icons.phone_rounded,
                 label: 'Phone Number',
                 value: displayPhone,
-                color: isApproved
-                    ? primaryEmerald
-                    : (isRejected
-                        ? const Color(0xFFEF4444)
-                        : const Color(0xFFF59E0B)),
-                onCopy: isApproved
-                    ? () => controller.copyPhoneNumber(rawPhone)
-                    : null,
+                color: primaryEmerald,
+                onCopy: () => controller.copyPhoneNumber(rawPhone),
               ),
 
-              // ── Action Buttons for Pending Requests ───────────────────────
-              if (booking.paymentStatus.trim().toLowerCase() == 'pending') ...[
-                SizedBox(height: 12.h),
-                Row(
+              SizedBox(height: 12.h),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12.w,
+                  vertical: 8.h,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                ),
+                child: Row(
                   children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => controller.rejectLead(booking.bookingId),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFEE2E2),
-                          foregroundColor: const Color(0xFFB91C1C),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Reject',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                        ),
-                      ),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      size: 16.r,
+                      color: primaryEmerald,
                     ),
-                    SizedBox(width: 12.w),
+                    SizedBox(width: 8.w),
                     Expanded(
-                      child: ElevatedButton(
-                        onPressed: () => controller.approveLead(booking.bookingId),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryEmerald,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8.r),
-                          ),
-                        ),
-                        child: Text(
-                          'Approve',
-                          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      child: Text(
+                        'This tenant has viewed your phone number.',
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5.sp,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF064E3B),
                         ),
                       ),
                     ),
                   ],
                 ),
-              ],
-
-              // ── Status / Unlocked Note ───────────────────────────────
-              if (booking.isUnlocked ||
-                  booking.paymentStatus.trim().toLowerCase() == 'approved') ...[
-                SizedBox(height: 12.h),
-                Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 12.w,
-                    vertical: 8.h,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFECFDF5),
-                    borderRadius: BorderRadius.circular(8.r),
-                    border: Border.all(color: const Color(0xFFA7F3D0)),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.check_circle_rounded,
-                        size: 16.r,
-                        color: primaryEmerald,
-                      ),
-                      SizedBox(width: 8.w),
-                      Expanded(
-                        child: Text(
-                          'Approved — you can call or contact this tenant',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF064E3B),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ],
           );
         },

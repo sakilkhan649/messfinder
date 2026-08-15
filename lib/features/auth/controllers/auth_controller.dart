@@ -18,7 +18,7 @@ class AuthController extends GetxController {
   final AuthRepository _authRepo = AuthRepository();
 
   final RxBool isLoading = false.obs;
-  final RxString selectedRole = AppConstants.roleBachelor.obs;
+  final RxString selectedRole = AppConstants.roleUser.obs;
   final Rx<UserModel?> currentUser = Rx<UserModel?>(null);
 
   final RxBool obscureLoginPassword = true.obs;
@@ -45,6 +45,7 @@ class AuthController extends GetxController {
   static String _formatEmailToName(String email) {
     if (!email.contains('@')) return 'Bachelor Tenant';
     final prefix = email.split('@').first;
+    // ignore: deprecated_member_use
     final cleaned = prefix.replaceAll(RegExp(r'[^a-zA-Z]'), ' ').trim();
     if (cleaned.isEmpty) return 'Bachelor Tenant';
     return cleaned
@@ -78,15 +79,6 @@ class AuthController extends GetxController {
                 ? credential.user!.displayName!.trim()
                 : _formatEmailToName(email);
             updatedUser = updatedUser.copyWith(name: betterName);
-            await _authRepo.saveUserData(updatedUser);
-          }
-
-          // Sync role: update users doc if selected role is different
-          // IMPORTANT: Never override an admin user's role
-          if (userData.role != AppConstants.roleAdmin &&
-              selectedRole.value != AppConstants.roleAdmin &&
-              userData.role != selectedRole.value) {
-            updatedUser = updatedUser.copyWith(role: selectedRole.value);
             await _authRepo.saveUserData(updatedUser);
           }
 
@@ -232,42 +224,13 @@ class AuthController extends GetxController {
     await notifService.saveTokenToFirestore(user.uid);
     // Subscribe to role-based topic for broadcast notifications
     await notifService.subscribeToTopic('all_users');
-    if (user.isBachelor) {
-      await notifService.subscribeToTopic('bachelors');
-      await notifService.unsubscribeFromTopic('landlords');
-    } else if (user.isLandlord) {
-      await notifService.subscribeToTopic('landlords');
-      await notifService.unsubscribeFromTopic('bachelors');
-    }
     // Start listening to in-app notifications
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().listenForUser(user.uid);
     }
   }
 
-  Future<void> switchRole(String newRole) async {
-    final user = currentUser.value;
-    if (user != null && user.role != newRole) {
-      isLoading.value = true;
-      try {
-        selectedRole.value = newRole;
-        UserModel updatedUser = user.copyWith(role: newRole);
-        
-        // Check payment status for the new role
-        if (newRole != AppConstants.roleAdmin) {
-          updatedUser = updatedUser.copyWith(isPaid: true);
-        }
-        
-        await _authRepo.saveUserData(updatedUser);
-        currentUser.value = updatedUser;
-        handleNavigation(updatedUser);
-      } catch (e) {
-        ApiChecker.showError('Failed to switch role: $e');
-      } finally {
-        isLoading.value = false;
-      }
-    }
-  }
+
 
 
   Future<void> updateProfile({
@@ -445,10 +408,6 @@ class AuthController extends GetxController {
         if (userData != null) {
           // Existing User
           UserModel updatedUser = userData;
-          if (selectedRole.value != AppConstants.roleAdmin && userData.role != selectedRole.value) {
-            updatedUser = updatedUser.copyWith(role: selectedRole.value);
-            await _authRepo.saveUserData(updatedUser);
-          }
           
           if (selectedRole.value != AppConstants.roleAdmin) {
             if (!updatedUser.isPaid) {

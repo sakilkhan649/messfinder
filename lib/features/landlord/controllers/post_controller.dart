@@ -206,6 +206,7 @@ class PostController extends GetxController {
     if (fetchedPosts.length < postLimit) {
       hasMorePosts.value = false;
     }
+
     
     allPosts.assignAll(fetchedPosts);
     _updateSavedPostsList();
@@ -238,6 +239,7 @@ class PostController extends GetxController {
     if (newPosts.length < postLimit) {
       hasMorePosts.value = false;
     }
+
     
     if (newPosts.isNotEmpty) {
       allPosts.addAll(newPosts);
@@ -313,7 +315,15 @@ class PostController extends GetxController {
 
   // Computed list for Bachelor Feed after applying Search & Filters
   List<PostModel> get filteredPosts {
-    return allPosts.where((post) {
+    final filtered = allPosts.where((post) {
+      // 0. Auto-expiry filter (15 days)
+      if (post.createdAt != null) {
+        final age = DateTime.now().difference(post.createdAt!).inDays;
+        if (age > 15) {
+          return false;
+        }
+      }
+      
       // 1. Search Query filter (title or address)
       if (searchQuery.value.isNotEmpty) {
         final query = searchQuery.value.toLowerCase();
@@ -339,6 +349,24 @@ class PostController extends GetxController {
       }
       return true;
     }).toList();
+
+    // 4. Sort by distance if location available, otherwise by newest
+    if (userLocation.value != null) {
+      final lat = userLocation.value!.latitude;
+      final lng = userLocation.value!.longitude;
+      filtered.sort((a, b) {
+        final distA = LocationService.calculateDistanceInKm(lat, lng, a.latitude, a.longitude);
+        final distB = LocationService.calculateDistanceInKm(lat, lng, b.latitude, b.longitude);
+        return distA.compareTo(distB);
+      });
+    } else {
+      filtered.sort((a, b) {
+        if (a.createdAt == null || b.createdAt == null) return 0;
+        return b.createdAt!.compareTo(a.createdAt!);
+      });
+    }
+
+    return filtered;
   }
 
   // Add a new Mess Post (Landlord)

@@ -5,7 +5,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
-import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import 'package:mess_finder/features/notifications/views/widgets/notification_bell_action.dart';
@@ -14,17 +13,12 @@ class ChatListScreen extends StatelessWidget {
   ChatListScreen({super.key});
 
   final ChatController _chatController = Get.find<ChatController>();
-  final AuthController _authController = Get.find<AuthController>();
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      final isLandlord = _authController.currentUser.value?.isLandlord ?? false;
-      final Color rolePrimaryColor = isLandlord
-          ? const Color(0xFF059669) // Emerald for Landlord
-          : const Color(0xFF059669); // Deep Indigo for Bachelor
+    final Color rolePrimaryColor = const Color(0xFF059669);
 
-      return Scaffold(
+    return Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: AppBar(
           backgroundColor: rolePrimaryColor,
@@ -284,6 +278,5 @@ class ChatListScreen extends StatelessWidget {
           },
         ),
       );
-    });
   }
 }

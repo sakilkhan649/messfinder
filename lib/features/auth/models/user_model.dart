@@ -4,7 +4,7 @@ class UserModel {
   final String uid;
   final String name;
   final String phone;
-  final String role; // 'landlord' or 'bachelor' or 'admin'
+  final String role; // 'user' or 'admin'
   final bool isPaid;
   final DateTime? createdAt;
   final String? photoUrl;
@@ -21,8 +21,7 @@ class UserModel {
     this.trxId,
   });
 
-  bool get isLandlord => role == 'landlord';
-  bool get isBachelor => role == 'bachelor';
+  bool get isUser => role != 'admin';
   bool get isAdmin => role == 'admin';
 
   factory UserModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -30,7 +29,7 @@ class UserModel {
       uid: docId,
       name: map['name'] ?? map['userName'] ?? map['displayName'] ?? '',
       phone: map['phone'] ?? map['phoneNumber'] ?? map['userPhone'] ?? map['mobile'] ?? '',
-      role: map['role'] ?? 'bachelor',
+      role: map['role'] ?? 'user',
       isPaid: map['isPaid'] ?? false,
       trxId: map['trxId'] ?? map['paymentTrxId'],
       createdAt: map['createdAt'] != null

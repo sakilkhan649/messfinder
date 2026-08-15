@@ -19,11 +19,11 @@ class RoomDetailScreen extends StatelessWidget {
 
   const RoomDetailScreen({super.key, required this.post});
 
-  void _requestPaymentAndUnlock(BuildContext context) async {
+  void _unlockContact(BuildContext context) async {
     final authCtrl = Get.find<AuthController>();
     final user = authCtrl.currentUser.value;
     if (user == null) {
-      Get.snackbar('Error', 'Please login first');
+      Get.snackbar('Error', 'Please login first to view contact info');
       return;
     }
     try {
@@ -32,10 +32,10 @@ class RoomDetailScreen extends StatelessWidget {
         postId: post.postId,
         bachelorUid: user.uid,
         landlordUid: post.ownerUid,
-        paymentStatus: 'pending',
-        trxId: 'Pending Verification',
-        senderNumber: 'Not provided',
-        isUnlocked: false,
+        paymentStatus: 'approved', // instantly approved for free tier
+        trxId: 'Free Tier',
+        senderNumber: 'N/A',
+        isUnlocked: true,
         createdAt: DateTime.now(),
         bachelorName: (user.name != 'User' && user.name.isNotEmpty)
             ? user.name
@@ -43,12 +43,11 @@ class RoomDetailScreen extends StatelessWidget {
         bachelorPhone: user.phone.isNotEmpty ? user.phone : 'N/A',
       );
       await BookingRepository().createBooking(booking);
-      Get.back();
       Get.snackbar(
-        'Request Sent! ⏳',
-        'Your request is pending landlord approval.',
+        'Contact Unlocked! 📞',
+        'You can now call the landlord directly. A lead has been sent to them.',
         snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFF59E0B),
+        backgroundColor: const Color(0xFF10B981),
         colorText: Colors.white,
         duration: const Duration(seconds: 4),
       );
@@ -134,25 +133,17 @@ class RoomDetailScreen extends StatelessWidget {
     );
   }
 
-  void _bookRoom(BuildContext context, bool isUnlocked, bool isPending) {
-    if (isPending) {
+  void _handleContactClick(BuildContext context, bool isUnlocked) {
+    if (isUnlocked) {
       Get.snackbar(
-        'Booking Request Pending ⏳',
-        'Your request is awaiting landlord approval.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFFF59E0B),
-        colorText: Colors.white,
-      );
-    } else if (isUnlocked) {
-      Get.snackbar(
-        'Already Booked ✅',
-        'You have already booked this mess room. You can call or send SMS directly.',
+        'Contact Available ✅',
+        'You have already unlocked this contact. You can call or send SMS directly.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFF10B981),
         colorText: Colors.white,
       );
     } else {
-      _requestPaymentAndUnlock(context);
+      _unlockContact(context);
     }
   }
 
@@ -179,9 +170,6 @@ class RoomDetailScreen extends StatelessWidget {
         final bookings = snapshot.data ?? [];
         final isUnlocked = bookings.any(
           (b) => b.isUnlocked && b.paymentStatus == 'approved',
-        );
-        final isPending = bookings.any(
-          (b) => !b.isUnlocked && b.paymentStatus == 'pending',
         );
 
         final fullPhone = post.ownerPhone ?? '01712345678';
@@ -564,121 +552,124 @@ class RoomDetailScreen extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: 12.h),
-                        Container(
-                          padding: EdgeInsets.all(16.r),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 24.r,
-                                backgroundColor: primaryColor.withValues(
-                                  alpha: 0.1,
-                                ),
-                                child: Icon(
-                                  Icons.person,
-                                  color: primaryColor,
-                                  size: 26.r,
-                                ),
+                        FutureBuilder<Map<String, dynamic>?>(
+                          initialData: Get.find<PostController>().landlordProfilesCache[post.ownerUid],
+                          future: Get.find<PostController>().landlordProfilesCache.containsKey(post.ownerUid)
+                              ? null
+                              : Get.find<PostController>().getLandlordProfile(post.ownerUid),
+                          builder: (context, snapshot) {
+                            final profile = snapshot.data;
+                            final name = profile?['name']?.toString() ?? 'Landlord / Manager';
+                            final photoUrl = profile?['photoUrl']?.toString();
+                            final isPaid = profile?['isPaid'] ?? false;
+
+                            return Container(
+                              padding: EdgeInsets.all(16.r),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(16.r),
+                                border: Border.all(color: Colors.grey.shade200),
                               ),
-                              SizedBox(width: 14.w),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Landlord / Manager',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12.sp,
-                                        color: AppTheme.textSecondary,
-                                      ),
-                                    ),
-                                    Text(
-                                      displayPhone,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: primaryColor,
-                                      ),
-                                    ),
-                                    if (isUnlocked)
-                                      Container(
-                                        margin: EdgeInsets.only(top: 4.h),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 8.w,
-                                          vertical: 2.h,
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 24.r,
+                                    backgroundColor: primaryColor.withValues(alpha: 0.1),
+                                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
+                                    child: (photoUrl == null || photoUrl.isEmpty) ? Icon(
+                                      Icons.person,
+                                      color: primaryColor,
+                                      size: 26.r,
+                                    ) : null,
+                                  ),
+                                  SizedBox(width: 14.w),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                name,
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 12.sp,
+                                                  color: AppTheme.textSecondary,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            if (isPaid) ...[
+                                              SizedBox(width: 4.w),
+                                              Icon(Icons.verified_rounded, color: Colors.blue, size: 14.r),
+                                            ],
+                                          ],
                                         ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(
-                                            0xFF10B981,
-                                          ).withValues(alpha: 0.1),
-                                          borderRadius: BorderRadius.circular(
-                                            6.r,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Verified Number Unlocked ✅',
+                                        Text(
+                                          displayPhone,
                                           style: GoogleFonts.poppins(
-                                            fontSize: 10.sp,
-                                            color: const Color(0xFF10B981),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      )
-                                    else if (isPending)
-                                      Container(
-                                        margin: EdgeInsets.only(top: 4.h),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 8.w,
-                                          vertical: 2.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFFEF3C7),
-                                          borderRadius: BorderRadius.circular(
-                                            6.r,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Booking Request Pending ⏳',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 10.sp,
-                                            color: const Color(0xFFB45309),
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      )
-                                    else
-                                      Container(
-                                        margin: EdgeInsets.only(top: 4.h),
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 8.w,
-                                          vertical: 2.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: primaryColor.withValues(
-                                            alpha: 0.1,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            6.r,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          'Send booking request to unlock phone number 🔒',
-                                          style: GoogleFonts.poppins(
-                                            fontSize: 10.sp,
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.bold,
                                             color: primaryColor,
-                                            fontWeight: FontWeight.w600,
                                           ),
                                         ),
-                                      ),
-                                  ],
-                                ),
+                                        if (isUnlocked)
+                                          Container(
+                                            margin: EdgeInsets.only(top: 4.h),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8.w,
+                                              vertical: 2.h,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: const Color(
+                                                0xFF10B981,
+                                              ).withValues(alpha: 0.1),
+                                              borderRadius: BorderRadius.circular(
+                                                6.r,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Verified Number Unlocked ✅',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10.sp,
+                                                color: const Color(0xFF10B981),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            margin: EdgeInsets.only(top: 4.h),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 8.w,
+                                              vertical: 2.h,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: primaryColor.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                              borderRadius: BorderRadius.circular(
+                                                6.r,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              'Click "Get Contact" to unlock number 🔒',
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 10.sp,
+                                                color: primaryColor,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
+                            );
+                          },
                         ),
                         SizedBox(height: 100.h),
                       ],
@@ -707,11 +698,11 @@ class RoomDetailScreen extends StatelessWidget {
                   child: Row(
                     children: [
 
-                      // Booking Button (Main Action)
+                      // Get Contact Button (Main Action)
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () =>
-                              _bookRoom(context, isUnlocked, isPending),
+                              _handleContactClick(context, isUnlocked),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
                             padding: EdgeInsets.symmetric(vertical: 12.h),
@@ -720,11 +711,11 @@ class RoomDetailScreen extends StatelessWidget {
                             ),
                           ),
                           icon: const Icon(
-                            Icons.home_work_rounded,
+                            Icons.phone_in_talk_rounded,
                             color: Colors.white,
                           ),
                           label: Text(
-                            'Book Room Now',
+                            isUnlocked ? 'Contact Unlocked' : 'Get Landlord Contact',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.bold,
                               fontSize: 13.sp,

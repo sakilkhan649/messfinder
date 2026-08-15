@@ -804,6 +804,7 @@ class _BachelorPostCard extends StatefulWidget {
 class _BachelorPostCardState extends State<_BachelorPostCard> {
   String name = 'Loading...';
   String? profilePic;
+  bool isPaid = false;
   bool isLoaded = false;
 
   @override
@@ -819,6 +820,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
       setState(() {
         name = data['name'] ?? 'Unknown User';
         profilePic = data['photoUrl'];
+        isPaid = data['isPaid'] ?? false;
         isLoaded = true;
       });
     } else if (mounted) {
@@ -879,15 +881,25 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              name,
-                              style: GoogleFonts.poppins(
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    name,
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                if (isPaid) ...[
+                                  SizedBox(width: 4.w),
+                                  Icon(Icons.verified_rounded, color: Colors.blue, size: 14.r),
+                                ],
+                              ],
                             ),
                             Text(
                               _timeAgo(post.createdAt),

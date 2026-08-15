@@ -54,20 +54,13 @@ class PaymentController extends GetxController {
 
     try {
       final docId = 'PAY_${DateTime.now().millisecondsSinceEpoch}';
-      final isLandlordUser = user.isLandlord ||
-          Get.find<AuthController>().selectedRole.value ==
-              AppConstants.roleLandlord;
       final newPayment = PaymentModel(
         paymentId: docId,
         userUid: user.uid,
         userName: user.name,
         userPhone: user.phone,
-        role: isLandlordUser
-            ? AppConstants.roleLandlord
-            : AppConstants.roleBachelor,
-        amount: isLandlordUser
-            ? AppConstants.landlordFee
-            : AppConstants.bachelorFee,
+        role: AppConstants.roleUser,
+        amount: AppConstants.landlordFee,
         trxId: trxId.trim(),
         senderNumber: senderNumber.trim(),
         paymentMethod: selectedMethod.value,
