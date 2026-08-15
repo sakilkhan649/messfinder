@@ -22,6 +22,18 @@ class _MessMapScreenState extends State<MessMapScreen> {
   GoogleMapController? _mapController;
 
   @override
+  void dispose() {
+    _mapController?.dispose();
+    _mapController = null;
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final PostController postController = Get.find<PostController>();
     const emeraldTheme = Color(0xFF059669);
@@ -93,8 +105,12 @@ class _MessMapScreenState extends State<MessMapScreen> {
             .toList();
             
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (_mapController != null) {
-            _fitMapToMarkers(activePosts);
+          if (mounted && _mapController != null) {
+            try {
+              _fitMapToMarkers(activePosts);
+            } catch (e) {
+              debugPrint('Error fitting map to markers: $e');
+            }
           }
         });
 
@@ -102,8 +118,10 @@ class _MessMapScreenState extends State<MessMapScreen> {
           children: [
             GoogleMap(
               onMapCreated: (GoogleMapController controller) {
-                _mapController = controller;
-                _fitMapToMarkers(activePosts);
+                if (mounted) {
+                  _mapController = controller;
+                  _fitMapToMarkers(activePosts);
+                }
               },
               initialCameraPosition: const CameraPosition(
                 target: LatLng(23.8103, 90.4125),
