@@ -34,11 +34,18 @@ class LocationService {
 
       // When we reach here, permissions are granted and we can
       // continue accessing the position of the device.
-      return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-        ),
-      );
+      try {
+        return await Geolocator.getCurrentPosition(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 8), // Prevent infinite hang
+          ),
+        );
+      } catch (timeoutOrError) {
+        // Fallback to last known position if current position times out or fails
+        AppLogger.w('Failed to get fresh location, trying last known: $timeoutOrError', tag: 'LOCATION');
+        return await Geolocator.getLastKnownPosition();
+      }
     } catch (e) {
       AppLogger.e('Error getting location: $e', null, null, 'LOCATION');
       return null;

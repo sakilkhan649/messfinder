@@ -20,11 +20,15 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
   GoogleMapController? _mapController;
   final TextEditingController _searchController = TextEditingController();
   final RxBool _isSearching = false.obs;
+  final RxBool _myLocationEnabled = false.obs;
+  late final CameraPosition _initialCameraPosition;
 
   @override
   void initState() {
     super.initState();
-    selectedLocation = (widget.initialLocation ?? const LatLng(23.8103, 90.4125)).obs;
+    final initial = widget.initialLocation ?? const LatLng(23.8103, 90.4125);
+    selectedLocation = initial.obs;
+    _initialCameraPosition = CameraPosition(target: initial, zoom: 14.0);
     _fetchCurrentLocation();
   }
 
@@ -34,10 +38,13 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
     if (widget.initialLocation == null) {
       final position = await LocationService.getCurrentLocation();
       if (position != null) {
+        _myLocationEnabled.value = true;
         final newLatLng = LatLng(position.latitude, position.longitude);
         selectedLocation.value = newLatLng;
         _mapController?.animateCamera(CameraUpdate.newLatLngZoom(newLatLng, 15.0));
       }
+    } else {
+      _myLocationEnabled.value = true;
     }
   }
 
@@ -94,12 +101,9 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
         children: [
           // 1. Google Map
           Obx(() => GoogleMap(
-                initialCameraPosition: CameraPosition(
-                  target: selectedLocation.value,
-                  zoom: 14.0,
-                ),
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
+                initialCameraPosition: _initialCameraPosition,
+                myLocationEnabled: _myLocationEnabled.value,
+                myLocationButtonEnabled: _myLocationEnabled.value,
                 mapToolbarEnabled: false,
                 zoomControlsEnabled: false,
                 onMapCreated: (controller) {
