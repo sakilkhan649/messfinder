@@ -17,6 +17,7 @@ import '../../chat/controllers/chat_controller.dart';
 import '../../chat/views/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
@@ -766,6 +767,44 @@ class RoomDetailScreen extends StatelessWidget {
                               ),
                             );
                           },
+                        ),
+                        SizedBox(height: 24.h),
+                        Text(
+                          'Location Map',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16.sp,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        SizedBox(height: 12.h),
+                        Container(
+                          height: 200.h,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(color: Colors.grey.shade200),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16.r),
+                            child: GoogleMap(
+                              initialCameraPosition: CameraPosition(
+                                target: LatLng(post.latitude, post.longitude),
+                                zoom: 15,
+                              ),
+                              markers: {
+                                Marker(
+                                  markerId: MarkerId(post.postId),
+                                  position: LatLng(post.latitude, post.longitude),
+                                  infoWindow: InfoWindow(title: post.title),
+                                ),
+                              },
+                              zoomControlsEnabled: false,
+                              myLocationEnabled: false,
+                              compassEnabled: false,
+                              mapToolbarEnabled: false,
+                            ),
+                          ),
                         ),
                         SizedBox(height: 100.h),
                       ],

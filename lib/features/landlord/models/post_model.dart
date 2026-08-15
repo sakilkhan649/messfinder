@@ -48,8 +48,7 @@ class PostModel {
     this.isPublished = true,
     this.paymentTrxId,
     this.senderNumber,
-  }) : _preferredTenant =
-           preferredTenant; // ignore: prefer_initializing_formals
+  }) : _preferredTenant = preferredTenant;
 
   String get displaySeats {
     if (seatDescription != null && seatDescription!.trim().isNotEmpty) {
