@@ -129,6 +129,8 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                 children: [
                   // Back Button
                   Container(
+                    width: 50.h,
+                    height: 50.h,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -137,6 +139,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                       ],
                     ),
                     child: IconButton(
+                      padding: EdgeInsets.zero,
                       icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20.r),
                       onPressed: () => Get.back(),
                     ),
@@ -169,8 +172,10 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                                 hintText: 'Search for area, road...',
                                 hintStyle: GoogleFonts.poppins(fontSize: 13.5.sp, color: Colors.grey.shade400),
                                 border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
                                 isDense: true,
-                                contentPadding: EdgeInsets.symmetric(vertical: 14.h),
+                                contentPadding: EdgeInsets.zero,
                               ),
                             ),
                           ),
