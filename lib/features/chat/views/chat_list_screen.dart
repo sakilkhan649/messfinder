@@ -53,7 +53,17 @@ class ChatListScreen extends StatelessWidget {
                 ),
               );
             }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            final validChats = snapshot.hasData 
+                ? snapshot.data!.where((chat) {
+                    final otherUserId = chat.participants.firstWhere(
+                      (id) => id != _chatController.currentUserId,
+                      orElse: () => '',
+                    );
+                    return otherUserId.isNotEmpty;
+                  }).toList()
+                : [];
+
+            if (validChats.isEmpty) {
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -92,7 +102,7 @@ class ChatListScreen extends StatelessWidget {
               );
             }
 
-            final chats = snapshot.data!;
+            final chats = validChats;
 
             return RefreshIndicator(
               color: rolePrimaryColor,
@@ -120,10 +130,7 @@ class ChatListScreen extends StatelessWidget {
 
                   final isMeLastSender = chat.lastSenderId == _chatController.currentUserId;
                   final prefix = isMeLastSender ? 'You: ' : '';
-                  
-                  if (otherUserId.isEmpty) {
-                    return const SizedBox.shrink();
-                  }
+                  // otherUserId.isEmpty is already filtered out
 
                   return FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance
