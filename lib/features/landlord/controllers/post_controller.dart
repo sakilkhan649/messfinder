@@ -350,21 +350,11 @@ class PostController extends GetxController {
       return true;
     }).toList();
 
-    // 4. Sort by distance if location available, otherwise by newest
-    if (userLocation.value != null) {
-      final lat = userLocation.value!.latitude;
-      final lng = userLocation.value!.longitude;
-      filtered.sort((a, b) {
-        final distA = LocationService.calculateDistanceInKm(lat, lng, a.latitude, a.longitude);
-        final distB = LocationService.calculateDistanceInKm(lat, lng, b.latitude, b.longitude);
-        return distA.compareTo(distB);
-      });
-    } else {
-      filtered.sort((a, b) {
-        if (a.createdAt == null || b.createdAt == null) return 0;
-        return b.createdAt!.compareTo(a.createdAt!);
-      });
-    }
+    // 4. Always sort by newest first (Recent posts at the top)
+    filtered.sort((a, b) {
+      if (a.createdAt == null || b.createdAt == null) return 0;
+      return b.createdAt!.compareTo(a.createdAt!);
+    });
 
     return filtered;
   }

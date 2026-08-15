@@ -8,17 +8,21 @@ import 'package:path/path.dart' as path;
 
 import 'app_logger.dart';
 
+// Note: Keeping the class name ImgbbService to avoid renaming across all controllers,
+// but it now uses Cloudinary internally for fast, free, and unblocked image hosting.
 class ImgbbService {
-  static const String _apiKey = '7dc645a72f0ce2d1d47497a1af02f620'; 
   final Uuid _uuid = const Uuid();
+  
+  static const String _cloudinaryCloudName = 'xtdzn8zq'; 
+  static const String _uploadPreset = 'messfinder_preset';
 
-  /// Compresses and uploads an image to ImgBB
+  /// Compresses and uploads an image to Cloudinary
   /// Returns the direct image URL if successful, otherwise null
   Future<String?> uploadImage(String filePath) async {
     try {
       final File file = File(filePath);
       if (!file.existsSync()) {
-        AppLogger.e('File does not exist: $filePath', null, null, 'IMGBB_SVC');
+        AppLogger.e('File does not exist: $filePath', null, null, 'CLOUDINARY_SVC');
         return null;
       }
 
@@ -28,15 +32,17 @@ class ImgbbService {
         return null;
       }
 
-      // 2. Upload to ImgBB
+      // 2. Upload to Cloudinary via Unsigned POST request
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://api.imgbb.com/1/upload?key=$_apiKey'),
+        Uri.parse('https://api.cloudinary.com/v1_1/$_cloudinaryCloudName/image/upload'),
       );
+      
+      request.fields['upload_preset'] = _uploadPreset;
       
       request.files.add(
         await http.MultipartFile.fromPath(
-          'image',
+          'file',
           compressedFile.path,
         ),
       );
@@ -50,17 +56,16 @@ class ImgbbService {
         compressedFile.deleteSync();
       }
 
-      if (response.statusCode == 200 && jsonResponse['success'] == true) {
-        String downloadUrl = jsonResponse['data']['url'];
-        AppLogger.s('ImgBB Upload Success: $downloadUrl', tag: 'IMGBB_SVC');
+      if (response.statusCode == 200 && jsonResponse['secure_url'] != null) {
+        String downloadUrl = jsonResponse['secure_url'];
+        AppLogger.s('Cloudinary Upload Success: $downloadUrl', tag: 'CLOUDINARY_SVC');
         return downloadUrl;
       } else {
-        AppLogger.e('ImgBB Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'IMGBB_SVC');
+        AppLogger.e('Cloudinary Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'CLOUDINARY_SVC');
         return null;
       }
-
-    } catch (e) {
-      AppLogger.e('Failed to upload image to ImgBB: $e', e, null, 'IMGBB_SVC');
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to upload image to Cloudinary: $e', e, stackTrace, 'CLOUDINARY_SVC');
       return null;
     }
   }

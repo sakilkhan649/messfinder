@@ -120,6 +120,10 @@ class ChatListScreen extends StatelessWidget {
 
                   final isMeLastSender = chat.lastSenderId == _chatController.currentUserId;
                   final prefix = isMeLastSender ? 'You: ' : '';
+                  
+                  if (otherUserId.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
 
                   return FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance

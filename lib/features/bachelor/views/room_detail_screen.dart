@@ -12,27 +12,24 @@ import '../../landlord/models/post_model.dart';
 import '../models/booking_model.dart';
 import '../repositories/booking_repo.dart';
 import 'widgets/facebook_image_grid.dart';
+import '../../auth/models/user_model.dart';
+import '../../chat/controllers/chat_controller.dart';
+import '../../chat/views/chat_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
-
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
 
   const RoomDetailScreen({super.key, required this.post});
 
-  void _unlockContact(BuildContext context) async {
-    final authCtrl = Get.find<AuthController>();
-    final user = authCtrl.currentUser.value;
-    if (user == null) {
-      Get.snackbar('Error', 'Please login first to view contact info');
-      return;
-    }
+  void _generateLead(UserModel user) async {
     try {
       final booking = BookingModel(
         bookingId: '',
         postId: post.postId,
         bachelorUid: user.uid,
         landlordUid: post.ownerUid,
-        paymentStatus: 'approved', // instantly approved for free tier
+        paymentStatus: 'approved',
         trxId: 'Free Tier',
         senderNumber: 'N/A',
         isUnlocked: true,
@@ -43,16 +40,68 @@ class RoomDetailScreen extends StatelessWidget {
         bachelorPhone: user.phone.isNotEmpty ? user.phone : 'N/A',
       );
       await BookingRepository().createBooking(booking);
-      Get.snackbar(
-        'Contact Unlocked! 📞',
-        'You can now call the landlord directly. A lead has been sent to them.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-        duration: const Duration(seconds: 4),
-      );
     } catch (e) {
-      Get.snackbar('Error', e.toString());
+      // Silently fail if lead generation fails, we don't want to block the user
+    }
+  }
+
+  void _makeCall(BuildContext context) async {
+    final authCtrl = Get.find<AuthController>();
+    final user = authCtrl.currentUser.value;
+    if (user == null) {
+      Get.snackbar('Login Required', 'Please login first to call the landlord', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    final phone = post.ownerPhone;
+    if (phone == null || phone.isEmpty) {
+      Get.snackbar('Unavailable', 'Landlord has not provided a phone number.', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    _generateLead(user);
+
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phone,
+    );
+    try {
+      if (await canLaunchUrl(launchUri)) {
+        await launchUrl(launchUri);
+      } else {
+        Get.snackbar('Error', 'Could not open dialer.', snackPosition: SnackPosition.BOTTOM);
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Could not open dialer.', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  void _startChat(BuildContext context) async {
+    final authCtrl = Get.find<AuthController>();
+    final user = authCtrl.currentUser.value;
+    if (user == null) {
+      Get.snackbar('Login Required', 'Please login first to message the landlord', snackPosition: SnackPosition.BOTTOM);
+      return;
+    }
+
+    _generateLead(user);
+    
+    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
+    
+    try {
+      final chatCtrl = Get.put(ChatController());
+      final chatRoomId = await chatCtrl.createOrGetChatRoom(post.ownerUid, 'Loading...', null);
+      Get.back(); // close loading dialog
+      
+      Get.to(() => ChatScreen(
+        chatRoomId: chatRoomId,
+        targetUserId: post.ownerUid,
+        targetUserName: 'Loading...',
+        targetUserPhoto: null,
+      ));
+    } catch (e) {
+      Get.back(); // close dialog
+      Get.snackbar('Error', 'Failed to start chat', snackPosition: SnackPosition.BOTTOM);
     }
   }
 
@@ -133,19 +182,7 @@ class RoomDetailScreen extends StatelessWidget {
     );
   }
 
-  void _handleContactClick(BuildContext context, bool isUnlocked) {
-    if (isUnlocked) {
-      Get.snackbar(
-        'Contact Available ✅',
-        'You have already unlocked this contact. You can call or send SMS directly.',
-        snackPosition: SnackPosition.BOTTOM,
-        backgroundColor: const Color(0xFF10B981),
-        colorText: Colors.white,
-      );
-    } else {
-      _unlockContact(context);
-    }
-  }
+  // Replaced _handleContactClick with _makeCall and _startChat
 
   @override
   Widget build(BuildContext context) {
@@ -163,6 +200,8 @@ class RoomDetailScreen extends StatelessWidget {
     final stream = (user != null && user.uid.isNotEmpty)
         ? BookingRepository().getBookingStreamForPost(post.postId, user.uid)
         : Stream.value(<BookingModel>[]);
+        
+    final isMyPost = user != null && user.uid == post.ownerUid;
 
     return StreamBuilder<List<BookingModel>>(
       stream: stream,
@@ -681,8 +720,9 @@ class RoomDetailScreen extends StatelessWidget {
           ),
 
           // Direct Contact Action Buttons
-          bottomNavigationBar:
-              Container(
+          bottomNavigationBar: isMyPost
+              ? const SizedBox.shrink()
+              : Container(
                 padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -697,25 +737,24 @@ class RoomDetailScreen extends StatelessWidget {
                 child: SafeArea(
                   child: Row(
                     children: [
-
-                      // Get Contact Button (Main Action)
+                      // Message Button (Primary)
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () =>
-                              _handleContactClick(context, isUnlocked),
+                          onPressed: () => _startChat(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
                             padding: EdgeInsets.symmetric(vertical: 12.h),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.r),
                             ),
+                            elevation: 0,
                           ),
                           icon: const Icon(
-                            Icons.phone_in_talk_rounded,
+                            Icons.chat_bubble_rounded,
                             color: Colors.white,
                           ),
                           label: Text(
-                            isUnlocked ? 'Contact Unlocked' : 'Get Landlord Contact',
+                            'Message',
                             style: GoogleFonts.poppins(
                               fontWeight: FontWeight.bold,
                               fontSize: 13.sp,
@@ -724,6 +763,38 @@ class RoomDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                      
+                      if (post.ownerPhone != null && post.ownerPhone!.isNotEmpty) ...[
+                        SizedBox(width: 12.w),
+                        // Call Button (Secondary)
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _makeCall(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: primaryColor,
+                              padding: EdgeInsets.symmetric(vertical: 12.h),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                                side: BorderSide(color: primaryColor, width: 1.5),
+                              ),
+                              elevation: 0,
+                            ),
+                            icon: Icon(
+                              Icons.phone_in_talk_rounded,
+                              color: primaryColor,
+                            ),
+                            label: Text(
+                              'Call',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13.sp,
+                                color: primaryColor,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

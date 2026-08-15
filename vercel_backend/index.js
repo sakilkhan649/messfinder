@@ -6,29 +6,34 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Initialize Firebase Admin using Environment Variables
-if (!admin.apps.length) {
-  try {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        // Handle newline characters in the private key
-        privateKey: process.env.FIREBASE_PRIVATE_KEY
-          ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
-          : undefined,
-      }),
-    });
-  } catch (error) {
-    console.error("Firebase Admin initialization error", error);
-  }
-}
+// Firebase Admin initialization is moved inside the endpoint for better error handling
 
 app.post("/api/send", async (req, res) => {
   const { receiverUid, title, body, type, relatedId } = req.body;
 
   if (!receiverUid) {
     return res.status(400).json({ error: "receiverUid is required" });
+  }
+
+  // Initialize Firebase Admin if not already initialized
+  if (!admin.apps.length) {
+    try {
+      if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !process.env.FIREBASE_PRIVATE_KEY) {
+        return res.status(500).json({ error: "Firebase Environment Variables are missing in Vercel!" });
+      }
+
+      admin.initializeApp({
+        credential: admin.credential.cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          // Try replacing actual newlines or escaped newlines
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        }),
+      });
+    } catch (error) {
+      console.error("Firebase Admin initialization error", error);
+      return res.status(500).json({ error: "Firebase Init Error: " + error.message });
+    }
   }
 
   // FCM HTTP v1 API payload format
