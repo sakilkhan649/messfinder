@@ -17,6 +17,7 @@ import '../../chat/controllers/chat_controller.dart';
 import '../../chat/views/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
+
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
 
@@ -49,30 +50,43 @@ class RoomDetailScreen extends StatelessWidget {
     final authCtrl = Get.find<AuthController>();
     final user = authCtrl.currentUser.value;
     if (user == null) {
-      Get.snackbar('Login Required', 'Please login first to call the landlord', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Login Required',
+        'Please login first to call the landlord',
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
 
     final phone = post.ownerPhone;
     if (phone == null || phone.isEmpty) {
-      Get.snackbar('Unavailable', 'Landlord has not provided a phone number.', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Unavailable',
+        'Landlord has not provided a phone number.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
 
     _generateLead(user);
 
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phone,
-    );
+    final Uri launchUri = Uri(scheme: 'tel', path: phone);
     try {
       if (await canLaunchUrl(launchUri)) {
         await launchUrl(launchUri);
       } else {
-        Get.snackbar('Error', 'Could not open dialer.', snackPosition: SnackPosition.BOTTOM);
+        Get.snackbar(
+          'Error',
+          'Could not open dialer.',
+          snackPosition: SnackPosition.BOTTOM,
+        );
       }
     } catch (e) {
-      Get.snackbar('Error', 'Could not open dialer.', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Error',
+        'Could not open dialer.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
 
@@ -80,32 +94,47 @@ class RoomDetailScreen extends StatelessWidget {
     final authCtrl = Get.find<AuthController>();
     final user = authCtrl.currentUser.value;
     if (user == null) {
-      Get.snackbar('Login Required', 'Please login first to message the landlord', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Login Required',
+        'Please login first to message the landlord',
+        snackPosition: SnackPosition.BOTTOM,
+      );
       return;
     }
 
     _generateLead(user);
-    
-    Get.dialog(const Center(child: CircularProgressIndicator()), barrierDismissible: false);
-    
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+
     try {
       final chatCtrl = Get.put(ChatController());
-      final chatRoomId = await chatCtrl.createOrGetChatRoom(post.ownerUid, 'Loading...', null);
+      final chatRoomId = await chatCtrl.createOrGetChatRoom(
+        post.ownerUid,
+        'Loading...',
+        null,
+      );
       Get.back(); // close loading dialog
-      
-      Get.to(() => ChatScreen(
-        chatRoomId: chatRoomId,
-        targetUserId: post.ownerUid,
-        targetUserName: 'Loading...',
-        targetUserPhoto: null,
-      ));
+
+      Get.to(
+        () => ChatScreen(
+          chatRoomId: chatRoomId,
+          targetUserId: post.ownerUid,
+          targetUserName: 'Loading...',
+          targetUserPhoto: null,
+        ),
+      );
     } catch (e) {
       Get.back(); // close dialog
-      Get.snackbar('Error', 'Failed to start chat', snackPosition: SnackPosition.BOTTOM);
+      Get.snackbar(
+        'Error',
+        'Failed to start chat',
+        snackPosition: SnackPosition.BOTTOM,
+      );
     }
   }
-
-
 
   void _showReportDialog(BuildContext context) {
     showDialog(
@@ -200,7 +229,7 @@ class RoomDetailScreen extends StatelessWidget {
     final stream = (user != null && user.uid.isNotEmpty)
         ? BookingRepository().getBookingStreamForPost(post.postId, user.uid)
         : Stream.value(<BookingModel>[]);
-        
+
     final isMyPost = user != null && user.uid == post.ownerUid;
 
     return StreamBuilder<List<BookingModel>>(
@@ -287,7 +316,10 @@ class RoomDetailScreen extends StatelessWidget {
                       fit: StackFit.expand,
                       children: [
                         post.images.isNotEmpty
-                            ? FacebookImageGrid(images: post.images, height: 280)
+                            ? FacebookImageGrid(
+                                images: post.images,
+                                height: 280,
+                              )
                             : Container(
                                 color: Colors.grey.shade300,
                                 child: const Icon(
@@ -372,13 +404,19 @@ class RoomDetailScreen extends StatelessWidget {
                                 final pos = postCtrl.userLocation.value;
                                 String distanceText = '';
                                 if (pos != null) {
-                                  final distKm = LocationService.calculateDistanceInKm(
-                                    pos.latitude, pos.longitude, post.latitude, post.longitude,
-                                  );
+                                  final distKm =
+                                      LocationService.calculateDistanceInKm(
+                                        pos.latitude,
+                                        pos.longitude,
+                                        post.latitude,
+                                        post.longitude,
+                                      );
                                   if (distKm < 1.0) {
-                                    distanceText = '\n📍 ${(distKm * 1000).toInt()}m away from you';
+                                    distanceText =
+                                        '\n📍 ${(distKm * 1000).toInt()}m away from you';
                                   } else {
-                                    distanceText = '\n📍 ${distKm.toStringAsFixed(1)}km away from you';
+                                    distanceText =
+                                        '\n📍 ${distKm.toStringAsFixed(1)}km away from you';
                                   }
                                 }
                                 return Text(
@@ -592,13 +630,20 @@ class RoomDetailScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 12.h),
                         FutureBuilder<Map<String, dynamic>?>(
-                          initialData: Get.find<PostController>().landlordProfilesCache[post.ownerUid],
-                          future: Get.find<PostController>().landlordProfilesCache.containsKey(post.ownerUid)
+                          initialData: Get.find<PostController>()
+                              .landlordProfilesCache[post.ownerUid],
+                          future:
+                              Get.find<PostController>().landlordProfilesCache
+                                  .containsKey(post.ownerUid)
                               ? null
-                              : Get.find<PostController>().getLandlordProfile(post.ownerUid),
+                              : Get.find<PostController>().getLandlordProfile(
+                                  post.ownerUid,
+                                ),
                           builder: (context, snapshot) {
                             final profile = snapshot.data;
-                            final name = profile?['name']?.toString() ?? 'Landlord / Manager';
+                            final name =
+                                profile?['name']?.toString() ??
+                                'Landlord / Manager';
                             final photoUrl = profile?['photoUrl']?.toString();
                             final isPaid = profile?['isPaid'] ?? false;
 
@@ -613,18 +658,28 @@ class RoomDetailScreen extends StatelessWidget {
                                 children: [
                                   CircleAvatar(
                                     radius: 24.r,
-                                    backgroundColor: primaryColor.withValues(alpha: 0.1),
-                                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-                                    child: (photoUrl == null || photoUrl.isEmpty) ? Icon(
-                                      Icons.person,
-                                      color: primaryColor,
-                                      size: 26.r,
-                                    ) : null,
+                                    backgroundColor: primaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    backgroundImage:
+                                        (photoUrl != null &&
+                                            photoUrl.isNotEmpty)
+                                        ? NetworkImage(photoUrl)
+                                        : null,
+                                    child:
+                                        (photoUrl == null || photoUrl.isEmpty)
+                                        ? Icon(
+                                            Icons.person,
+                                            color: primaryColor,
+                                            size: 26.r,
+                                          )
+                                        : null,
                                   ),
                                   SizedBox(width: 14.w),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Row(
                                           children: [
@@ -642,7 +697,11 @@ class RoomDetailScreen extends StatelessWidget {
                                             ),
                                             if (isPaid) ...[
                                               SizedBox(width: 4.w),
-                                              Icon(Icons.verified_rounded, color: Colors.blue, size: 14.r),
+                                              Icon(
+                                                Icons.verified_rounded,
+                                                color: Colors.blue,
+                                                size: 14.r,
+                                              ),
                                             ],
                                           ],
                                         ),
@@ -665,9 +724,8 @@ class RoomDetailScreen extends StatelessWidget {
                                               color: const Color(
                                                 0xFF10B981,
                                               ).withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(
-                                                6.r,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6.r),
                                             ),
                                             child: Text(
                                               'Verified Number Unlocked ✅',
@@ -689,9 +747,8 @@ class RoomDetailScreen extends StatelessWidget {
                                               color: primaryColor.withValues(
                                                 alpha: 0.1,
                                               ),
-                                              borderRadius: BorderRadius.circular(
-                                                6.r,
-                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(6.r),
                                             ),
                                             child: Text(
                                               'Click "Get Contact" to unlock number 🔒',
@@ -723,87 +780,94 @@ class RoomDetailScreen extends StatelessWidget {
           bottomNavigationBar: isMyPost
               ? const SizedBox.shrink()
               : Container(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 14.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
-                      blurRadius: 10.r,
-                      offset: Offset(0, -4.h),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Row(
-                    children: [
-                      // Message Button (Primary)
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _startChat(context),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: primaryColor,
-                            padding: EdgeInsets.symmetric(vertical: 12.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            elevation: 0,
-                          ),
-                          icon: const Icon(
-                            Icons.chat_bubble_rounded,
-                            color: Colors.white,
-                          ),
-                          label: Text(
-                            'Message',
-                            style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13.sp,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 20.w,
+                    vertical: 14.h,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 10.r,
+                        offset: Offset(0, -4.h),
                       ),
-                      
-                      if (post.ownerPhone != null && post.ownerPhone!.isNotEmpty) ...[
-                        SizedBox(width: 12.w),
-                        // Call Button (Secondary)
+                    ],
+                  ),
+                  child: SafeArea(
+                    child: Row(
+                      children: [
+                        // Message Button (Primary)
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => _makeCall(context),
+                            onPressed: () => _startChat(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: primaryColor,
+                              backgroundColor: primaryColor,
                               padding: EdgeInsets.symmetric(vertical: 12.h),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12.r),
-                                side: BorderSide(color: primaryColor, width: 1.5),
                               ),
                               elevation: 0,
                             ),
-                            icon: Icon(
-                              Icons.phone_in_talk_rounded,
-                              color: primaryColor,
+                            icon: const Icon(
+                              Icons.chat_bubble_rounded,
+                              color: Colors.white,
                             ),
                             label: Text(
-                              'Call',
+                              'Message',
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13.sp,
-                                color: primaryColor,
+                                color: Colors.white,
                               ),
                             ),
                           ),
                         ),
+
+                        if (post.ownerPhone != null &&
+                            post.ownerPhone!.isNotEmpty) ...[
+                          SizedBox(width: 12.w),
+                          // Call Button (Secondary)
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _makeCall(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: primaryColor,
+                                padding: EdgeInsets.symmetric(vertical: 12.h),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  side: BorderSide(
+                                    color: primaryColor,
+                                    width: 1.5,
+                                  ),
+                                ),
+                                elevation: 0,
+                              ),
+                              icon: Icon(
+                                Icons.phone_in_talk_rounded,
+                                color: primaryColor,
+                              ),
+                              label: Text(
+                                'Call',
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13.sp,
+                                  color: primaryColor,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
+                ).animate().slideY(
+                  begin: 1.0,
+                  end: 0,
+                  duration: 400.ms,
+                  curve: Curves.easeOutCirc,
                 ),
-              ).animate().slideY(
-                begin: 1.0,
-                end: 0,
-                duration: 400.ms,
-                curve: Curves.easeOutCirc,
-              ),
         );
       },
     );

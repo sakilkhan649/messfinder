@@ -17,7 +17,7 @@ class AddPostScreen extends StatelessWidget {
   final VoidCallback? onPostAdded;
 
   const AddPostScreen({
-    super.key, 
+    super.key,
     this.existingPost,
     this.showBackButton = true,
     this.onPostAdded,
@@ -66,14 +66,11 @@ class AddPostScreen extends StatelessWidget {
     );
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     final tag = existingPost?.postId ?? 'new';
     final controller = Get.put(
-      AddPostController(
-        existingPost: existingPost,
-        onPostAdded: onPostAdded,
-      ),
+      AddPostController(existingPost: existingPost, onPostAdded: onPostAdded),
       tag: tag,
     );
     const emeraldTheme = Color(0xFF059669);
@@ -93,7 +90,7 @@ class AddPostScreen extends StatelessWidget {
           ),
         ),
         automaticallyImplyLeading: false,
-        leading: showBackButton 
+        leading: showBackButton
             ? IconButton(
                 onPressed: () => Get.back(),
                 icon: const Icon(
@@ -289,7 +286,8 @@ class AddPostScreen extends StatelessWidget {
                     SizedBox(width: 8.w),
                     _buildTenantRadio(
                       'Student / Job holder',
-                      'Student / Job holder', controller
+                      'Student / Job holder',
+                      controller,
                     ),
                   ],
                 ),
@@ -304,18 +302,20 @@ class AddPostScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => _buildPremiumSelector(
-                      context: context,
-                      hintText: 'Select Division',
-                      icon: Icons.map_rounded,
-                      value: controller.selectedDivision.value,
-                      items: LocationData.divisions,
-                      onSelect: (newValue) {
-                        controller.selectedDivision.value = newValue;
-                        controller.selectedDistrict.value =
-                            LocationData.getDistricts(newValue).first;
-                      },
-                    )),
+                Obx(
+                  () => _buildPremiumSelector(
+                    context: context,
+                    hintText: 'Select Division',
+                    icon: Icons.map_rounded,
+                    value: controller.selectedDivision.value,
+                    items: LocationData.divisions,
+                    onSelect: (newValue) {
+                      controller.selectedDivision.value = newValue;
+                      controller.selectedDistrict.value =
+                          LocationData.getDistricts(newValue).first;
+                    },
+                  ),
+                ),
                 SizedBox(height: 18.h),
 
                 Text(
@@ -327,17 +327,20 @@ class AddPostScreen extends StatelessWidget {
                   ),
                 ),
                 SizedBox(height: 8.h),
-                Obx(() => _buildPremiumSelector(
-                      context: context,
-                      hintText: 'Select District',
-                      icon: Icons.location_city_rounded,
-                      value: controller.selectedDistrict.value,
-                      items: LocationData.getDistricts(
-                          controller.selectedDivision.value),
-                      onSelect: (newValue) {
-                        controller.selectedDistrict.value = newValue;
-                      },
-                    )),
+                Obx(
+                  () => _buildPremiumSelector(
+                    context: context,
+                    hintText: 'Select District',
+                    icon: Icons.location_city_rounded,
+                    value: controller.selectedDistrict.value,
+                    items: LocationData.getDistricts(
+                      controller.selectedDivision.value,
+                    ),
+                    onSelect: (newValue) {
+                      controller.selectedDistrict.value = newValue;
+                    },
+                  ),
+                ),
                 SizedBox(height: 18.h),
 
                 Text(
@@ -365,8 +368,12 @@ class AddPostScreen extends StatelessWidget {
                 SizedBox(height: 12.h),
                 ElevatedButton.icon(
                   onPressed: () async {
-                    final LatLng? initial = controller.isEditing ? controller.selectedLocation.value : null;
-                    final LatLng? picked = await Get.to(() => MapLocationPickerScreen(initialLocation: initial));
+                    final LatLng? initial = controller.isEditing
+                        ? controller.selectedLocation.value
+                        : null;
+                    final LatLng? picked = await Get.to(
+                      () => MapLocationPickerScreen(initialLocation: initial),
+                    );
                     if (picked != null) {
                       controller.selectedLocation.value = picked;
                       Get.snackbar(
@@ -378,14 +385,26 @@ class AddPostScreen extends StatelessWidget {
                       );
                     }
                   },
-                  icon: Icon(Icons.map_outlined, color: const Color(0xFF059669), size: 20.r),
-                  label: Text('Select Location on Map', style: GoogleFonts.poppins(color: const Color(0xFF059669))),
+                  icon: Icon(
+                    Icons.map_outlined,
+                    color: const Color(0xFF059669),
+                    size: 20.r,
+                  ),
+                  label: Text(
+                    'Select Location on Map',
+                    style: GoogleFonts.poppins(color: const Color(0xFF059669)),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     elevation: 0,
                     side: const BorderSide(color: Color(0xFF059669)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                    padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 16.w),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    padding: EdgeInsets.symmetric(
+                      vertical: 12.h,
+                      horizontal: 16.w,
+                    ),
                   ),
                 ),
                 SizedBox(height: 18.h),
@@ -419,46 +438,50 @@ class AddPostScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 12.h),
 
-                Obx(() => Wrap(
-                  spacing: 8.w,
-                  runSpacing: 8.h,
-                  children: controller.allFacilities.map((facility) {
-                    final isSelected = controller.selectedFacilities.contains(facility);
-                    return FilterChip(
-                      label: Text(
+                Obx(
+                  () => Wrap(
+                    spacing: 8.w,
+                    runSpacing: 8.h,
+                    children: controller.allFacilities.map((facility) {
+                      final isSelected = controller.selectedFacilities.contains(
                         facility,
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.sp,
-                          color: isSelected
-                              ? Colors.white
-                              : AppTheme.textPrimary,
-                          fontWeight: isSelected
-                              ? FontWeight.bold
-                              : FontWeight.w500,
+                      );
+                      return FilterChip(
+                        label: Text(
+                          facility,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12.sp,
+                            color: isSelected
+                                ? Colors.white
+                                : AppTheme.textPrimary,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      selected: isSelected,
-                      selectedColor: emeraldTheme,
-                      backgroundColor: const Color(0xFFF1F5F9),
-                      checkmarkColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20.r),
-                        side: BorderSide(
-                          color: isSelected
-                              ? emeraldTheme
-                              : const Color(0xFFE2E8F0),
+                        selected: isSelected,
+                        selectedColor: emeraldTheme,
+                        backgroundColor: const Color(0xFFF1F5F9),
+                        checkmarkColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20.r),
+                          side: BorderSide(
+                            color: isSelected
+                                ? emeraldTheme
+                                : const Color(0xFFE2E8F0),
+                          ),
                         ),
-                      ),
-                      onSelected: (selected) {
-                        if (selected) {
-                          controller.selectedFacilities.add(facility);
-                        } else {
-                          controller.selectedFacilities.remove(facility);
-                        }
-                      },
-                    );
-                  }).toList(),
-                )),
+                        onSelected: (selected) {
+                          if (selected) {
+                            controller.selectedFacilities.add(facility);
+                          } else {
+                            controller.selectedFacilities.remove(facility);
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
                 SizedBox(height: 24.h),
 
                 // Section 4: Photo Selection (Gallery Only, No Demo Pictures)
@@ -525,120 +548,128 @@ class AddPostScreen extends StatelessWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Selected Photos (${controller.pickedLocalImages.length})',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => controller.pickedLocalImages.clear(),
-                        child: Text(
-                          'Clear All',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.errorColor,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 10.h),
-                  SizedBox(
-                    height: 105.h,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: controller.pickedLocalImages.length,
-                      itemBuilder: (context, index) {
-                        final file = controller.pickedLocalImages[index];
-                        return Stack(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              width: 120.w,
-                              margin: EdgeInsets.only(right: 12.w),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12.r),
-                                border: Border.all(
-                                  color: emeraldTheme,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(10.r),
-                                child: AppImageHelper.buildImage(file.path),
+                            Text(
+                              'Selected Photos (${controller.pickedLocalImages.length})',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
                               ),
                             ),
-                            Positioned(
-                              top: 6.h,
-                              right: 18.w,
-                              child: GestureDetector(
-                                onTap: () {
-                                  controller.pickedLocalImages.removeAt(index);
-                                },
-                                child: Container(
-                                  padding: EdgeInsets.all(5.r),
-                                  decoration: const BoxDecoration(
-                                    color: AppTheme.errorColor,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.close_rounded,
-                                    size: 14.r,
-                                    color: Colors.white,
-                                  ),
+                            GestureDetector(
+                              onTap: () => controller.pickedLocalImages.clear(),
+                              child: Text(
+                                'Clear All',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.errorColor,
                                 ),
                               ),
                             ),
                           ],
-                        );
-                      },
-                    ),
-                  ),
-                    ]);
-                  } else if (controller.isEditing && existingPost!.images.isNotEmpty) {
+                        ),
+                        SizedBox(height: 10.h),
+                        SizedBox(
+                          height: 105.h,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: controller.pickedLocalImages.length,
+                            itemBuilder: (context, index) {
+                              final file = controller.pickedLocalImages[index];
+                              return Stack(
+                                children: [
+                                  Container(
+                                    width: 120.w,
+                                    margin: EdgeInsets.only(right: 12.w),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                      border: Border.all(
+                                        color: emeraldTheme,
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      child: AppImageHelper.buildImage(
+                                        file.path,
+                                      ),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 6.h,
+                                    right: 18.w,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        controller.pickedLocalImages.removeAt(
+                                          index,
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: EdgeInsets.all(5.r),
+                                        decoration: const BoxDecoration(
+                                          color: AppTheme.errorColor,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.close_rounded,
+                                          size: 14.r,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    );
+                  } else if (controller.isEditing &&
+                      existingPost!.images.isNotEmpty) {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                  Text(
-                    'Existing Room Photos',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  SizedBox(height: 10.h),
-                  SizedBox(
-                    height: 105.h,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: existingPost!.images.length,
-                      itemBuilder: (context, index) {
-                        final img = existingPost!.images[index];
-                        return Container(
-                          width: 120.w,
-                          margin: EdgeInsets.only(right: 12.w),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12.r),
-                            border: Border.all(
-                              color: const Color(0xFFE2E8F0),
-                              width: 1.5,
-                            ),
+                        Text(
+                          'Existing Room Photos',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
                           ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(10.r),
-                            child: AppImageHelper.buildImage(img),
+                        ),
+                        SizedBox(height: 10.h),
+                        SizedBox(
+                          height: 105.h,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: existingPost!.images.length,
+                            itemBuilder: (context, index) {
+                              final img = existingPost!.images[index];
+                              return Container(
+                                width: 120.w,
+                                margin: EdgeInsets.only(right: 12.w),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10.r),
+                                  child: AppImageHelper.buildImage(img),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
-                  )]);
+                        ),
+                      ],
+                    );
                   }
                   return const SizedBox.shrink();
                 }),
@@ -651,7 +682,9 @@ class AddPostScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 52.h,
                     child: ElevatedButton(
-                      onPressed: postController.isLoading.value ? null : controller.submit,
+                      onPressed: postController.isLoading.value
+                          ? null
+                          : controller.submit,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: emeraldTheme,
                         shape: RoundedRectangleBorder(
@@ -708,7 +741,11 @@ class AddPostScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGenderRadio(String value, String label, AddPostController controller) {
+  Widget _buildGenderRadio(
+    String value,
+    String label,
+    AddPostController controller,
+  ) {
     const emeraldTheme = Color(0xFF059669);
     return Expanded(
       child: GestureDetector(
@@ -739,7 +776,11 @@ class AddPostScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTenantRadio(String value, String label, AddPostController controller) {
+  Widget _buildTenantRadio(
+    String value,
+    String label,
+    AddPostController controller,
+  ) {
     const emeraldTheme = Color(0xFF059669);
     return Expanded(
       child: GestureDetector(
@@ -807,8 +848,11 @@ class AddPostScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Icon(Icons.keyboard_arrow_down_rounded,
-                color: const Color(0xFF94A3B8), size: 24.r),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: const Color(0xFF94A3B8),
+              size: 24.r,
+            ),
           ],
         ),
       ),
@@ -837,7 +881,7 @@ class AddPostScreen extends StatelessWidget {
                 color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, -5),
-              )
+              ),
             ],
           ),
           child: Column(
@@ -866,8 +910,11 @@ class AddPostScreen extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.close_rounded,
-                          color: Colors.grey.shade600, size: 24.r),
+                      icon: Icon(
+                        Icons.close_rounded,
+                        color: Colors.grey.shade600,
+                        size: 24.r,
+                      ),
                       onPressed: () => Navigator.pop(ctx),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
@@ -891,14 +938,18 @@ class AddPostScreen extends StatelessWidget {
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(
-                            horizontal: 24.w, vertical: 16.h),
+                          horizontal: 24.w,
+                          vertical: 16.h,
+                        ),
                         decoration: BoxDecoration(
                           color: isSelected
                               ? const Color(0xFF059669).withValues(alpha: 0.05)
                               : Colors.transparent,
                           border: Border(
                             bottom: BorderSide(
-                                color: Colors.grey.shade100, width: 1),
+                              color: Colors.grey.shade100,
+                              width: 1,
+                            ),
                           ),
                         ),
                         child: Row(

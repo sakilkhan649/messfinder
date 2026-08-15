@@ -48,7 +48,8 @@ class PostModel {
     this.isPublished = true,
     this.paymentTrxId,
     this.senderNumber,
-  }) : _preferredTenant = preferredTenant; // ignore: prefer_initializing_formals
+  }) : _preferredTenant =
+           preferredTenant; // ignore: prefer_initializing_formals
 
   String get displaySeats {
     if (seatDescription != null && seatDescription!.trim().isNotEmpty) {
@@ -72,7 +73,8 @@ class PostModel {
       division: map['division']?.toString() ?? 'Dhaka',
       district: map['district']?.toString() ?? 'Dhaka',
       bachelorType: map['bachelorType']?.toString() ?? 'male',
-      preferredTenant: map['preferredTenant']?.toString() ?? 'Student / Job holder',
+      preferredTenant:
+          map['preferredTenant']?.toString() ?? 'Student / Job holder',
       facilities: List<String>.from(map['facilities'] ?? []),
       isAvailable: map['isAvailable'] ?? true,
       createdAt: map['createdAt'] != null && map['createdAt'] is Timestamp

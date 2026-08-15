@@ -71,7 +71,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
               ),
               child: TextField(
                 textAlignVertical: TextAlignVertical.center,
-                onChanged: (val) => postController.updateSearchQuery(val),
+                onChanged: (val) => postController.updateMapSearchQuery(val),
                 style: GoogleFonts.poppins(fontSize: 14.sp, color: Colors.white),
                 cursorColor: Colors.white,
                 decoration: InputDecoration(
@@ -99,8 +99,8 @@ class _MessMapScreenState extends State<MessMapScreen> {
           return const Center(child: CircularProgressIndicator(color: emeraldTheme));
         }
 
-        // Use filteredPosts instead of allPosts so the search bar works!
-        final List<PostModel> activePosts = postController.filteredPosts
+        // Use mapFilteredPosts instead of allPosts so the search bar works!
+        final List<PostModel> activePosts = postController.mapFilteredPosts
             .where((post) => post.isPublished && post.isAvailable)
             .toList();
             

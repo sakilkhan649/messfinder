@@ -34,7 +34,7 @@ class PostController extends GetxController {
 
   // Cache for Landlord Profiles to optimize scrolling
   final Map<String, Map<String, dynamic>> landlordProfilesCache = {};
-  
+
   // Future cache to prevent concurrent identical requests
   final Map<String, Future<Map<String, dynamic>?>> _profileFetchFutures = {};
 
@@ -51,7 +51,7 @@ class PostController extends GetxController {
     if (landlordProfilesCache.containsKey(uid)) {
       return landlordProfilesCache[uid];
     }
-    
+
     // If a fetch is already in progress for this uid, await and return it
     if (_profileFetchFutures.containsKey(uid)) {
       return await _profileFetchFutures[uid];
@@ -60,12 +60,12 @@ class PostController extends GetxController {
     // Otherwise, create a new fetch Future and store it
     final fetchFuture = _fetchProfileFromFirestore(uid);
     _profileFetchFutures[uid] = fetchFuture;
-    
+
     final result = await fetchFuture;
-    
+
     // Once done, remove from pending futures
     _profileFetchFutures.remove(uid);
-    
+
     return result;
   }
 
@@ -99,7 +99,17 @@ class PostController extends GetxController {
       searchQuery.value = query;
     });
   }
-  
+
+  final RxString mapSearchQuery = ''.obs;
+  Timer? _mapSearchDebounce;
+
+  void updateMapSearchQuery(String query) {
+    if (_mapSearchDebounce?.isActive ?? false) _mapSearchDebounce!.cancel();
+    _mapSearchDebounce = Timer(const Duration(milliseconds: 500), () {
+      mapSearchQuery.value = query;
+    });
+  }
+
   final RxString selectedDivisionFilter = 'All'.obs;
   final RxString selectedDistrictFilter = 'All'.obs;
 
@@ -133,9 +143,11 @@ class PostController extends GetxController {
 
   void _updateSavedPostsList() {
     savedPosts.assignAll(
-      allPosts.where((post) => savedPostIds.contains(post.postId)).toList()
+      allPosts.where((post) => savedPostIds.contains(post.postId)).toList(),
     );
-    AppLogger.i('DEBUG: _updateSavedPostsList called. allPosts=${allPosts.length}, savedIds=${savedPostIds.length}, result=${savedPosts.length}');
+    AppLogger.i(
+      'DEBUG: _updateSavedPostsList called. allPosts=${allPosts.length}, savedIds=${savedPostIds.length}, result=${savedPosts.length}',
+    );
   }
 
   @override
@@ -164,7 +176,7 @@ class PostController extends GetxController {
     isLoading.value = true;
     try {
       // Demo post deletion removed so they don't disappear on reload
-    } catch(e) {
+    } catch (e) {
       // Ignore error
     }
 
@@ -197,17 +209,20 @@ class PostController extends GetxController {
     lastDocument = null;
     final result = await _postRepo.getPaginatedPosts(
       limit: postLimit,
-      division: selectedDivisionFilter.value == 'All' ? null : selectedDivisionFilter.value,
-      district: selectedDistrictFilter.value == 'All' ? null : selectedDistrictFilter.value,
+      division: selectedDivisionFilter.value == 'All'
+          ? null
+          : selectedDivisionFilter.value,
+      district: selectedDistrictFilter.value == 'All'
+          ? null
+          : selectedDistrictFilter.value,
     );
     final List<PostModel> fetchedPosts = result['posts'] as List<PostModel>;
     lastDocument = result['lastDocument'] as DocumentSnapshot?;
-    
+
     if (fetchedPosts.length < postLimit) {
       hasMorePosts.value = false;
     }
 
-    
     allPosts.assignAll(fetchedPosts);
     _updateSavedPostsList();
     isLoading.value = false;
@@ -229,23 +244,26 @@ class PostController extends GetxController {
     final result = await _postRepo.getPaginatedPosts(
       limit: postLimit,
       startAfter: lastDocument,
-      division: selectedDivisionFilter.value == 'All' ? null : selectedDivisionFilter.value,
-      district: selectedDistrictFilter.value == 'All' ? null : selectedDistrictFilter.value,
+      division: selectedDivisionFilter.value == 'All'
+          ? null
+          : selectedDivisionFilter.value,
+      district: selectedDistrictFilter.value == 'All'
+          ? null
+          : selectedDistrictFilter.value,
     );
-    
+
     final List<PostModel> newPosts = result['posts'] as List<PostModel>;
     lastDocument = result['lastDocument'] as DocumentSnapshot?;
-    
+
     if (newPosts.length < postLimit) {
       hasMorePosts.value = false;
     }
 
-    
     if (newPosts.isNotEmpty) {
       allPosts.addAll(newPosts);
       _updateSavedPostsList();
     }
-    
+
     isFetchingMore.value = false;
   }
 
@@ -323,7 +341,7 @@ class PostController extends GetxController {
           return false;
         }
       }
-      
+
       // 1. Search Query filter (title or address)
       if (searchQuery.value.isNotEmpty) {
         final query = searchQuery.value.toLowerCase();
@@ -331,7 +349,8 @@ class PostController extends GetxController {
         final matchAddress = post.address.toLowerCase().contains(query);
         final matchDistrict = post.district.toLowerCase().contains(query);
         final matchDivision = post.division.toLowerCase().contains(query);
-        if (!matchTitle && !matchAddress && !matchDistrict && !matchDivision) return false;
+        if (!matchTitle && !matchAddress && !matchDistrict && !matchDivision)
+          return false;
       }
       // 2. Gender filter
       if (selectedGenderFilter.value != 'all') {
@@ -355,6 +374,45 @@ class PostController extends GetxController {
       if (a.createdAt == null || b.createdAt == null) return 0;
       return b.createdAt!.compareTo(a.createdAt!);
     });
+
+    return filtered;
+  }
+
+  List<PostModel> get mapFilteredPosts {
+    List<PostModel> filtered = List.from(allPosts);
+
+    // Apply same filters (budget, gender, location) BUT use mapSearchQuery instead of searchQuery
+
+    // 1. Map Search Query
+    if (mapSearchQuery.value.trim().isNotEmpty) {
+      final query = mapSearchQuery.value.trim().toLowerCase();
+      filtered = filtered.where((post) {
+        return post.title.toLowerCase().contains(query) ||
+            post.address.toLowerCase().contains(query) ||
+            post.division.toLowerCase().contains(query) ||
+            post.district.toLowerCase().contains(query);
+      }).toList();
+    }
+
+    // 2. Gender
+    if (selectedGenderFilter.value != 'all') {
+      filtered = filtered.where((post) {
+        final bType = post.bachelorType.toLowerCase();
+        if (selectedGenderFilter.value == 'male') {
+          return bType.contains('male') || bType.contains('boy');
+        } else if (selectedGenderFilter.value == 'female') {
+          return bType.contains('female') || bType.contains('girl');
+        }
+        return true;
+      }).toList();
+    }
+
+    // 3. Budget
+    if (selectedBudgetFilter.value > 0) {
+      filtered = filtered.where((post) {
+        return post.rent <= selectedBudgetFilter.value;
+      }).toList();
+    }
 
     return filtered;
   }
@@ -387,10 +445,10 @@ class PostController extends GetxController {
 
     try {
       isLoading.value = true;
-      
+
       final storageService = ImgbbService();
       final List<String> finalImageUrls = [];
-      
+
       for (String path in images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
@@ -402,27 +460,27 @@ class PostController extends GetxController {
         }
       }
 
-        if (finalImageUrls.isEmpty && images.isNotEmpty) {
-          throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
-        }
+      if (finalImageUrls.isEmpty && images.isNotEmpty) {
+        throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
+      }
 
-        final newPost = PostModel(
-          postId: '',
-          ownerUid: user.uid,
-          ownerPhone: (ownerPhone != null && ownerPhone.trim().isNotEmpty)
-              ? ownerPhone.trim()
-              : user.phone,
-          title: title,
-          rent: rent,
-          address: address,
-          latitude: latitude,
-          longitude: longitude,
-          images: finalImageUrls,
-          seatCount: seatCount,
-          seatDescription: seatDescription,
-          division: division,
-          district: district,
-          bachelorType: bachelorType,
+      final newPost = PostModel(
+        postId: '',
+        ownerUid: user.uid,
+        ownerPhone: (ownerPhone != null && ownerPhone.trim().isNotEmpty)
+            ? ownerPhone.trim()
+            : user.phone,
+        title: title,
+        rent: rent,
+        address: address,
+        latitude: latitude,
+        longitude: longitude,
+        images: finalImageUrls,
+        seatCount: seatCount,
+        seatDescription: seatDescription,
+        division: division,
+        district: district,
+        bachelorType: bachelorType,
         preferredTenant: preferredTenant,
         facilities: facilities,
         isAvailable: true,
@@ -434,23 +492,26 @@ class PostController extends GetxController {
       );
 
       await _postRepo.addPost(newPost);
-      
+
       // Broadcast push notification to bachelors (and others) about the new room
       try {
         final loc = address.split(',').first;
         final titleStr = 'New Room Available! 🏠';
-        final bodyStr = 'A new $bachelorType room is available in $loc. Rent: $rent';
-        
-        NotificationService().storeNotification(AppNotificationModel(
-          id: '',
-          title: titleStr,
-          body: bodyStr,
-          type: NotificationType.newPost,
-          receiverUid: 'all',
-          senderUid: user.uid,
-          createdAt: DateTime.now(),
-        ));
-        
+        final bodyStr =
+            'A new $bachelorType room is available in $loc. Rent: $rent';
+
+        NotificationService().storeNotification(
+          AppNotificationModel(
+            id: '',
+            title: titleStr,
+            body: bodyStr,
+            type: NotificationType.newPost,
+            receiverUid: 'all',
+            senderUid: user.uid,
+            createdAt: DateTime.now(),
+          ),
+        );
+
         NotificationService().sendPushToTopic(
           topic: 'all_users',
           title: titleStr,
@@ -462,7 +523,7 @@ class PostController extends GetxController {
       }
 
       await fetchInitialPosts();
-      
+
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());
@@ -476,11 +537,11 @@ class PostController extends GetxController {
   Future<bool> updateMessPost(PostModel updatedPost) async {
     try {
       isLoading.value = true;
-      
+
       final storageService = ImgbbService();
       final List<String> finalImageUrls = [];
       bool anyLocalUploadFailed = false;
-      
+
       for (String path in updatedPost.images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
@@ -493,7 +554,7 @@ class PostController extends GetxController {
           }
         }
       }
-      
+
       // Only fail if there are no images at all after processing
       if (finalImageUrls.isEmpty) {
         throw 'Failed to upload images. Please check your internet connection.';
@@ -502,7 +563,7 @@ class PostController extends GetxController {
       if (anyLocalUploadFailed) {
         ApiChecker.showError('Some images failed to upload and were skipped.');
       }
-      
+
       await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls));
       return true;
     } catch (e) {
