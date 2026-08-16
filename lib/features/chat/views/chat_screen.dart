@@ -6,6 +6,7 @@ import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:mess_finder/features/chat/views/widgets/video_player_widget.dart';
 
 class ChatScreen extends StatelessWidget {
   final String chatRoomId;
@@ -154,7 +155,7 @@ class ChatScreen extends StatelessWidget {
                       final message = messages[index];
                       final isMe =
                           message.senderId == _chatController.currentUserId;
-                      final isEmojiOnly = _isEmojiOnly(message.text) && message.imageUrl == null && message.stickerUrl == null && !message.isDeleted;
+                      final isEmojiOnly = _isEmojiOnly(message.text) && message.imageUrl == null && message.videoUrl == null && message.stickerUrl == null && !message.isDeleted;
 
                       return GestureDetector(
                         onLongPressStart: !message.isDeleted
@@ -324,6 +325,16 @@ class ChatScreen extends StatelessWidget {
                                                                              Icons.error,
                                                                            ),
                                                                  ),
+                                                               ),
+                                                             ),
+                                                           if (message.videoUrl != null)
+                                                             Padding(
+                                                               padding: EdgeInsets.only(
+                                                                 bottom: 8.h,
+                                                               ),
+                                                               child: ClipRRect(
+                                                                 borderRadius: BorderRadius.circular(12.r),
+                                                                 child: VideoPlayerWidget(videoUrl: message.videoUrl!),
                                                                ),
                                                              ),
                                                            if (message.text.isNotEmpty)

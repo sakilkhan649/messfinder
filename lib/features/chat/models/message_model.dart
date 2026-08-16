@@ -5,6 +5,7 @@ class MessageModel {
   final String senderId;
   final String text;
   final String? imageUrl;
+  final String? videoUrl;
   final DateTime? createdAt;
   final bool isRead;
   final bool isEdited;
@@ -17,6 +18,7 @@ class MessageModel {
     required this.senderId,
     required this.text,
     this.imageUrl,
+    this.videoUrl,
     this.createdAt,
     this.isRead = false,
     this.isEdited = false,
@@ -25,12 +27,13 @@ class MessageModel {
     this.stickerUrl,
   });
 
-  factory MessageModel.fromMap(Map<String, dynamic> map, String docId) {
+  factory MessageModel.fromMap(Map<String, dynamic> map, String id) {
     return MessageModel(
-      id: docId,
+      id: id,
       senderId: map['senderId']?.toString() ?? '',
       text: map['text']?.toString() ?? '',
       imageUrl: map['imageUrl']?.toString(),
+      videoUrl: map['videoUrl']?.toString(),
       createdAt: map['createdAt'] != null && map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
           : null,
@@ -47,6 +50,7 @@ class MessageModel {
       'senderId': senderId,
       'text': text,
       if (imageUrl != null) 'imageUrl': imageUrl,
+      if (videoUrl != null) 'videoUrl': videoUrl,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'isRead': isRead,
       'isEdited': isEdited,

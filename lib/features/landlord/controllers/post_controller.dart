@@ -432,6 +432,7 @@ class PostController extends GetxController {
     String preferredTenant = 'Student / Job holder',
     required List<String> facilities,
     required List<String> images,
+    String? videoPath,
     String? trxId,
     String? senderNumber,
     double latitude = 23.8103,
@@ -465,6 +466,15 @@ class PostController extends GetxController {
         throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
       }
 
+      String? uploadedVideoUrl;
+      if (videoPath != null && videoPath.isNotEmpty) {
+        if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
+          uploadedVideoUrl = videoPath;
+        } else {
+          uploadedVideoUrl = await storageService.uploadVideo(videoPath);
+        }
+      }
+
       final newPost = PostModel(
         postId: '',
         ownerUid: user.uid,
@@ -477,6 +487,7 @@ class PostController extends GetxController {
         latitude: latitude,
         longitude: longitude,
         images: finalImageUrls,
+        videoUrl: uploadedVideoUrl,
         seatCount: seatCount,
         seatDescription: seatDescription,
         division: division,
@@ -535,7 +546,7 @@ class PostController extends GetxController {
   }
 
   // Update an existing Mess Post
-  Future<bool> updateMessPost(PostModel updatedPost) async {
+  Future<bool> updateMessPost(PostModel updatedPost, {String? newVideoPath}) async {
     try {
       isLoading.value = true;
 
@@ -565,7 +576,19 @@ class PostController extends GetxController {
         ApiChecker.showError('Some images failed to upload and were skipped.');
       }
 
-      await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls));
+      String? finalVideoUrl = updatedPost.videoUrl;
+      if (newVideoPath != null && newVideoPath.isNotEmpty) {
+        if (newVideoPath.startsWith('http://') || newVideoPath.startsWith('https://')) {
+          finalVideoUrl = newVideoPath;
+        } else {
+          final uploadedUrl = await storageService.uploadVideo(newVideoPath);
+          if (uploadedUrl != null) {
+            finalVideoUrl = uploadedUrl;
+          }
+        }
+      }
+
+      await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls, videoUrl: finalVideoUrl));
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());

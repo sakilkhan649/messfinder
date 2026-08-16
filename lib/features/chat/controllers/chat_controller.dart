@@ -100,8 +100,8 @@ class ChatController extends GetxController {
 
   final RxBool isSending = false.obs;
 
-  Future<void> sendMessage(String chatRoomId, String text, String targetUserId, {String? imageUrl}) async {
-    if (text.trim().isEmpty && imageUrl == null) return;
+  Future<void> sendMessage(String chatRoomId, String text, String targetUserId, {String? imageUrl, String? videoUrl}) async {
+    if (text.trim().isEmpty && imageUrl == null && videoUrl == null) return;
 
     try {
       isSending.value = true;
@@ -116,6 +116,7 @@ class ChatController extends GetxController {
         senderId: currentUserId,
         text: text.trim(),
         imageUrl: imageUrl,
+        videoUrl: videoUrl,
         // Omit createdAt to use FieldValue.serverTimestamp() in toMap()
       );
 
@@ -125,9 +126,14 @@ class ChatController extends GetxController {
       batch.set(messageRef, message.toMap());
       
       final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-      final lastMsgText = imageUrl != null
-          ? (message.text.isNotEmpty ? '📷 ${message.text}' : '📷 Image')
-          : message.text;
+      final String lastMsgText;
+      if (videoUrl != null) {
+        lastMsgText = text.isNotEmpty ? '🎥 ${text.trim()}' : '🎥 Video';
+      } else if (imageUrl != null) {
+        lastMsgText = text.isNotEmpty ? '📷 ${text.trim()}' : '📷 Image';
+      } else {
+        lastMsgText = text;
+      }
 
       batch.update(chatRef, {
         'lastMessage': lastMsgText,
@@ -141,9 +147,14 @@ class ChatController extends GetxController {
       // Send Push Notification (Fire and forget so it doesn't block UI)
       try {
         final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
-        final messagePreview = imageUrl != null 
-            ? (text.trim().isNotEmpty ? '📷 ${text.trim()}' : '📷 Sent an image') 
-            : text.trim();
+        final String messagePreview;
+        if (videoUrl != null) {
+          messagePreview = text.isNotEmpty ? '🎥 ${text.trim()}' : '🎥 Sent a video';
+        } else if (imageUrl != null) {
+          messagePreview = text.isNotEmpty ? '📷 ${text.trim()}' : '📷 Sent an image';
+        } else {
+          messagePreview = text.trim();
+        }
         NotificationService().sendAndStore(
           receiverUid: targetUserId,
           title: 'New Message from $currentUserName',
@@ -283,6 +294,35 @@ class ChatController extends GetxController {
       }
     } catch (e) {
       Get.snackbar('Error', 'Failed to send images: $e');
+    } finally {
+      isSending.value = false;
+    }
+  }
+
+  Future<void> sendVideoMessage(String chatRoomId, String targetUserId) async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+    if (video == null) return;
+    
+    Get.snackbar(
+      'Uploading...',
+      'Please wait while your video is being uploaded.',
+      snackPosition: SnackPosition.TOP,
+      duration: const Duration(seconds: 3),
+    );
+    
+    isSending.value = true;
+    try {
+      final imgbbService = Get.put(ImgbbService());
+      final videoUrl = await imgbbService.uploadVideo(video.path);
+      
+      if (videoUrl != null) {
+        await sendMessage(chatRoomId, '', targetUserId, videoUrl: videoUrl);
+      } else {
+        Get.snackbar('Error', 'Failed to upload video');
+      }
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to send video: $e');
     } finally {
       isSending.value = false;
     }

@@ -24,6 +24,7 @@ class AddPostController extends GetxController {
 
   final ImagePicker _picker = ImagePicker();
   final RxList<XFile> pickedLocalImages = <XFile>[].obs;
+  final RxString pickedLocalVideo = ''.obs;
 
   final RxString bachelorType = 'male'.obs;
   final RxString preferredTenant = 'Student / Job holder'.obs;
@@ -71,6 +72,7 @@ class AddPostController extends GetxController {
     seatDescController.clear();
     phoneController.clear();
     pickedLocalImages.clear();
+    pickedLocalVideo.value = '';
     selectedFacilities.clear();
     selectedFacilities.addAll(['WiFi', '24/7 Water']);
     selectedDivision.value = 'Dhaka';
@@ -98,6 +100,23 @@ class AddPostController extends GetxController {
       Get.snackbar(
         'Error',
         'Failed to pick images from gallery.',
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
+  }
+
+  Future<void> pickVideoFromGallery() async {
+    try {
+      final XFile? video = await _picker.pickVideo(source: ImageSource.gallery);
+      if (video != null) {
+        pickedLocalVideo.value = video.path;
+      }
+    } catch (e) {
+      Get.snackbar(
+        'Error',
+        'Failed to pick video from gallery.',
         backgroundColor: Colors.red,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
@@ -158,7 +177,7 @@ class AddPostController extends GetxController {
         latitude: selectedLocation.value.latitude,
         longitude: selectedLocation.value.longitude,
       );
-      final success = await postCtrl.updateMessPost(updatedPost);
+      final success = await postCtrl.updateMessPost(updatedPost, newVideoPath: pickedLocalVideo.value);
       if (success) {
         Get.back();
         // Delay slightly so the snackbar doesn't get dismissed by any lingering transitions
@@ -192,6 +211,7 @@ class AddPostController extends GetxController {
         longitude: selectedLocation.value.longitude,
         senderNumber: senderNumber,
         trxId: trxId,
+        videoPath: pickedLocalVideo.value,
       );
       if (success) {
         if (onPostAdded != null) {

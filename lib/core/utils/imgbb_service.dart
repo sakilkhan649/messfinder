@@ -70,6 +70,47 @@ class ImgbbService {
     }
   }
 
+  /// Uploads a video to Cloudinary
+  Future<String?> uploadVideo(String filePath) async {
+    try {
+      final File file = File(filePath);
+      if (!file.existsSync()) {
+        AppLogger.e('Video file does not exist: $filePath', null, null, 'CLOUDINARY_SVC');
+        return null;
+      }
+
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('https://api.cloudinary.com/v1_1/$_cloudinaryCloudName/video/upload'),
+      );
+      
+      request.fields['upload_preset'] = _uploadPreset;
+      
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+        ),
+      );
+
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+      var jsonResponse = json.decode(responseData);
+
+      if (response.statusCode == 200 && jsonResponse['secure_url'] != null) {
+        String downloadUrl = jsonResponse['secure_url'];
+        AppLogger.s('Cloudinary Video Upload Success: $downloadUrl', tag: 'CLOUDINARY_SVC');
+        return downloadUrl;
+      } else {
+        AppLogger.e('Cloudinary Video Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'CLOUDINARY_SVC');
+        return null;
+      }
+    } catch (e, stackTrace) {
+      AppLogger.e('Failed to upload video to Cloudinary: $e', e, stackTrace, 'CLOUDINARY_SVC');
+      return null;
+    }
+  }
+
   /// Compresses the image and returns a temporary file
   Future<File?> _compressImage(File file) async {
     try {

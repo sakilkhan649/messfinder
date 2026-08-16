@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../chat/views/widgets/video_player_widget.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/models/user_model.dart';
@@ -583,25 +584,30 @@ class _MyPostCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                child: post.images.isNotEmpty
+                child: post.videoUrl != null && post.videoUrl!.isNotEmpty
                     ? SizedBox(
-                        height: 180.h,
-                        child: FacebookImageGrid(
-                          images: post.images,
-                          borderRadius: 0,
-                        ),
+                        height: 250.h,
+                        child: VideoPlayerWidget(videoUrl: post.videoUrl!),
                       )
-                    : Container(
-                        height: 180.h,
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: Icon(
-                            Icons.home_work_rounded,
-                            size: 50.r,
-                            color: Colors.grey.shade400,
+                    : post.images.isNotEmpty
+                        ? SizedBox(
+                            height: 180.h,
+                            child: FacebookImageGrid(
+                              images: post.images,
+                              borderRadius: 0,
+                            ),
+                          )
+                        : Container(
+                            height: 180.h,
+                            color: Colors.grey.shade200,
+                            child: Center(
+                              child: Icon(
+                                Icons.home_work_rounded,
+                                size: 50.r,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
               ),
               // Dark subtle gradient at bottom of photo
               Positioned.fill(

@@ -19,6 +19,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../profile/views/public_profile_screen.dart';
+import '../../chat/views/widgets/video_player_widget.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
@@ -380,6 +381,15 @@ class RoomDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 16.h),
+                            child: SizedBox(
+                              height: 250.h,
+                              width: double.infinity,
+                              child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                            ),
+                          ),
                         // Title & Location
                         Text(
                           post.title,

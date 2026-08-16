@@ -74,4 +74,35 @@ class FirebaseStorageService {
       return file; // Return original file as fallback
     }
   }
+
+  /// Uploads a video to Firebase Storage
+  /// Returns the download URL if successful, otherwise null
+  Future<String?> uploadVideo(String filePath) async {
+    try {
+      final File file = File(filePath);
+      if (!file.existsSync()) {
+        AppLogger.e('File does not exist: $filePath', null, null, 'STORAGE_SVC');
+        return null;
+      }
+
+      // 1. Generate unique file name
+      final String fileName = '${_uuid.v4()}.mp4';
+      final Reference ref = _storage.ref().child('chat_videos').child(fileName);
+
+      // 2. Upload to Firebase Storage
+      final UploadTask uploadTask = ref.putFile(
+        file,
+        SettableMetadata(contentType: 'video/mp4'),
+      );
+      final TaskSnapshot snapshot = await uploadTask;
+
+      // 3. Get Download URL
+      final String downloadUrl = await snapshot.ref.getDownloadURL();
+
+      return downloadUrl;
+    } catch (e) {
+      AppLogger.e('Failed to upload video: $e', e, null, 'STORAGE_SVC');
+      return null;
+    }
+  }
 }

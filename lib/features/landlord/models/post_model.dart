@@ -9,6 +9,7 @@ class PostModel {
   final double latitude;
   final double longitude;
   final List<String> images;
+  final String? videoUrl;
   final int seatCount;
   final String? seatDescription; // Custom input e.g. "1 Room & 2 Seats"
   final String division;
@@ -34,6 +35,7 @@ class PostModel {
     required this.latitude,
     required this.longitude,
     required this.images,
+    this.videoUrl,
     required this.seatCount,
     this.seatDescription,
     required this.division,
@@ -67,6 +69,7 @@ class PostModel {
       latitude: (map['latitude'] ?? 23.8103).toDouble(),
       longitude: (map['longitude'] ?? 90.4125).toDouble(),
       images: List<String>.from(map['images'] ?? []),
+      videoUrl: map['videoUrl']?.toString(),
       seatCount: map['seatCount'] ?? 1,
       seatDescription: map['seatDescription']?.toString(),
       division: map['division']?.toString() ?? 'Dhaka',
@@ -97,6 +100,7 @@ class PostModel {
       'latitude': latitude,
       'longitude': longitude,
       'images': images,
+      'videoUrl': videoUrl,
       'seatCount': seatCount,
       'seatDescription': seatDescription,
       'division': division,
@@ -125,6 +129,7 @@ class PostModel {
     double? latitude,
     double? longitude,
     List<String>? images,
+    String? videoUrl,
     int? seatCount,
     String? seatDescription,
     String? division,
@@ -148,6 +153,7 @@ class PostModel {
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
       images: images ?? this.images,
+      videoUrl: videoUrl ?? this.videoUrl,
       seatCount: seatCount ?? this.seatCount,
       seatDescription: seatDescription ?? this.seatDescription,
       division: division ?? this.division,

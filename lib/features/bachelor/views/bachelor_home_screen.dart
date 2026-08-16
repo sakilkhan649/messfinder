@@ -13,12 +13,18 @@ import 'room_detail_screen.dart';
 import 'widgets/facebook_image_grid.dart';
 import '../../../core/services/location_service.dart';
 import '../../profile/views/public_profile_screen.dart';
+import '../../chat/views/widgets/video_player_widget.dart';
 
-class BachelorHomeScreen extends StatelessWidget {
+class BachelorHomeScreen extends StatefulWidget {
   final UserModel user;
 
   const BachelorHomeScreen({super.key, required this.user});
 
+  @override
+  State<BachelorHomeScreen> createState() => _BachelorHomeScreenState();
+}
+
+class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final postController = Get.find<PostController>();
@@ -1113,7 +1119,15 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                   ),
                 ),
 
-                // ── 3. Post Image ──────────────────────────────────────────────────
+                // ── 3. Post Video & Images ──────────────────────────────────────────────────
+                if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
+                  SizedBox(
+                    height: 250.h,
+                    width: double.infinity,
+                    child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                  ),
+                if (post.videoUrl != null && post.images.isNotEmpty)
+                  SizedBox(height: 8.h),
                 Stack(
                   children: [
                     SizedBox(

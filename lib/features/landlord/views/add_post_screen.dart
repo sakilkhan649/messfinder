@@ -673,6 +673,117 @@ class AddPostScreen extends StatelessWidget {
                   }
                   return const SizedBox.shrink();
                 }),
+                SizedBox(height: 24.h),
+
+                // Section 5: Video Selection (Optional)
+                _buildSectionHeader(
+                  Icons.videocam_rounded,
+                  'Room Video (Optional)',
+                ),
+                SizedBox(height: 12.h),
+
+                GestureDetector(
+                  onTap: controller.pickVideoFromGallery,
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 20.h),
+                    decoration: BoxDecoration(
+                      color: emeraldTheme.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(16.r),
+                      border: Border.all(
+                        color: emeraldTheme.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(12.r),
+                          decoration: BoxDecoration(
+                            color: emeraldTheme.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.video_collection_rounded,
+                            color: emeraldTheme,
+                            size: 32.r,
+                          ),
+                        ),
+                        SizedBox(height: 10.h),
+                        Text(
+                          'Tap to Upload a Room Video',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                            color: emeraldTheme,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          'A video gives bachelors a better view',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.5.sp,
+                            color: const Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(height: 14.h),
+
+                // Display selected local video or existing video
+                Obx(() {
+                  if (controller.pickedLocalVideo.value.isNotEmpty) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.video_file, color: emeraldTheme, size: 24.r),
+                            SizedBox(width: 8.w),
+                            Text(
+                              'Video Selected',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        GestureDetector(
+                          onTap: () => controller.pickedLocalVideo.value = '',
+                          child: Text(
+                            'Remove',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.errorColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  } else if (controller.isEditing && existingPost!.videoUrl != null) {
+                    return Row(
+                      children: [
+                        Icon(Icons.check_circle, color: emeraldTheme, size: 20.r),
+                        SizedBox(width: 8.w),
+                        Text(
+                          'Existing video attached',
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return const SizedBox.shrink();
+                }),
                 SizedBox(height: 32.h),
 
                 // Submit Button
