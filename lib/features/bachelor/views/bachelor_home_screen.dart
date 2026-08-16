@@ -12,6 +12,7 @@ import '../../notifications/views/widgets/notification_bell_action.dart';
 import 'room_detail_screen.dart';
 import 'widgets/facebook_image_grid.dart';
 import '../../../core/services/location_service.dart';
+import '../../profile/views/public_profile_screen.dart';
 
 class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
@@ -229,7 +230,7 @@ class BachelorHomeScreen extends StatelessWidget {
 
               return SliverList(
                 delegate: SliverChildBuilderDelegate((context, index) {
-                  return _BachelorPostCard(post: posts[index]);
+                  return BachelorPostCard(post: posts[index]);
                 }, childCount: posts.length),
               );
             }),
@@ -792,16 +793,16 @@ class BachelorHomeScreen extends StatelessWidget {
   }
 }
 
-class _BachelorPostCard extends StatefulWidget {
+class BachelorPostCard extends StatefulWidget {
   final PostModel post;
 
-  const _BachelorPostCard({required this.post});
+  const BachelorPostCard({required this.post});
 
   @override
-  State<_BachelorPostCard> createState() => _BachelorPostCardState();
+  State<BachelorPostCard> createState() => BachelorPostCardState();
 }
 
-class _BachelorPostCardState extends State<_BachelorPostCard> {
+class BachelorPostCardState extends State<BachelorPostCard> {
   String name = 'Loading...';
   String? profilePic;
   bool isPaid = false;
@@ -861,8 +862,12 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // ── 1. Facebook Style Header (Landlord Profile) ──────────────────
-                Padding(
-                  padding: EdgeInsets.all(16.r),
+                GestureDetector(
+                  onTap: () {
+                    Get.to(() => PublicProfileScreen(userId: post.ownerUid));
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(16.r),
                   child: Row(
                     children: [
                       CircleAvatar(
@@ -913,6 +918,7 @@ class _BachelorPostCardState extends State<_BachelorPostCard> {
                       ),
                     ],
                   ),
+                ),
                 ),
 
                 // ── 2. Post Text Content ──────────────────────────────────────────

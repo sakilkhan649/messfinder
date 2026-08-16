@@ -18,6 +18,7 @@ import '../../chat/views/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import '../../profile/views/public_profile_screen.dart';
 
 class RoomDetailScreen extends StatelessWidget {
   final PostModel post;
@@ -648,8 +649,12 @@ class RoomDetailScreen extends StatelessWidget {
                             final photoUrl = profile?['photoUrl']?.toString();
                             final isPaid = profile?['isPaid'] ?? false;
 
-                            return Container(
-                              padding: EdgeInsets.all(16.r),
+                            return GestureDetector(
+                              onTap: () {
+                                Get.to(() => PublicProfileScreen(userId: post.ownerUid));
+                              },
+                              child: Container(
+                                padding: EdgeInsets.all(16.r),
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16.r),
@@ -765,6 +770,7 @@ class RoomDetailScreen extends StatelessWidget {
                                   ),
                                 ],
                               ),
+                            ),
                             );
                           },
                         ),
