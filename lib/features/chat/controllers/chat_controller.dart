@@ -138,13 +138,13 @@ class ChatController extends GetxController {
 
       await batch.commit();
       
-      // Send Push Notification
+      // Send Push Notification (Fire and forget so it doesn't block UI)
       try {
         final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
         final messagePreview = imageUrl != null 
             ? (text.trim().isNotEmpty ? '📷 ${text.trim()}' : '📷 Sent an image') 
             : text.trim();
-        await NotificationService().sendAndStore(
+        NotificationService().sendAndStore(
           receiverUid: targetUserId,
           title: 'New Message from $currentUserName',
           body: messagePreview,
@@ -152,7 +152,9 @@ class ChatController extends GetxController {
           senderUid: currentUserId,
           relatedId: chatRoomId,
           extraData: {'type': 'chat', 'chatRoomId': chatRoomId},
-        );
+        ).catchError((e) {
+          debugPrint('Notification error: $e');
+        });
       } catch (e) {
         // ignore notification errors
       }
@@ -315,6 +317,88 @@ class ChatController extends GetxController {
       });
     } catch (e) {
       Get.snackbar('Error', 'Failed to delete message');
+    }
+  }
+
+  Future<void> toggleReaction(String chatRoomId, String messageId, String emoji) async {
+    try {
+      final docRef = _firestore
+          .collection(ApiConstants.chatsCollection)
+          .doc(chatRoomId)
+          .collection(ApiConstants.messagesCollection)
+          .doc(messageId);
+
+      final docSnap = await docRef.get();
+      if (!docSnap.exists) return;
+      
+      final data = docSnap.data();
+      Map<String, dynamic> reactions = data?['reactions'] != null 
+          ? Map<String, dynamic>.from(data!['reactions']) 
+          : {};
+
+      if (reactions[currentUserId] == emoji) {
+        // If the same emoji is clicked, remove the reaction
+        reactions.remove(currentUserId);
+      } else {
+        // Add or update the reaction
+        reactions[currentUserId] = emoji;
+      }
+
+      await docRef.update({
+        'reactions': reactions.isEmpty ? FieldValue.delete() : reactions,
+      });
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to update reaction');
+    }
+  }
+
+  Future<void> sendSticker(String chatRoomId, String targetUserId, String stickerUrl) async {
+    try {
+      isSending.value = true;
+      final messageRef = _firestore
+          .collection(ApiConstants.chatsCollection)
+          .doc(chatRoomId)
+          .collection(ApiConstants.messagesCollection)
+          .doc();
+
+      final message = MessageModel(
+        id: messageRef.id,
+        senderId: currentUserId,
+        text: '',
+        stickerUrl: stickerUrl,
+      );
+
+      final batch = _firestore.batch();
+      batch.set(messageRef, message.toMap());
+      
+      final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
+      
+      batch.update(chatRef, {
+        'lastMessage': 'Sent a sticker',
+        'lastMessageTime': FieldValue.serverTimestamp(),
+        'lastSenderId': currentUserId,
+        'unreadCounts.$targetUserId': FieldValue.increment(1),
+      });
+
+      await batch.commit();
+      
+      // Send Push Notification
+      try {
+        final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
+        await NotificationService().sendAndStore(
+          receiverUid: targetUserId,
+          title: 'New Message from $currentUserName',
+          body: 'Sent a sticker',
+          type: NotificationType.general,
+          senderUid: currentUserId,
+          relatedId: chatRoomId,
+          extraData: {'type': 'chat', 'chatRoomId': chatRoomId},
+        );
+      } catch (e) {
+        // ignore notification errors
+      }
+    } finally {
+      isSending.value = false;
     }
   }
 

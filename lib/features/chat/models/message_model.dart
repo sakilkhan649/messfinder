@@ -9,6 +9,8 @@ class MessageModel {
   final bool isRead;
   final bool isEdited;
   final bool isDeleted;
+  final Map<String, String>? reactions;
+  final String? stickerUrl;
 
   MessageModel({
     required this.id,
@@ -19,6 +21,8 @@ class MessageModel {
     this.isRead = false,
     this.isEdited = false,
     this.isDeleted = false,
+    this.reactions,
+    this.stickerUrl,
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map, String docId) {
@@ -33,6 +37,8 @@ class MessageModel {
       isRead: map['isRead'] ?? false,
       isEdited: map['isEdited'] ?? false,
       isDeleted: map['isDeleted'] ?? false,
+      reactions: map['reactions'] != null ? Map<String, String>.from(map['reactions']) : null,
+      stickerUrl: map['stickerUrl']?.toString(),
     );
   }
 
@@ -45,6 +51,8 @@ class MessageModel {
       'isRead': isRead,
       'isEdited': isEdited,
       'isDeleted': isDeleted,
+      if (reactions != null) 'reactions': reactions,
+      if (stickerUrl != null) 'stickerUrl': stickerUrl,
     };
   }
 }

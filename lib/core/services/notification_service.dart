@@ -186,7 +186,7 @@ class NotificationService {
       
       final response = await http.post(
         Uri.parse(vercelUrl),
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
         body: jsonEncode({
           'receiverUid': receiverUid,
           'title': title,
