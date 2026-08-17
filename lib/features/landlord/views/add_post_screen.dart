@@ -15,12 +15,14 @@ class AddPostScreen extends StatelessWidget {
   final PostModel? existingPost;
   final bool showBackButton;
   final VoidCallback? onPostAdded;
+  final String? customTag;
 
   const AddPostScreen({
     super.key,
     this.existingPost,
     this.showBackButton = true,
     this.onPostAdded,
+    this.customTag,
   });
 
   InputDecoration _buildInputDecoration({
@@ -68,7 +70,10 @@ class AddPostScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tag = existingPost?.postId ?? 'new';
+    final tag = customTag ??
+        (existingPost != null
+            ? 'edit_${existingPost!.postId}'
+            : (showBackButton ? 'new_standalone' : 'new_home'));
     final controller = Get.put(
       AddPostController(existingPost: existingPost, onPostAdded: onPostAdded),
       tag: tag,

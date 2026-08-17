@@ -34,6 +34,7 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
       const MessMapScreen(),
       AddPostScreen(
         showBackButton: false,
+        customTag: 'new_home',
         onPostAdded: () {
           _currentIndex.value = 0;
           _isBottomNavVisible.value = true;

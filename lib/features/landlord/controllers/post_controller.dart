@@ -201,27 +201,38 @@ class PostController extends GetxController {
       ever(auth.currentUser, (user) {
         _loadSavedPostsFromLocal();
         if (user != null) {
-          _fetchMyPosts();
+          fetchMyPosts();
         } else {
           myPosts.clear();
         }
       });
       if (auth.currentUser.value != null) {
-        _fetchMyPosts();
+        fetchMyPosts();
       }
     }
   }
 
-  Future<void> _fetchMyPosts() async {
-    if (Get.isRegistered<AuthController>()) {
-      final auth = Get.find<AuthController>();
-      if (auth.currentUser.value == null) {
-        myPosts.clear();
-        return;
+  Future<void> fetchMyPosts() async {
+    try {
+      if (Get.isRegistered<AuthController>()) {
+        final auth = Get.find<AuthController>();
+        if (auth.currentUser.value == null) {
+          myPosts.clear();
+          return;
+        }
       }
+      final posts = await _postRepo.getLandlordPosts();
+      myPosts.assignAll(posts);
+    } catch (e) {
+      debugPrint('Error in fetchMyPosts: $e');
     }
-    final posts = await _postRepo.getLandlordPosts();
-    myPosts.assignAll(posts);
+  }
+
+  Future<void> refreshPosts() async {
+    await Future.wait([
+      fetchInitialPosts(),
+      fetchMyPosts(),
+    ]);
   }
 
   Future<void> fetchInitialPosts() async {
@@ -297,10 +308,6 @@ class PostController extends GetxController {
   void onClose() {
     _searchDebounce?.cancel();
     super.onClose();
-  }
-
-  Future<void> refreshPosts() async {
-    await _initPosts();
   }
 
   Future<void> _loadSavedPostsFromLocal() async {
@@ -526,7 +533,10 @@ class PostController extends GetxController {
         // ignore notification errors
       }
 
-      await fetchInitialPosts();
+      await Future.wait([
+        fetchInitialPosts(),
+        fetchMyPosts(),
+      ]);
 
       return true;
     } catch (e) {
@@ -580,7 +590,22 @@ class PostController extends GetxController {
         }
       }
 
-      await _postRepo.updatePost(updatedPost.copyWith(images: finalImageUrls, videoUrl: finalVideoUrl));
+      final finalPost = updatedPost.copyWith(images: finalImageUrls, videoUrl: finalVideoUrl);
+
+      // Instant optimistic UI update
+      final myIdx = myPosts.indexWhere((p) => p.postId == finalPost.postId);
+      if (myIdx != -1) {
+        myPosts[myIdx] = finalPost;
+        myPosts.refresh();
+      }
+      final allIdx = allPosts.indexWhere((p) => p.postId == finalPost.postId);
+      if (allIdx != -1) {
+        allPosts[allIdx] = finalPost;
+        allPosts.refresh();
+      }
+
+      await _postRepo.updatePost(finalPost);
+      fetchMyPosts();
       return true;
     } catch (e) {
       ApiChecker.showError(e.toString());
@@ -592,22 +617,41 @@ class PostController extends GetxController {
 
   // Delete Mess Post
   Future<void> deleteMessPost(String postId) async {
+    // Instant optimistic removal from UI
+    myPosts.removeWhere((p) => p.postId == postId);
+    allPosts.removeWhere((p) => p.postId == postId);
+    savedPostIds.remove(postId);
+    _updateSavedPostsList();
     try {
       await _postRepo.deletePost(postId);
       ApiChecker.showSuccess('Room listing deleted successfully');
     } catch (e) {
+      fetchMyPosts();
       ApiChecker.showError(e.toString());
     }
   }
 
   // Toggle availability
   Future<void> togglePostStatus(String postId, bool currentStatus) async {
+    final newStatus = !currentStatus;
+    // Instant optimistic update in memory
+    final myIdx = myPosts.indexWhere((p) => p.postId == postId);
+    if (myIdx != -1) {
+      myPosts[myIdx] = myPosts[myIdx].copyWith(isAvailable: newStatus);
+      myPosts.refresh();
+    }
+    final allIdx = allPosts.indexWhere((p) => p.postId == postId);
+    if (allIdx != -1) {
+      allPosts[allIdx] = allPosts[allIdx].copyWith(isAvailable: newStatus);
+      allPosts.refresh();
+    }
     try {
       await _postRepo.toggleAvailability(postId, currentStatus);
       ApiChecker.showSuccess(
         currentStatus ? 'Listing deactivated' : 'Listing activated',
       );
     } catch (e) {
+      fetchMyPosts();
       ApiChecker.showError(e.toString());
     }
   }

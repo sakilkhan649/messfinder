@@ -8,7 +8,6 @@ import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/models/user_model.dart';
 import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
-import '../../landlord/controllers/add_post_controller.dart';
 import '../../landlord/views/add_post_screen.dart';
 import '../../bachelor/views/widgets/facebook_image_grid.dart';
 
@@ -17,13 +16,11 @@ class MyPostsScreen extends StatelessWidget {
 
   const MyPostsScreen({super.key, required this.user});
 
-  void _onAddPostPressed(BuildContext context) {
-    // Delete any existing controller to ensure fresh state and prevent GlobalKey crashes
-    if (Get.isRegistered<AddPostController>(tag: 'new')) {
-      Get.delete<AddPostController>(tag: 'new');
+  void _onAddPostPressed(BuildContext context) async {
+    await Get.to(() => const AddPostScreen(), transition: Transition.rightToLeft);
+    if (Get.isRegistered<PostController>()) {
+      Get.find<PostController>().fetchMyPosts();
     }
-    // Remove const to avoid state caching issues in GetX
-    Get.to(() => AddPostScreen(), transition: Transition.rightToLeft);
   }
 
   @override
@@ -31,6 +28,12 @@ class MyPostsScreen extends StatelessWidget {
     final postController = Get.isRegistered<PostController>()
         ? Get.find<PostController>()
         : Get.put(PostController());
+
+    // Fetch the latest user posts immediately upon entering the screen
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      postController.fetchMyPosts();
+    });
+
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 
