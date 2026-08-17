@@ -17,6 +17,11 @@ class ApiConstants {
   static const String authSignup = '/auth/signup';
   static const String authLogin = '/auth/login';
   static const String authProfile = '/auth/profile';
+  static const String authForgotPassword = '/auth/forgot-password';
+  static const String authSendResetOtp = '/auth/send-reset-otp';
+  static const String authVerifyResetOtp = '/auth/verify-reset-otp';
+  static const String authResetPasswordWithOtp = '/auth/reset-password-with-otp';
+  static const String authChangePassword = '/auth/change-password';
   static const String authDeleteAccount = '/auth/profile';
 
   // Dynamic Auth Route Helper

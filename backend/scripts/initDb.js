@@ -77,6 +77,13 @@ const initSql = `
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS password_resets (
+    email VARCHAR(255) PRIMARY KEY,
+    otp VARCHAR(10) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Ensure missing columns exist in case tables were previously created
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT false;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;

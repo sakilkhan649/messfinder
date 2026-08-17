@@ -94,8 +94,20 @@ class AuthController extends GetxController {
   }
 
   Future<void> resetPassword(String email) async {
-    // Reset password currently not implemented in backend
-    ApiChecker.checkApi('Password reset is not implemented yet.');
+    if (email.trim().isEmpty) {
+      ApiChecker.checkApi('Please enter your email address');
+      return;
+    }
+    isLoading.value = true;
+    try {
+      await _authRepo.sendPasswordResetEmail(email.trim());
+      ApiChecker.showSuccess('Password reset link sent to your email!');
+      Get.back();
+    } catch (e) {
+      ApiChecker.checkApi(e);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   Future<void> checkAuthStatus() async {

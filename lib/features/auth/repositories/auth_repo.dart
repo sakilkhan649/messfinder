@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../core/utils/api_constants.dart';
 import '../../../core/services/api_service.dart';
 import '../models/user_model.dart';
 
@@ -98,9 +99,80 @@ class AuthRepository {
     }
   }
 
-  Future<void> sendPasswordResetEmail(String email) async {
-     throw 'Not implemented on REST API yet';
+  // Send Reset OTP to Email
+  Future<void> sendResetOtp(String email) async {
+    try {
+      AppLogger.i('Sending password reset OTP -> Email: $email', tag: 'AUTH_REPO');
+      final response = await _apiService.dio.post(ApiConstants.authSendResetOtp, data: {
+        'email': email.trim(),
+      });
+      if (response.statusCode == 200) {
+        AppLogger.s('Password reset OTP sent', tag: 'AUTH_REPO');
+        return;
+      }
+      throw 'Failed to send OTP';
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Failed to send OTP. Please check your connection.';
+    } catch (e) {
+      throw e.toString();
+    }
   }
+
+  // Verify Reset OTP
+  Future<void> verifyResetOtp({required String email, required String otp}) async {
+    try {
+      AppLogger.i('Verifying reset OTP -> Email: $email', tag: 'AUTH_REPO');
+      final response = await _apiService.dio.post(ApiConstants.authVerifyResetOtp, data: {
+        'email': email.trim(),
+        'otp': otp.trim(),
+      });
+      if (response.statusCode == 200) {
+        AppLogger.s('OTP verified successfully', tag: 'AUTH_REPO');
+        return;
+      }
+      throw 'Invalid OTP';
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Failed to verify OTP. Please try again.';
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  // Reset Password with OTP
+  Future<void> resetPasswordWithOtp({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      AppLogger.i('Resetting password with OTP -> Email: $email', tag: 'AUTH_REPO');
+      final response = await _apiService.dio.post(ApiConstants.authResetPasswordWithOtp, data: {
+        'email': email.trim(),
+        'otp': otp.trim(),
+        'newPassword': newPassword,
+      });
+      if (response.statusCode == 200) {
+        AppLogger.s('Password reset completed', tag: 'AUTH_REPO');
+        return;
+      }
+      throw 'Failed to reset password';
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Failed to reset password. Please check your connection.';
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) => sendResetOtp(email);
 
   // Save user details to API
   Future<void> saveUserData(UserModel user) async {
