@@ -29,6 +29,7 @@ class PostController extends GetxController {
   final RxBool hasMorePosts = true.obs;
 
   String? lastDocument;
+  int currentPage = 1;
   final int postLimit = 10;
   final ScrollController feedScrollController = ScrollController();
 
@@ -226,9 +227,11 @@ class PostController extends GetxController {
   Future<void> fetchInitialPosts() async {
     isLoading.value = true;
     hasMorePosts.value = true;
+    currentPage = 1;
     lastDocument = null;
     final result = await _postRepo.getPaginatedPosts(
       limit: postLimit,
+      page: 1,
       division: selectedDivisionFilter.value == 'All'
           ? null
           : selectedDivisionFilter.value,
@@ -261,8 +264,10 @@ class PostController extends GetxController {
   Future<void> loadMorePosts() async {
     if (isFetchingMore.value || !hasMorePosts.value) return;
     isFetchingMore.value = true;
+    final nextPage = currentPage + 1;
     final result = await _postRepo.getPaginatedPosts(
       limit: postLimit,
+      page: nextPage,
       startAfter: lastDocument,
       division: selectedDivisionFilter.value == 'All'
           ? null
@@ -280,6 +285,7 @@ class PostController extends GetxController {
     }
 
     if (newPosts.isNotEmpty) {
+      currentPage = nextPage;
       allPosts.addAll(newPosts);
       _updateSavedPostsList();
     }

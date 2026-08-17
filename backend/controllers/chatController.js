@@ -23,20 +23,35 @@ exports.getChats = async (req, res) => {
   }
 };
 
-// Get messages for a specific chat
+// Get messages for a specific chat (with optional pagination)
 exports.getMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
+    const { limit, offset } = req.query;
     
     // Check if user is part of the chat
-    const chatCheck = await pool.query('SELECT * FROM chats WHERE chat_id = $1 AND (user1_uid = $2 OR user2_uid = $2)', [chatId, req.user.uid]);
+    const chatCheck = await pool.query(
+      'SELECT * FROM chats WHERE chat_id = $1 AND (user1_uid = $2 OR user2_uid = $2)',
+      [chatId, req.user.uid]
+    );
     if (chatCheck.rows.length === 0) {
       return res.status(403).json({ error: 'Not authorized to view this chat' });
     }
 
-    const result = await pool.query('SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC', [chatId]);
+    let query = 'SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC';
+    const params = [chatId];
+
+    if (limit && limit !== 'all') {
+      const parsedLimit = parseInt(limit) || 50;
+      const parsedOffset = parseInt(offset) || 0;
+      query += ' LIMIT $2 OFFSET $3';
+      params.push(parsedLimit, parsedOffset);
+    }
+
+    const result = await pool.query(query, params);
     res.status(200).json(result.rows);
   } catch (error) {
+    console.error('Error fetching messages:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

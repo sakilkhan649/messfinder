@@ -55,10 +55,10 @@ exports.createPost = async (req, res) => {
   }
 };
 
-// Get all published posts (with optional filtering)
+// Get all published posts (with optional filtering & pagination)
 exports.getPosts = async (req, res) => {
   try {
-    const { district, division, bachelorType, ownerUid, owner_uid } = req.query;
+    const { district, division, bachelorType, ownerUid, owner_uid, page, limit, offset } = req.query;
     const targetOwner = ownerUid || owner_uid;
     
     let query = 'SELECT * FROM posts WHERE is_published = true AND is_available = true';
@@ -83,6 +83,16 @@ exports.getPosts = async (req, res) => {
     }
 
     query += ' ORDER BY created_at DESC';
+
+    // Pagination support (LIMIT & OFFSET)
+    if (limit && limit !== 'all') {
+      const parsedLimit = parseInt(limit) || 10;
+      const parsedPage = parseInt(page) || 1;
+      const parsedOffset = offset !== undefined ? parseInt(offset) : (parsedPage - 1) * parsedLimit;
+
+      query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+      params.push(parsedLimit, parsedOffset);
+    }
 
     const result = await pool.query(query, params);
     

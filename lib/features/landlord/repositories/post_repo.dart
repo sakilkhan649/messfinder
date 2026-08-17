@@ -24,13 +24,16 @@ class PostRepository {
   // Future-based paginated posts for Bachelor Feed
   Future<Map<String, dynamic>> getPaginatedPosts({
     int limit = 10,
-    String? startAfter, // Changed from DocumentSnapshot to String ID or just ignore for simple REST API
+    int page = 1,
+    String? startAfter,
     String? division,
     String? district,
     String? bachelorType,
   }) async {
     try {
       final response = await _apiService.dio.get('/posts', queryParameters: {
+        'limit': limit,
+        'page': page,
         if (district != null && district != 'All' && district.isNotEmpty) 'district': district,
         if (division != null && division != 'All' && division.isNotEmpty) 'division': division,
         if (bachelorType != null && bachelorType != 'all' && bachelorType.isNotEmpty) 'bachelorType': bachelorType,
@@ -42,12 +45,13 @@ class PostRepository {
         return {
           'posts': posts,
           'lastDocument': posts.isNotEmpty ? posts.last.postId : null,
+          'hasMore': posts.length >= limit,
         };
       }
-      return {'posts': <PostModel>[], 'lastDocument': null};
+      return {'posts': <PostModel>[], 'lastDocument': null, 'hasMore': false};
     } catch (e) {
       AppLogger.e('Failed to fetch paginated posts: $e', e, null, 'POST_REPO');
-      return {'posts': <PostModel>[], 'lastDocument': null};
+      return {'posts': <PostModel>[], 'lastDocument': null, 'hasMore': false};
     }
   }
 
