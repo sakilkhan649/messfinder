@@ -16,6 +16,7 @@ class ApiConstants {
   // ─── Authentication Endpoints (/api/auth) ────────────────────────────────
   static const String authSignup = '/auth/signup';
   static const String authLogin = '/auth/login';
+  static const String authGoogleLogin = '/auth/google-login';
   static const String authProfile = '/auth/profile';
   static const String authForgotPassword = '/auth/forgot-password';
   static const String authSendResetOtp = '/auth/send-reset-otp';

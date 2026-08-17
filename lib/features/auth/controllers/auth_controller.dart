@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:get/get.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
@@ -40,6 +41,51 @@ class AuthController extends GetxController {
     Get.to(() => const LoginScreen(), transition: Transition.rightToLeft);
   }
 
+  // Google Sign-In via Native Google Play Services
+  Future<void> signInWithGoogle() async {
+    isLoading.value = true;
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      // Sign out any previous cached session so account picker opens fresh
+      try {
+        await googleSignIn.signOut();
+      } catch (_) {}
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        isLoading.value = false;
+        return;
+      }
+
+      final googleUserEmail = googleUser.email;
+      final googleUserName = googleUser.displayName ?? 'Google User';
+      final googleUserPhoto = googleUser.photoUrl;
+      final googleUserId = googleUser.id;
+
+      final updatedUser = await _authRepo.googleLogin(
+        email: googleUserEmail,
+        name: googleUserName,
+        profileImage: googleUserPhoto,
+        googleId: googleUserId,
+        role: selectedRole.value,
+      );
+
+      if (updatedUser != null) {
+        currentUser.value = updatedUser;
+        ApiChecker.showSuccess('Welcome, ${updatedUser.name}!');
+        handleNavigation(updatedUser);
+      }
+    } catch (e) {
+      AppLogger.e('Google sign-in error: $e', e, null, 'AUTH_CTRL');
+      ApiChecker.checkApi(e);
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   Future<void> login(String email, String password) async {
     if (email.trim().isEmpty || password.isEmpty) {

@@ -85,6 +85,9 @@ const initSql = `
   );
 
   -- Ensure missing columns exist in case tables were previously created
+  ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
+  ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT false;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS reactions JSONB DEFAULT '{}';

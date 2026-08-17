@@ -6,6 +6,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 // Public routes
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
+router.post('/google-login', authController.googleLogin);
 
 // Email OTP Password Reset Flow
 router.post('/send-reset-otp', authController.sendResetOtp);

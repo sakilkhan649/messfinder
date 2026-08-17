@@ -120,6 +120,57 @@ exports.login = async (req, res) => {
   }
 };
 
+// Google Sign-In Login & Auto-Registration
+exports.googleLogin = async (req, res) => {
+  const { email, name, profileImage, googleId, role } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Email is required for Google Sign-In' });
+  }
+
+  const cleanEmail = email.trim().toLowerCase();
+  const crypto = require('crypto');
+
+  try {
+    const userResult = await pool.query('SELECT * FROM users WHERE LOWER(email) = $1', [cleanEmail]);
+
+    let user;
+    if (userResult.rows.length > 0) {
+      user = userResult.rows[0];
+
+      if ((!user.profile_image && profileImage) || (!user.google_id && googleId)) {
+        const updateRes = await pool.query(
+          `UPDATE users SET 
+            profile_image = COALESCE(profile_image, $1), 
+            google_id = COALESCE(google_id, $2),
+            updated_at = CURRENT_TIMESTAMP
+           WHERE uid = $3 RETURNING *`,
+          [profileImage, googleId, user.uid]
+        );
+        user = updateRes.rows[0];
+      }
+    } else {
+      const uid = crypto.randomUUID();
+      const newRole = role || 'bachelor';
+
+      const insertRes = await pool.query(
+        `INSERT INTO users (uid, name, email, profile_image, google_id, role, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'active') RETURNING *`,
+        [uid, name || 'Google User', cleanEmail, profileImage || null, googleId || null, newRole]
+      );
+      user = insertRes.rows[0];
+    }
+
+    delete user.password;
+    const token = generateToken(user.uid);
+
+    res.status(200).json({ user, token });
+  } catch (error) {
+    console.error('Google login error:', error);
+    res.status(500).json({ error: 'Server error during Google Sign-In' });
+  }
+};
+
 // Get User Profile (Current logged in user)
 exports.getProfile = async (req, res) => {
   try {

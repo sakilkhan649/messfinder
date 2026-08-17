@@ -99,6 +99,57 @@ class AuthRepository {
     }
   }
 
+  // Google Sign-In Login & Auto-Registration
+  Future<UserModel?> googleLogin({
+    required String email,
+    required String name,
+    String? profileImage,
+    required String googleId,
+    String? role,
+  }) async {
+    try {
+      AppLogger.i('Attempting Google login -> Email: $email', tag: 'AUTH_REPO');
+
+      final response = await _apiService.dio.post(ApiConstants.authGoogleLogin, data: {
+        'email': email,
+        'name': name,
+        'profileImage': profileImage,
+        'googleId': googleId,
+        'role': role ?? 'bachelor',
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = response.data['token'];
+        final userJson = response.data['user'];
+
+        await _apiService.setToken(token);
+        AppLogger.s('Google login successful', tag: 'AUTH_REPO');
+
+        return UserModel(
+          uid: userJson['uid'],
+          name: userJson['name'] ?? name,
+          phone: userJson['phone'] ?? '',
+          photoUrl: userJson['profile_image'] ?? profileImage,
+          role: userJson['role'] ?? role ?? 'bachelor',
+          isPaid: userJson['status'] == 'active',
+          createdAt: userJson['created_at'] != null
+              ? DateTime.parse(userJson['created_at'])
+              : DateTime.now(),
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      AppLogger.e('DioException (GoogleLogin): ${e.message}', e, null, 'AUTH_REPO');
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Google Sign-In failed. Please check your connection.';
+    } catch (e, stack) {
+      AppLogger.e('Google login failed: $e', e, stack, 'AUTH_REPO');
+      throw e.toString();
+    }
+  }
+
   // Send Reset OTP to Email
   Future<void> sendResetOtp(String email) async {
     try {

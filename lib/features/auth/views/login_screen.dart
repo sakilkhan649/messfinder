@@ -7,7 +7,6 @@ import '../../../core/utils/app_constants.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/login_controller.dart';
 import 'forgot_password_screen.dart';
-import 'phone_login_screen.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -414,33 +413,44 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: 16.h),
                         
-                        // Continue with Phone Button
+                        // Continue with Google Button
                         GestureDetector(
-                          onTap: () {
-                            Get.to(() => const PhoneLoginScreen(), transition: Transition.rightToLeft);
-                          },
+                          onTap: authController.isLoading.value
+                              ? null
+                              : () => authController.signInWithGoogle(),
                           child: Container(
                             width: double.infinity,
                             padding: EdgeInsets.symmetric(vertical: 14.h),
                             decoration: BoxDecoration(
-                              color: Colors.transparent,
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(16.r),
                               border: Border.all(
-                                color: accentColor.withValues(alpha: 0.5),
+                                color: const Color(0xFFE2E8F0),
                                 width: 1.5,
                               ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.phone_android_rounded, color: accentColor, size: 18.r),
-                                SizedBox(width: 8.w),
+                                Image.asset(
+                                  'assets/images/google_logo.png',
+                                  width: 22.r,
+                                  height: 22.r,
+                                ),
+                                SizedBox(width: 12.w),
                                 Text(
-                                  'Continue with Phone',
+                                  'Continue with Google',
                                   style: GoogleFonts.poppins(
                                     fontSize: 14.5.sp,
                                     fontWeight: FontWeight.w600,
-                                    color: accentColor,
+                                    color: const Color(0xFF1E293B),
                                   ),
                                 ),
                               ],
