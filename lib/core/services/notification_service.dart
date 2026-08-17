@@ -140,10 +140,10 @@ class NotificationService {
     try {
       final token = await getToken();
       if (token != null) {
-        await _firestore.collection('users').doc(uid).update({
+        await _firestore.collection('users').doc(uid).set({
           'fcmToken': token,
           'tokenUpdatedAt': FieldValue.serverTimestamp(),
-        });
+        }, SetOptions(merge: true));
         debugPrint('✅ [FCM] Token saved for user: $uid');
       }
     } catch (e) {

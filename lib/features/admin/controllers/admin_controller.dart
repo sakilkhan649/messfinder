@@ -64,10 +64,10 @@ class AdminController extends GetxController {
   }
 
   Stream<List<PostModel>> get pendingPostsStream =>
-      _postRepo.getPendingPostsStream();
+      Stream.fromFuture(_postRepo.getAllPosts()).map((posts) => posts.where((p) => p.paymentStatus.trim().toLowerCase() == 'pending').toList());
 
   Stream<List<PostModel>> get allPostsStream =>
-      _postRepo.getAdminAllPostsStream();
+      Stream.fromFuture(_postRepo.getAllPosts());
 
   Stream<List<BookingModel>> get pendingBookingsStream =>
       _bookingRepo.getPendingBookingsStream();
@@ -265,7 +265,7 @@ class AdminController extends GetxController {
     try {
       await _bookingRepo.approveBooking(booking.bookingId);
       try {
-        await _postRepo.togglePostAvailability(booking.postId, false);
+        await _postRepo.toggleAvailability(booking.postId, false);
         AppLogger.s(
             'স্বয়ংক্রিয়ভাবে মেস পোস্ট বন্ধ (বুকড) করা হয়েছে: ${booking.postId}',
             tag: 'ADMIN_CONTROLLER');

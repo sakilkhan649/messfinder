@@ -1,150 +1,163 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
-import 'package:mess_finder/core/utils/api_constants.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:image_picker/image_picker.dart';
+
+import 'package:mess_finder/core/utils/app_logger.dart';
+import 'package:mess_finder/core/services/api_service.dart';
+import 'package:mess_finder/core/services/notification_service.dart';
+import 'package:mess_finder/core/utils/imgbb_service.dart';
+
+import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/models/message_model.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:mess_finder/core/utils/imgbb_service.dart';
-import 'package:mess_finder/core/services/notification_service.dart';
-import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 
 class ChatController extends GetxController {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
+  final ApiService _apiService = ApiService();
+  IO.Socket? _socket;
 
-  String get currentUserId => _auth.currentUser?.uid ?? '';
-
-  // Creates or gets an existing chat room between current user and target user
-  Future<String> createOrGetChatRoom(String targetUserId, String targetUserName, String? targetUserPhoto) async {
-    final uid1 = currentUserId;
-    final uid2 = targetUserId;
-    
-    // Create a unique chat room ID
-    final chatRoomId = uid1.compareTo(uid2) > 0 ? '${uid1}_$uid2' : '${uid2}_$uid1';
-
-    final docRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-    final docSnap = await docRef.get();
-
-    if (!docSnap.exists) {
-      // Fetch current user details
-      final currentUserDoc = await _firestore.collection(ApiConstants.usersCollection).doc(uid1).get();
-      final currentUserName = currentUserDoc.data()?['name']?.toString() ?? 'Unknown User';
-      final currentUserPhoto = currentUserDoc.data()?['photoUrl']?.toString();
-
-      // Fetch target user details if not provided
-      String finalTargetName = targetUserName;
-      String? finalTargetPhoto = targetUserPhoto;
-      
-      if (finalTargetName.isEmpty || finalTargetName == 'Loading...') {
-        final targetUserDoc = await _firestore.collection(ApiConstants.usersCollection).doc(uid2).get();
-        finalTargetName = targetUserDoc.data()?['name']?.toString() ?? 'Unknown User';
-        finalTargetPhoto = targetUserDoc.data()?['photoUrl']?.toString();
-      }
-
-      final chatRoom = ChatRoomModel(
-        id: chatRoomId,
-        participants: [uid1, uid2],
-        participantNames: {
-          uid1: currentUserName,
-          uid2: finalTargetName,
-        },
-        participantPhotos: {
-          uid1: currentUserPhoto ?? '',
-          uid2: finalTargetPhoto ?? '',
-        },
-        lastMessage: '',
-        lastSenderId: '',
-        unreadCounts: {uid1: 0, uid2: 0},
-      );
-
-      await docRef.set(chatRoom.toMap());
+  String get currentUserId {
+    if (Get.isRegistered<AuthController>()) {
+      return Get.find<AuthController>().currentUser.value?.uid ?? '';
     }
-
-    return chatRoomId;
+    return '';
   }
 
-  // Stream for Chat Rooms list
-  Stream<List<ChatRoomModel>> getChatRooms() {
-    return _firestore
-        .collection(ApiConstants.chatsCollection)
-        .where('participants', arrayContains: currentUserId)
-        .snapshots()
-        .map((snapshot) {
-      final rooms = snapshot.docs.map((doc) => ChatRoomModel.fromMap(doc.data(), doc.id)).toList();
-      // Sort locally to avoid requiring a composite index in Firestore
-      rooms.sort((a, b) {
-        final timeA = a.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final timeB = b.lastMessageTime ?? DateTime.fromMillisecondsSinceEpoch(0);
-        return timeB.compareTo(timeA); // descending order
-      });
-      return rooms;
-    });
-  }
-
-  // Stream for Messages in a specific chat room
-  Stream<List<MessageModel>> getMessages(String chatRoomId) {
-    return _firestore
-        .collection(ApiConstants.chatsCollection)
-        .doc(chatRoomId)
-        .collection(ApiConstants.messagesCollection)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => MessageModel.fromMap(doc.data(), doc.id)).toList();
-    });
-  }
-
+  // Reactive state
+  final RxList<ChatRoomModel> chatRooms = <ChatRoomModel>[].obs;
+  final RxList<MessageModel> currentMessages = <MessageModel>[].obs;
+  final RxBool isLoadingRooms = true.obs;
+  final RxBool isLoadingMessages = false.obs;
   final RxBool isSending = false.obs;
+
+  String? _currentActiveChatId;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initSocket();
+    fetchChatRooms();
+  }
+
+  @override
+  void onClose() {
+    _socket?.disconnect();
+    _socket?.dispose();
+    super.onClose();
+  }
+
+  void _initSocket() {
+    // ApiService.baseUrl = 'http://10.0.2.2:5000/api'
+    // Socket.io needs the base server URL (without /api)
+    final socketUrl = ApiService.baseUrl.replaceAll('/api', '');
+    AppLogger.i('Connecting Socket.io to: $socketUrl', tag: 'CHAT_CTRL');
+
+    _socket = IO.io(socketUrl, IO.OptionBuilder()
+        .setTransports(['websocket'])
+        .disableAutoConnect()
+        .build());
+
+    _socket?.connect();
+
+    _socket?.onConnect((_) {
+      AppLogger.s('Socket.IO connected', tag: 'CHAT_CTRL');
+    });
+
+    _socket?.on('receive_message', (data) {
+      final msg = MessageModel.fromMap(data);
+      // If we are currently in this chat room, add message to list
+      if (data['chat_id'] == _currentActiveChatId) {
+        // Only add if not already in list to avoid duplicates
+        if (!currentMessages.any((m) => m.id == msg.id)) {
+          currentMessages.insert(0, msg);
+        }
+      }
+      // Refresh chat rooms list to update last message
+      fetchChatRooms();
+    });
+
+    _socket?.onDisconnect((_) {
+      AppLogger.w('Socket.IO disconnected', tag: 'CHAT_CTRL');
+    });
+  }
+
+  void joinChat(String chatId) {
+    _currentActiveChatId = chatId;
+    _socket?.emit('join_chat', chatId);
+  }
+
+  void leaveChat() {
+    _currentActiveChatId = null;
+  }
+
+  Future<void> fetchChatRooms() async {
+    try {
+      final response = await _apiService.dio.get('/chats');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        chatRooms.assignAll(data.map((e) => ChatRoomModel.fromMap(e)).toList());
+      }
+    } catch (e) {
+      AppLogger.e('Failed to fetch chat rooms: $e', e, null, 'CHAT_CTRL');
+    } finally {
+      isLoadingRooms.value = false;
+    }
+  }
+
+  Future<void> fetchMessages(String chatId) async {
+    isLoadingMessages.value = true;
+    currentMessages.clear();
+    try {
+      final response = await _apiService.dio.get('/chats/$chatId/messages');
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
+        // Backend returns oldest first, but chat UI needs newest first
+        currentMessages.assignAll(msgs.reversed.toList());
+      }
+    } catch (e) {
+      AppLogger.e('Failed to fetch messages: $e', e, null, 'CHAT_CTRL');
+    } finally {
+      isLoadingMessages.value = false;
+    }
+  }
+
+  Future<String> createOrGetChatRoom(String targetUserId, String targetUserName, String? targetUserPhoto) async {
+    try {
+      final response = await _apiService.dio.post('/chats', data: {
+        'targetUserId': targetUserId,
+      });
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final chatId = response.data['chatId'];
+        // Refresh chat rooms so the new one appears
+        fetchChatRooms();
+        return chatId;
+      }
+      throw 'Failed to create chat room';
+    } catch (e) {
+      AppLogger.e('Create chat room error: $e', e, null, 'CHAT_CTRL');
+      throw 'Cannot start chat';
+    }
+  }
 
   Future<void> sendMessage(String chatRoomId, String text, String targetUserId, {String? imageUrl, String? videoUrl}) async {
     if (text.trim().isEmpty && imageUrl == null && videoUrl == null) return;
 
     try {
       isSending.value = true;
-      final messageRef = _firestore
-          .collection(ApiConstants.chatsCollection)
-          .doc(chatRoomId)
-          .collection(ApiConstants.messagesCollection)
-          .doc();
-
-      final message = MessageModel(
-        id: messageRef.id,
-        senderId: currentUserId,
-        text: text.trim(),
-        imageUrl: imageUrl,
-        videoUrl: videoUrl,
-        // Omit createdAt to use FieldValue.serverTimestamp() in toMap()
-      );
-
-      // Run in batch to ensure both updates happen together
-      final batch = _firestore.batch();
       
-      batch.set(messageRef, message.toMap());
-      
-      final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-      final String lastMsgText;
-      if (videoUrl != null) {
-        lastMsgText = text.isNotEmpty ? '🎥 ${text.trim()}' : '🎥 Video';
-      } else if (imageUrl != null) {
-        lastMsgText = text.isNotEmpty ? '📷 ${text.trim()}' : '📷 Image';
-      } else {
-        lastMsgText = text;
-      }
-
-      batch.update(chatRef, {
-        'lastMessage': lastMsgText,
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastSenderId': currentUserId,
-        'unreadCounts.$targetUserId': FieldValue.increment(1),
+      // Emit via socket
+      _socket?.emit('send_message', {
+        'chatId': chatRoomId,
+        'senderUid': currentUserId,
+        'text': text.trim(),
+        'imageUrl': imageUrl,
+        'videoUrl': videoUrl,
       });
 
-      await batch.commit();
-      
-      // Send Push Notification (Fire and forget so it doesn't block UI)
+      // Send Push Notification
       try {
         final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
         final String messagePreview;
@@ -181,7 +194,6 @@ class ChatController extends GetxController {
     
     final TextEditingController textCtrl = TextEditingController();
 
-    // Show Messenger-style preview dialog/bottom sheet
     final result = await Get.bottomSheet<Map<String, dynamic>>(
       Container(
         decoration: const BoxDecoration(
@@ -250,12 +262,12 @@ class ChatController extends GetxController {
                     GestureDetector(
                       onTap: () => Get.back(result: {'send': true, 'text': textCtrl.text}),
                       child: Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         decoration: const BoxDecoration(
-                          color: Color(0xFF059669),
+                          color: Color(0xFF1E88E5),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
+                        child: const Icon(Icons.send_rounded, color: Colors.white),
                       ),
                     ),
                   ],
@@ -266,35 +278,17 @@ class ChatController extends GetxController {
         ),
       ),
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
 
-    if (result == null || result['send'] != true) return;
-
-    Get.snackbar(
-      'Uploading...',
-      'Please wait while your ${images.length > 1 ? 'images are' : 'image is'} being uploaded.',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 3),
-    );
-    
-    isSending.value = true;
-    try {
-      final imgbbService = ImgbbService();
-      
-      for (int i = 0; i < images.length; i++) {
-        final imageUrl = await imgbbService.uploadImage(images[i].path);
-        
+    if (result != null && result['send'] == true) {
+      isSending.value = true;
+      for (var image in images) {
+        final imageUrl = await ImgbbService().uploadImage(image.path);
         if (imageUrl != null) {
-          // Send text only with the first image
-          final text = i == 0 ? result['text'] as String : '';
-          await sendMessage(chatRoomId, text, targetUserId, imageUrl: imageUrl);
-        } else {
-          Get.snackbar('Error', 'Failed to upload image ${i + 1}');
+          await sendMessage(chatRoomId, result['text'] ?? '', targetUserId, imageUrl: imageUrl);
         }
       }
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to send images: $e');
-    } finally {
       isSending.value = false;
     }
   }
@@ -304,148 +298,35 @@ class ChatController extends GetxController {
     final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
     if (video == null) return;
     
-    Get.snackbar(
-      'Uploading...',
-      'Please wait while your video is being uploaded.',
-      snackPosition: SnackPosition.TOP,
-      duration: const Duration(seconds: 3),
-    );
-    
     isSending.value = true;
     try {
-      final imgbbService = Get.put(ImgbbService());
-      final videoUrl = await imgbbService.uploadVideo(video.path);
-      
+      final videoUrl = await ImgbbService().uploadVideo(video.path);
       if (videoUrl != null) {
         await sendMessage(chatRoomId, '', targetUserId, videoUrl: videoUrl);
       } else {
-        Get.snackbar('Error', 'Failed to upload video');
+        Get.snackbar('Upload Failed', 'Could not upload video. Please try again.');
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to send video: $e');
+      AppLogger.e('Error uploading video: $e', e, null, 'CHAT_CTRL');
+      Get.snackbar('Error', 'An error occurred while sending video.');
     } finally {
       isSending.value = false;
-    }
-  }
-
-  Future<void> editMessage(String chatRoomId, String messageId, String newText) async {
-    if (newText.trim().isEmpty) return;
-    try {
-      await _firestore
-          .collection(ApiConstants.chatsCollection)
-          .doc(chatRoomId)
-          .collection(ApiConstants.messagesCollection)
-          .doc(messageId)
-          .update({
-        'text': newText.trim(),
-        'isEdited': true,
-      });
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to edit message');
-    }
-  }
-
-  Future<void> deleteMessage(String chatRoomId, String messageId) async {
-    try {
-      await _firestore
-          .collection(ApiConstants.chatsCollection)
-          .doc(chatRoomId)
-          .collection(ApiConstants.messagesCollection)
-          .doc(messageId)
-          .update({
-        'isDeleted': true,
-      });
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to delete message');
     }
   }
 
   Future<void> toggleReaction(String chatRoomId, String messageId, String emoji) async {
-    try {
-      final docRef = _firestore
-          .collection(ApiConstants.chatsCollection)
-          .doc(chatRoomId)
-          .collection(ApiConstants.messagesCollection)
-          .doc(messageId);
-
-      final docSnap = await docRef.get();
-      if (!docSnap.exists) return;
-      
-      final data = docSnap.data();
-      Map<String, dynamic> reactions = data?['reactions'] != null 
-          ? Map<String, dynamic>.from(data!['reactions']) 
-          : {};
-
-      if (reactions[currentUserId] == emoji) {
-        // If the same emoji is clicked, remove the reaction
-        reactions.remove(currentUserId);
-      } else {
-        // Add or update the reaction
-        reactions[currentUserId] = emoji;
-      }
-
-      await docRef.update({
-        'reactions': reactions.isEmpty ? FieldValue.delete() : reactions,
-      });
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to update reaction');
-    }
+    // Reactions are not currently implemented in the REST backend.
   }
 
-  Future<void> sendSticker(String chatRoomId, String targetUserId, String stickerUrl) async {
-    try {
-      isSending.value = true;
-      final messageRef = _firestore
-          .collection(ApiConstants.chatsCollection)
-          .doc(chatRoomId)
-          .collection(ApiConstants.messagesCollection)
-          .doc();
+  Future<void> editMessage(String chatRoomId, String messageId, String newText) async {
+    // Message editing is not currently implemented in the REST backend.
+  }
 
-      final message = MessageModel(
-        id: messageRef.id,
-        senderId: currentUserId,
-        text: '',
-        stickerUrl: stickerUrl,
-      );
-
-      final batch = _firestore.batch();
-      batch.set(messageRef, message.toMap());
-      
-      final chatRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-      
-      batch.update(chatRef, {
-        'lastMessage': 'Sent a sticker',
-        'lastMessageTime': FieldValue.serverTimestamp(),
-        'lastSenderId': currentUserId,
-        'unreadCounts.$targetUserId': FieldValue.increment(1),
-      });
-
-      await batch.commit();
-      
-      // Send Push Notification
-      try {
-        final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
-        await NotificationService().sendAndStore(
-          receiverUid: targetUserId,
-          title: 'New Message from $currentUserName',
-          body: 'Sent a sticker',
-          type: NotificationType.general,
-          senderUid: currentUserId,
-          relatedId: chatRoomId,
-          extraData: {'type': 'chat', 'chatRoomId': chatRoomId},
-        );
-      } catch (e) {
-        // ignore notification errors
-      }
-    } finally {
-      isSending.value = false;
-    }
+  Future<void> deleteMessage(String chatRoomId, String messageId) async {
+    // Message deletion is not currently implemented in the REST backend.
   }
 
   Future<void> markMessagesAsRead(String chatRoomId) async {
-    final chatRoomRef = _firestore.collection(ApiConstants.chatsCollection).doc(chatRoomId);
-    await chatRoomRef.update({
-      'unreadCounts.$currentUserId': 0,
-    });
+    // Mark as read is not currently implemented in the REST backend.
   }
 }

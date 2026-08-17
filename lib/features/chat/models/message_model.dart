@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class MessageModel {
   final String id;
   final String senderId;
@@ -10,8 +8,8 @@ class MessageModel {
   final bool isRead;
   final bool isEdited;
   final bool isDeleted;
-  final Map<String, String>? reactions;
   final String? stickerUrl;
+  final Map<String, String>? reactions;
 
   MessageModel({
     required this.id,
@@ -23,40 +21,34 @@ class MessageModel {
     this.isRead = false,
     this.isEdited = false,
     this.isDeleted = false,
-    this.reactions,
     this.stickerUrl,
+    this.reactions,
   });
 
-  factory MessageModel.fromMap(Map<String, dynamic> map, String id) {
+  factory MessageModel.fromMap(Map<String, dynamic> map) {
     return MessageModel(
-      id: id,
-      senderId: map['senderId']?.toString() ?? '',
+      id: map['message_id']?.toString() ?? '',
+      senderId: map['sender_uid']?.toString() ?? '',
       text: map['text']?.toString() ?? '',
-      imageUrl: map['imageUrl']?.toString(),
-      videoUrl: map['videoUrl']?.toString(),
-      createdAt: map['createdAt'] != null && map['createdAt'] is Timestamp
-          ? (map['createdAt'] as Timestamp).toDate()
+      imageUrl: map['image_url']?.toString(),
+      videoUrl: map['video_url']?.toString(),
+      createdAt: map['created_at'] != null
+          ? DateTime.parse(map['created_at'])
           : null,
-      isRead: map['isRead'] ?? false,
-      isEdited: map['isEdited'] ?? false,
-      isDeleted: map['isDeleted'] ?? false,
+      isRead: map['is_read'] ?? false,
+      isEdited: map['is_edited'] ?? false,
+      isDeleted: map['is_deleted'] ?? false,
       reactions: map['reactions'] != null ? Map<String, String>.from(map['reactions']) : null,
-      stickerUrl: map['stickerUrl']?.toString(),
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'senderId': senderId,
+      'sender_uid': senderId,
       'text': text,
-      if (imageUrl != null) 'imageUrl': imageUrl,
-      if (videoUrl != null) 'videoUrl': videoUrl,
-      'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
-      'isRead': isRead,
-      'isEdited': isEdited,
-      'isDeleted': isDeleted,
-      if (reactions != null) 'reactions': reactions,
-      if (stickerUrl != null) 'stickerUrl': stickerUrl,
+      if (imageUrl != null) 'image_url': imageUrl,
+      if (videoUrl != null) 'video_url': videoUrl,
+      'is_read': isRead,
     };
   }
 }

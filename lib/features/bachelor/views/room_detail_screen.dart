@@ -656,8 +656,8 @@ class RoomDetailScreen extends StatelessWidget {
                             final name =
                                 profile?['name']?.toString() ??
                                 'Landlord / Manager';
-                            final photoUrl = profile?['photoUrl']?.toString();
-                            final isPaid = profile?['isPaid'] ?? false;
+                            final photoUrl = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+                            final isPaid = profile?['isPaid'] == true || profile?['status'] == 'active';
 
                             return GestureDetector(
                               onTap: () {

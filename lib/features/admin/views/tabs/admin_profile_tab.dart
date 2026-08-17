@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mess_finder/core/utils/image_helper.dart';
 import '../../../auth/controllers/auth_controller.dart';
 import '../utils/admin_colors.dart';
@@ -19,7 +18,6 @@ class AdminProfileTab extends StatelessWidget {
       padding: EdgeInsets.all(20.w),
       child: Obx(() {
         final user = authController.currentUser.value;
-        final email = FirebaseAuth.instance.currentUser?.email ?? 'No Email Available';
         if (user == null) {
           return const Center(child: CircularProgressIndicator());
         }
@@ -64,19 +62,11 @@ class AdminProfileTab extends StatelessWidget {
             ),
             SizedBox(height: 4.h),
             Text(
-              email,
+              user.phone.isNotEmpty ? user.phone : 'No Phone Number',
               style: GoogleFonts.poppins(
                 fontSize: 14.sp,
                 color: AdminColors.accentMid,
                 fontWeight: FontWeight.w500,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              user.phone.isNotEmpty ? user.phone : 'No Phone Number',
-              style: GoogleFonts.poppins(
-                fontSize: 13.sp,
-                color: AdminColors.accentMid,
               ),
             ),
             SizedBox(height: 8.h),

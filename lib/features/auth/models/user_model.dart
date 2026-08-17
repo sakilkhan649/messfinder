@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserModel {
   final String uid;
@@ -25,17 +24,24 @@ class UserModel {
   bool get isAdmin => role == 'admin';
 
   factory UserModel.fromMap(Map<String, dynamic> map, String docId) {
+    DateTime? parseDate(dynamic val) {
+      if (val == null) return null;
+      if (val is DateTime) return val;
+      if (val is String && val.isNotEmpty) {
+        try { return DateTime.parse(val); } catch (_) { return null; }
+      }
+      return null;
+    }
+
     return UserModel(
-      uid: docId,
+      uid: docId.isNotEmpty ? docId : (map['uid']?.toString() ?? ''),
       name: map['name'] ?? map['userName'] ?? map['displayName'] ?? '',
       phone: map['phone'] ?? map['phoneNumber'] ?? map['userPhone'] ?? map['mobile'] ?? '',
-      role: map['role'] ?? 'user',
-      isPaid: map['isPaid'] ?? false,
+      role: map['role'] ?? 'bachelor',
+      isPaid: map['isPaid'] ?? (map['status'] == 'active'),
       trxId: map['trxId'] ?? map['paymentTrxId'],
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
-          : null,
-      photoUrl: map['photoUrl'],
+      createdAt: parseDate(map['created_at'] ?? map['createdAt']),
+      photoUrl: map['profile_image'] ?? map['photoUrl'],
     );
   }
 
@@ -46,10 +52,8 @@ class UserModel {
       'phone': phone,
       'role': role,
       'isPaid': isPaid,
-      'createdAt': createdAt != null
-          ? Timestamp.fromDate(createdAt!)
-          : FieldValue.serverTimestamp(),
-      if (photoUrl != null) 'photoUrl': photoUrl,
+      'profile_image': photoUrl,
+      'photoUrl': photoUrl,
       if (trxId != null && trxId!.isNotEmpty) 'trxId': trxId,
     };
   }

@@ -1,9 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../core/services/api_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../landlord/models/post_model.dart';
 import '../../bachelor/views/bachelor_home_screen.dart'; // To access BachelorPostCard
@@ -32,52 +32,47 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Future<void> _loadProfileAndPosts() async {
     try {
-      // Fetch user profile
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(widget.userId)
-          .get();
-
-      if (userDoc.exists) {
-        final data = userDoc.data();
-        if (data != null) {
-          name = data['name'] ?? 'Unknown User';
-          profilePic = data['photoUrl'];
-          isPaid = data['isPaid'] ?? false;
-        }
+      // Fetch public user profile via REST API
+      final res = await ApiService().dio.get('/auth/user/${widget.userId}');
+      if (res.statusCode == 200 && res.data != null) {
+        final data = res.data;
+        name = data['name'] ?? 'Landlord';
+        profilePic = data['profile_image'] ?? data['photoUrl'];
+        isPaid = data['status'] == 'active' || data['isPaid'] == true;
       } else {
-        name = 'Unknown User';
+        name = 'Landlord';
       }
     } catch (e) {
       debugPrint('Error loading public profile: $e');
-      name = 'Error loading profile';
+      name = 'Landlord';
     }
 
     try {
-      // Fetch user's approved posts
-      // Removed orderBy to avoid requiring a composite index in Firestore
-      final postsQuery = await FirebaseFirestore.instance
-          .collection('posts')
-          .where('ownerUid', isEqualTo: widget.userId)
-          .where('isPublished', isEqualTo: true)
-          .where('paymentStatus', isEqualTo: 'approved')
-          .get();
+      // Fetch user's posts via REST API
+      final postsRes = await ApiService().dio.get(
+        '/posts',
+        queryParameters: {'ownerUid': widget.userId},
+      );
 
-      userPosts = postsQuery.docs
-          .map((doc) => PostModel.fromMap(doc.data(), doc.id))
-          .toList();
-          
-      // Sort locally by createdAt
-      userPosts.sort((a, b) {
-        if (a.createdAt == null && b.createdAt == null) return 0;
-        if (a.createdAt == null) return 1;
-        if (b.createdAt == null) return -1;
-        return b.createdAt!.compareTo(a.createdAt!);
-      });
+      if (postsRes.statusCode == 200 && postsRes.data != null) {
+        final List list = postsRes.data is List ? postsRes.data : [];
+        userPosts = list
+            .map((item) => PostModel.fromMap(
+                  Map<String, dynamic>.from(item),
+                  (item['id'] ?? item['post_id'] ?? '').toString(),
+                ))
+            .toList();
 
+        // Sort locally by createdAt desc
+        userPosts.sort((a, b) {
+          if (a.createdAt == null && b.createdAt == null) return 0;
+          if (a.createdAt == null) return 1;
+          if (b.createdAt == null) return -1;
+          return b.createdAt!.compareTo(a.createdAt!);
+        });
+      }
     } catch (e) {
       debugPrint('Error loading posts: $e');
-      // We don't overwrite the name here if it successfully loaded the profile
     } finally {
       if (mounted) {
         setState(() {

@@ -826,8 +826,8 @@ class BachelorPostCardState extends State<BachelorPostCard> {
     if (mounted && data != null) {
       setState(() {
         name = data['name'] ?? 'Unknown User';
-        profilePic = data['photoUrl'];
-        isPaid = data['isPaid'] ?? false;
+        profilePic = data['profile_image'] ?? data['photoUrl'];
+        isPaid = data['isPaid'] ?? (data['status'] == 'active');
         isLoaded = true;
       });
     } else if (mounted) {

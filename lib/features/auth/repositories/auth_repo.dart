@@ -1,192 +1,143 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import '../../../core/utils/api_constants.dart';
+import 'package:dio/dio.dart';
 import '../../../core/utils/app_logger.dart';
+import '../../../core/services/api_service.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
-  FirebaseAuth get _auth => FirebaseAuth.instance;
-  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  final ApiService _apiService = ApiService();
 
   // Sign Up with Email and Password
-  Future<UserCredential?> signUp({
+  Future<UserModel?> signUp({
+    required String name,
+    required String phone,
     required String email,
     required String password,
   }) async {
     try {
-      AppLogger.i('Starting account registration -> Email: $email',
-          tag: 'AUTH_REPO');
-      final credential = await _auth
-          .createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      )
-          .timeout(
-        const Duration(seconds: 12),
-        onTimeout: () {
-          throw 'Registration timeout! No response from Firebase server. Please disable "Email enumeration protection" in Firebase Console > Authentication > Settings > User actions.';
-        },
-      );
-      AppLogger.s(
-          'Registration successful -> UserID: ${credential.user?.uid}',
-          tag: 'AUTH_REPO');
-      return credential;
-    } on FirebaseAuthException catch (e, stack) {
-      AppLogger.e('FirebaseAuthException (SignUp): ${e.code} | ${e.message}', e,
-          stack, 'AUTH_REPO');
-      if (e.code == 'configuration-not-found' ||
-          e.code == 'operation-not-allowed' ||
-          (e.message ?? '').contains('CONFIGURATION_NOT_FOUND')) {
-        throw 'Email/Password login is not enabled in Firebase Console! Please enable it under Firebase Console > Authentication > Sign-in method.';
+      AppLogger.i('Starting account registration -> Email: $email', tag: 'AUTH_REPO');
+      
+      final response = await _apiService.dio.post('/auth/signup', data: {
+        'name': name,
+        'phone': phone,
+        'email': email,
+        'password': password,
+      });
+
+      if (response.statusCode == 201) {
+        final token = response.data['token'];
+        final userJson = response.data['user'];
+        
+        await _apiService.setToken(token);
+        AppLogger.s('Registration successful', tag: 'AUTH_REPO');
+        
+        return UserModel(
+          uid: userJson['uid'],
+          name: userJson['name'],
+          phone: userJson['phone'],
+          role: userJson['role'] ?? 'bachelor',
+          isPaid: false,
+          createdAt: DateTime.parse(userJson['created_at']),
+        );
       }
-      if (e.code == 'email-already-in-use') {
-        throw 'An account already exists with this email address.';
+      return null;
+    } on DioException catch (e) {
+      AppLogger.e('DioException (SignUp): ${e.message}', e, null, 'AUTH_REPO');
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
       }
-      if (e.code == 'weak-password') {
-        throw 'Password is too weak. Please use at least 6 characters.';
-      }
-      throw e.message ?? 'Registration failed';
+      throw 'Registration failed. Please check your connection.';
     } catch (e, stack) {
       AppLogger.e('Registration failed: $e', e, stack, 'AUTH_REPO');
-      if (e.toString().contains('CONFIGURATION_NOT_FOUND') ||
-          e.toString().contains('operation-not-allowed')) {
-        throw 'Email/Password login is not enabled in Firebase Console! Please enable it under Firebase Console > Authentication > Sign-in method.';
-      }
       throw e.toString();
     }
   }
 
   // Login with Email and Password
-  Future<UserCredential?> login({
+  Future<UserModel?> login({
     required String email,
     required String password,
   }) async {
     try {
-      AppLogger.i('Attempting login -> Email: $email',
-          tag: 'AUTH_REPO');
-      final credential = await _auth
-          .signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      )
-          .timeout(
-            const Duration(seconds: 12),
-            onTimeout: () => throw 'Login timeout! Please check your internet connection.',
-          );
-      AppLogger.s('Login successful -> UserID: ${credential.user?.uid}',
-          tag: 'AUTH_REPO');
-      return credential;
-    } on FirebaseAuthException catch (e, stack) {
-      AppLogger.e('FirebaseAuthException (Login): ${e.code} | ${e.message}', e,
-          stack, 'AUTH_REPO');
-      if (e.code == 'user-not-found' ||
-          e.code == 'invalid-credential' ||
-          e.code == 'wrong-password') {
+      AppLogger.i('Attempting login -> Email: $email', tag: 'AUTH_REPO');
+      
+      final response = await _apiService.dio.post('/auth/login', data: {
+        'email': email,
+        'password': password,
+      });
+
+      if (response.statusCode == 200) {
+        final token = response.data['token'];
+        final userJson = response.data['user'];
+        
+        await _apiService.setToken(token);
+        AppLogger.s('Login successful', tag: 'AUTH_REPO');
+        
+        return UserModel(
+          uid: userJson['uid'],
+          name: userJson['name'],
+          phone: userJson['phone'],
+          role: userJson['role'] ?? 'bachelor',
+          isPaid: userJson['status'] == 'active', 
+          createdAt: DateTime.parse(userJson['created_at']),
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      AppLogger.e('DioException (Login): ${e.message}', e, null, 'AUTH_REPO');
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 404) {
         throw 'Invalid email or password. Please try again.';
       }
-      throw e.message ?? 'Login failed';
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Login failed. Please check your connection.';
     } catch (e, stack) {
       AppLogger.e('Login failed: $e', e, stack, 'AUTH_REPO');
       throw e.toString();
     }
   }
 
-  // Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
-    try {
-      AppLogger.i('Sending password reset email -> $email',
-          tag: 'AUTH_REPO');
-      await _auth
-          .sendPasswordResetEmail(email: email)
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw 'Timeout sending reset link. Please check your internet connection.',
-          );
-      AppLogger.s('Password reset email sent', tag: 'AUTH_REPO');
-    } on FirebaseAuthException catch (e, stack) {
-      AppLogger.e('Reset email failed: ${e.message}', e, stack, 'AUTH_REPO');
-      if (e.code == 'user-not-found') {
-        throw 'No account found with this email address.';
-      }
-      if (e.code == 'invalid-email') {
-        throw 'Invalid email address format.';
-      }
-      throw e.message ?? 'Failed to send password reset link';
-    } catch (e, stack) {
-      AppLogger.e('Reset email failed: $e', e, stack, 'AUTH_REPO');
-      throw 'Failed to send password reset link: $e';
-    }
+     throw 'Not implemented on REST API yet';
   }
 
-  // Save user details to Firestore 'users' collection
+  // Save user details to API
   Future<void> saveUserData(UserModel user) async {
     try {
-      AppLogger.i('Saving user data to Firestore: ${user.uid}',
-          tag: 'AUTH_REPO');
-      await _firestore
-          .collection(ApiConstants.usersCollection)
-          .doc(user.uid)
-          .set(user.toMap(), SetOptions(merge: true))
-          .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw 'Timeout connecting to Firestore. Please check if Firestore Database is created in Firebase Console.',
-          );
-      AppLogger.s('User data saved successfully', tag: 'AUTH_REPO');
+      AppLogger.i('Saving user data to API: ${user.uid}', tag: 'AUTH_REPO');
+      await _apiService.dio.put('/auth/profile', data: user.toMap());
     } catch (e, stack) {
-      AppLogger.e(
-          'Failed to save user data: $e', e, stack, 'AUTH_REPO');
-      throw 'Failed to save user data: $e';
+      AppLogger.e('Failed to save user data: $e', e, stack, 'AUTH_REPO');
     }
   }
 
-  // Fetch current user data from Firestore
+  // Fetch current user data from API
   Future<UserModel?> getUserData(String uid) async {
     try {
-      AppLogger.i('Fetching user data from Firestore: $uid',
-          tag: 'AUTH_REPO');
-      DocumentSnapshot<Map<String, dynamic>>? doc;
-      
-      try {
-        doc = await _firestore
-            .collection(ApiConstants.usersCollection)
-            .doc(uid)
-            .get(const GetOptions(source: Source.serverAndCache))
-            .timeout(const Duration(seconds: 10));
-      } catch (e) {
-        AppLogger.w('Server fetch timed out or failed. Falling back to cache for $uid', tag: 'AUTH_REPO');
-        try {
-          doc = await _firestore
-              .collection(ApiConstants.usersCollection)
-              .doc(uid)
-              .get(const GetOptions(source: Source.cache));
-        } catch (cacheError) {
-          throw 'Timeout fetching user data. Please check your internet connection.';
-        }
+      // In our Node backend, the profile route fetches using the token
+      final response = await _apiService.dio.get('/auth/profile');
+      if (response.statusCode == 200 && response.data != null) {
+        final data = Map<String, dynamic>.from(response.data);
+        return UserModel.fromMap(data, data['uid']?.toString() ?? '');
       }
-
-      if (doc.exists && doc.data() != null) {
-        AppLogger.s('User data retrieved -> Role: ${doc.data()!['role']}',
-            tag: 'AUTH_REPO');
-        return UserModel.fromMap(doc.data()!, doc.id);
-      }
-      AppLogger.w('No user data found in Firestore',
-          tag: 'AUTH_REPO');
       return null;
-    } catch (e, stack) {
-      AppLogger.e('Error fetching user data: $e', e, stack, 'AUTH_REPO');
-      throw 'Failed to retrieve user data: $e';
+    } catch (e) {
+      AppLogger.e('Error fetching user data: $e', e, null, 'AUTH_REPO');
+      return null;
     }
   }
 
-  // Check if a user is already logged in
-  User? get currentFirebaseUser => _auth.currentUser;
+  Future<bool> isLoggedIn() async {
+    final token = await _apiService.getToken();
+    return token != null && token.isNotEmpty;
+  }
 
   // Sign out
   Future<void> logout() async {
     try {
       AppLogger.i('Logging out...', tag: 'AUTH_REPO');
-      await _auth.signOut();
+      await _apiService.clearToken();
       AppLogger.s('Logout completed', tag: 'AUTH_REPO');
     } catch (e, stack) {
       AppLogger.e('Error logging out: $e', e, stack, 'AUTH_REPO');
@@ -197,44 +148,7 @@ class AuthRepository {
   Future<void> deleteCurrentAccount(String uid) async {
     try {
       AppLogger.i('Attempting to delete account for UID: $uid', tag: 'AUTH_REPO');
-      
-      User? user = _auth.currentUser;
-      if (user == null) {
-        throw 'No authenticated user found to delete.';
-      }
-
-      // 1. Backup user document from Firestore
-      final userDocRef = _firestore.collection(ApiConstants.usersCollection).doc(uid);
-      final userDocSnap = await userDocRef.get();
-      final userDataBackup = userDocSnap.data();
-
-      // 2. Delete user document from Firestore first
-      await userDocRef.delete().timeout(
-            const Duration(seconds: 10),
-            onTimeout: () => throw 'Timeout deleting user data from Firestore.',
-          );
-          
-      // 3. Delete user from Firebase Auth
-      try {
-        await user.delete().timeout(
-          const Duration(seconds: 10),
-          onTimeout: () => throw 'Timeout deleting user from Firebase Authentication.',
-        );
-      } catch (e) {
-        // If Auth deletion fails (e.g. requires-recent-login), restore the Firestore document
-        if (userDataBackup != null) {
-          await userDocRef.set(userDataBackup);
-        }
-        rethrow;
-      }
-
-      AppLogger.s('Account deleted successfully for UID: $uid', tag: 'AUTH_REPO');
-    } on FirebaseAuthException catch (e, stack) {
-      AppLogger.e('FirebaseAuthException (Delete Account): ${e.code} | ${e.message}', e, stack, 'AUTH_REPO');
-      if (e.code == 'requires-recent-login') {
-        throw 'For security reasons, you must re-authenticate (log out and log back in) before deleting your account.';
-      }
-      throw e.message ?? 'Failed to delete account';
+      await _apiService.dio.delete('/auth/profile');
     } catch (e, stack) {
       AppLogger.e('Failed to delete account: $e', e, stack, 'AUTH_REPO');
       throw 'Failed to delete account: $e';

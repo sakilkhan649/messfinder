@@ -94,24 +94,14 @@ class ChatScreen extends StatelessWidget {
         body: Column(
           children: [
             Expanded(
-              child: StreamBuilder<List<MessageModel>>(
-                stream: _chatController.getMessages(chatRoomId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(
-                      child: CircularProgressIndicator(color: rolePrimaryColor),
-                    );
-                  }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Text(
-                        'Error: ${snapshot.error}',
-                        style: GoogleFonts.poppins(),
-                      ),
-                    );
-                  }
+              child: Obx(() {
+                if (_chatController.isLoadingMessages.value) {
+                  return Center(
+                    child: CircularProgressIndicator(color: rolePrimaryColor),
+                  );
+                }
 
-                  final messages = snapshot.data ?? [];
+                final messages = _chatController.currentMessages;
 
                   if (messages.isEmpty) {
                     return Center(
@@ -436,9 +426,8 @@ class ChatScreen extends StatelessWidget {
                       );
                     },
                   );
-                },
+                }),
               ),
-            ),
             _buildMessageInput(context, rolePrimaryColor, rolePrimaryGradient),
           ],
         ),

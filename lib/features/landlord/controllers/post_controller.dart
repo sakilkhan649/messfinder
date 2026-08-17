@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
@@ -11,6 +11,7 @@ import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/services/api_service.dart';
 import 'package:geolocator/geolocator.dart';
 
 class PostController extends GetxController {
@@ -27,9 +28,8 @@ class PostController extends GetxController {
   final RxBool isFetchingMore = false.obs;
   final RxBool hasMorePosts = true.obs;
 
-  DocumentSnapshot? lastDocument;
+  String? lastDocument;
   final int postLimit = 10;
-  StreamSubscription<List<PostModel>>? _postsSubscription;
   final ScrollController feedScrollController = ScrollController();
 
   // Cache for Landlord Profiles to optimize scrolling
@@ -71,19 +71,26 @@ class PostController extends GetxController {
 
   Future<Map<String, dynamic>?> _fetchProfileFromFirestore(String uid) async {
     try {
-      final doc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(uid)
-          .get();
-      if (doc.exists && doc.data() != null) {
-        final data = doc.data() as Map<String, dynamic>;
-        landlordProfilesCache[uid] = data;
-        return data;
+      final res = await ApiService().dio.get('/auth/user/$uid');
+      if (res.statusCode == 200 && res.data != null) {
+        final data = Map<String, dynamic>.from(res.data);
+        final photo = data['profile_image'] ?? data['photoUrl'];
+        final map = {
+          'uid': data['uid'],
+          'name': data['name'] ?? 'Landlord',
+          'phone': data['phone'] ?? '',
+          'photoUrl': photo,
+          'profile_image': photo,
+          'isPaid': data['status'] == 'active' || data['isPaid'] == true,
+          'role': data['role'] ?? 'landlord',
+        };
+        landlordProfilesCache[uid] = map;
+        return map;
       }
     } catch (e) {
-      AppLogger.e('Failed to fetch landlord profile: $e', e, null, 'POST_CTRL');
+      debugPrint('Error fetching landlord profile: $e');
     }
-    return null;
+    return {'uid': uid, 'name': 'Landlord', 'phone': ''};
   }
 
   // Filter states for Bachelor Feed
@@ -119,7 +126,7 @@ class PostController extends GetxController {
     if (savedPostIds.contains(postId)) {
       savedPostIds.remove(postId);
       _updateSavedPostsList();
-      _syncSavedPostsToFirebase();
+      _syncSavedPostsToLocal();
       Get.snackbar(
         'Favorites',
         'Removed from your favorites list',
@@ -129,7 +136,7 @@ class PostController extends GetxController {
     } else {
       savedPostIds.add(postId);
       _updateSavedPostsList();
-      _syncSavedPostsToFirebase();
+      _syncSavedPostsToLocal();
       Get.snackbar(
         'Favorites ❤️',
         'Added to your favorites list! You can find it in the Favorites tab.',
@@ -183,7 +190,7 @@ class PostController extends GetxController {
     // Attempt to fetch user location silently in the background
     fetchUserLocation();
 
-    _loadSavedPostsFromFirebase();
+    _loadSavedPostsFromLocal();
 
     await fetchInitialPosts();
 
@@ -191,16 +198,18 @@ class PostController extends GetxController {
     if (Get.isRegistered<AuthController>()) {
       final auth = Get.find<AuthController>();
       ever(auth.currentUser, (_) {
-        _loadSavedPostsFromFirebase();
+        _loadSavedPostsFromLocal();
+        _fetchMyPosts();
       });
       if (auth.currentUser.value != null) {
-        _postRepo.getLandlordPostsStream(auth.currentUser.value!.uid).listen((
-          posts,
-        ) {
-          myPosts.assignAll(posts);
-        });
+        _fetchMyPosts();
       }
     }
+  }
+
+  Future<void> _fetchMyPosts() async {
+    final posts = await _postRepo.getLandlordPosts();
+    myPosts.assignAll(posts);
   }
 
   Future<void> fetchInitialPosts() async {
@@ -217,7 +226,7 @@ class PostController extends GetxController {
           : selectedDistrictFilter.value,
     );
     final List<PostModel> fetchedPosts = result['posts'] as List<PostModel>;
-    lastDocument = result['lastDocument'] as DocumentSnapshot?;
+    lastDocument = result['lastDocument'] as String?;
 
     if (fetchedPosts.length < postLimit) {
       hasMorePosts.value = false;
@@ -253,7 +262,7 @@ class PostController extends GetxController {
     );
 
     final List<PostModel> newPosts = result['posts'] as List<PostModel>;
-    lastDocument = result['lastDocument'] as DocumentSnapshot?;
+    lastDocument = result['lastDocument'] as String?;
 
     if (newPosts.length < postLimit) {
       hasMorePosts.value = false;
@@ -269,7 +278,7 @@ class PostController extends GetxController {
 
   @override
   void onClose() {
-    _postsSubscription?.cancel();
+    _searchDebounce?.cancel();
     super.onClose();
   }
 
@@ -277,57 +286,25 @@ class PostController extends GetxController {
     await _initPosts();
   }
 
-  Future<void> _loadSavedPostsFromFirebase() async {
+  Future<void> _loadSavedPostsFromLocal() async {
     try {
-      if (Get.isRegistered<AuthController>()) {
-        final auth = Get.find<AuthController>();
-        final user = auth.currentUser.value;
-        if (user != null && user.uid.isNotEmpty) {
-          final doc = await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .get();
-          if (doc.exists && doc.data() != null) {
-            final data = doc.data()!;
-            if (data.containsKey('savedPosts') && data['savedPosts'] is List) {
-              final List<dynamic> savedList = data['savedPosts'];
-              savedPostIds.assignAll(savedList.map((e) => e.toString()));
-              _updateSavedPostsList();
-            }
-          }
-        }
+      final prefs = await SharedPreferences.getInstance();
+      final savedList = prefs.getStringList('savedPosts');
+      if (savedList != null) {
+        savedPostIds.assignAll(savedList);
+        _updateSavedPostsList();
       }
     } catch (e) {
-      AppLogger.e(
-        'Failed to load favorite posts from Firebase: $e',
-        e,
-        null,
-        'POST_CTRL',
-      );
+      AppLogger.e('Failed to load favorite posts from SharedPreferences: $e', e, null, 'POST_CTRL');
     }
   }
 
-  Future<void> _syncSavedPostsToFirebase() async {
+  Future<void> _syncSavedPostsToLocal() async {
     try {
-      if (Get.isRegistered<AuthController>()) {
-        final auth = Get.find<AuthController>();
-        final user = auth.currentUser.value;
-        if (user != null && user.uid.isNotEmpty) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(user.uid)
-              .set({
-                'savedPosts': savedPostIds.toList(),
-              }, SetOptions(merge: true));
-        }
-      }
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList('savedPosts', savedPostIds.toList());
     } catch (e) {
-      AppLogger.e(
-        'Failed to save favorite post to Firebase: $e',
-        e,
-        null,
-        'POST_CTRL',
-      );
+      AppLogger.e('Failed to save favorite post to SharedPreferences: $e', e, null, 'POST_CTRL');
     }
   }
 
@@ -456,14 +433,12 @@ class PostController extends GetxController {
           finalImageUrls.add(path);
         } else {
           final url = await storageService.uploadImage(path);
-          if (url != null) {
-            finalImageUrls.add(url);
-          }
+          if (url != null) finalImageUrls.add(url);
         }
       }
 
       if (finalImageUrls.isEmpty && images.isNotEmpty) {
-        throw 'Failed to upload images. Please check your internet connection or Firebase Storage rules.';
+        throw 'Image upload failed! Please check your internet connection and try again.\n\nTip: Cloudinary preset "messfinder_preset" must be set to "Unsigned" in Cloudinary dashboard.';
       }
 
       String? uploadedVideoUrl;

@@ -1,117 +1,98 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:uuid/uuid.dart';
 
 import 'app_logger.dart';
+import '../services/api_service.dart';
 
-// Note: Keeping the class name ImgbbService to avoid renaming across all controllers,
-// but it now uses Cloudinary internally for fast, free, and unblocked image hosting.
+/// Uploads images and videos to our own Node.js backend server.
+/// Files are stored in backend/uploads/ and served as static files.
 class ImgbbService {
   final Uuid _uuid = const Uuid();
-  
-  static const String _cloudinaryCloudName = 'xtdzn8zq'; 
-  static const String _uploadPreset = 'messfinder_preset';
 
-  /// Compresses and uploads an image to Cloudinary
-  /// Returns the direct image URL if successful, otherwise null
+  /// Compresses and uploads a single image to the backend.
+  /// Returns the public URL on success, null on failure.
   Future<String?> uploadImage(String filePath) async {
     try {
       final File file = File(filePath);
       if (!file.existsSync()) {
-        AppLogger.e('File does not exist: $filePath', null, null, 'CLOUDINARY_SVC');
+        AppLogger.e('File does not exist: $filePath', null, null, 'UPLOAD_SVC');
         return null;
       }
 
-      // 1. Compress Image (Important to keep upload fast)
+      // Compress before upload
       final compressedFile = await _compressImage(file);
-      if (compressedFile == null) {
-        return null;
-      }
+      final fileToUpload = compressedFile ?? file;
 
-      // 2. Upload to Cloudinary via Unsigned POST request
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://api.cloudinary.com/v1_1/$_cloudinaryCloudName/image/upload'),
-      );
-      
-      request.fields['upload_preset'] = _uploadPreset;
-      
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file',
-          compressedFile.path,
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
+          fileToUpload.path,
+          filename: '${_uuid.v4()}.jpg',
         ),
-      );
+      });
 
-      var response = await request.send();
-      var responseData = await response.stream.bytesToString();
-      var jsonResponse = json.decode(responseData);
+      final dio = ApiService().dio;
+      final response = await dio.post('/upload', data: formData);
 
-      // Clean up compressed temp file if it's not the original
-      if (compressedFile.path != file.path && compressedFile.existsSync()) {
+      // Clean up temp compressed file
+      if (compressedFile != null &&
+          compressedFile.path != file.path &&
+          compressedFile.existsSync()) {
         compressedFile.deleteSync();
       }
 
-      if (response.statusCode == 200 && jsonResponse['secure_url'] != null) {
-        String downloadUrl = jsonResponse['secure_url'];
-        AppLogger.s('Cloudinary Upload Success: $downloadUrl', tag: 'CLOUDINARY_SVC');
-        return downloadUrl;
-      } else {
-        AppLogger.e('Cloudinary Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'CLOUDINARY_SVC');
-        return null;
+      if (response.statusCode == 200 && response.data['url'] != null) {
+        final url = response.data['url'] as String;
+        AppLogger.s('Upload success: $url', tag: 'UPLOAD_SVC');
+        return url;
       }
-    } catch (e, stackTrace) {
-      AppLogger.e('Failed to upload image to Cloudinary: $e', e, stackTrace, 'CLOUDINARY_SVC');
+
+      AppLogger.e('Upload failed: ${response.data}', null, null, 'UPLOAD_SVC');
+      return null;
+    } catch (e, stack) {
+      AppLogger.e('Upload exception: $e', e, stack, 'UPLOAD_SVC');
       return null;
     }
   }
 
-  /// Uploads a video to Cloudinary
+  /// Uploads a video file to the backend.
   Future<String?> uploadVideo(String filePath) async {
     try {
       final File file = File(filePath);
       if (!file.existsSync()) {
-        AppLogger.e('Video file does not exist: $filePath', null, null, 'CLOUDINARY_SVC');
+        AppLogger.e('Video file does not exist: $filePath', null, null, 'UPLOAD_SVC');
         return null;
       }
 
-      var request = http.MultipartRequest(
-        'POST',
-        Uri.parse('https://api.cloudinary.com/v1_1/$_cloudinaryCloudName/video/upload'),
-      );
-      
-      request.fields['upload_preset'] = _uploadPreset;
-      
-      request.files.add(
-        await http.MultipartFile.fromPath(
-          'file',
+      final ext = path.extension(filePath).isNotEmpty ? path.extension(filePath) : '.mp4';
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(
           file.path,
+          filename: '${_uuid.v4()}$ext',
         ),
-      );
+      });
 
-      var response = await request.send();
-      var responseData = await response.stream.bytesToString();
-      var jsonResponse = json.decode(responseData);
+      final dio = ApiService().dio;
+      final response = await dio.post('/upload', data: formData);
 
-      if (response.statusCode == 200 && jsonResponse['secure_url'] != null) {
-        String downloadUrl = jsonResponse['secure_url'];
-        AppLogger.s('Cloudinary Video Upload Success: $downloadUrl', tag: 'CLOUDINARY_SVC');
-        return downloadUrl;
-      } else {
-        AppLogger.e('Cloudinary Video Upload Failed: ${jsonResponse['error']?['message']}', null, null, 'CLOUDINARY_SVC');
-        return null;
+      if (response.statusCode == 200 && response.data['url'] != null) {
+        final url = response.data['url'] as String;
+        AppLogger.s('Video upload success: $url', tag: 'UPLOAD_SVC');
+        return url;
       }
-    } catch (e, stackTrace) {
-      AppLogger.e('Failed to upload video to Cloudinary: $e', e, stackTrace, 'CLOUDINARY_SVC');
+
+      AppLogger.e('Video upload failed: ${response.data}', null, null, 'UPLOAD_SVC');
+      return null;
+    } catch (e, stack) {
+      AppLogger.e('Video upload exception: $e', e, stack, 'UPLOAD_SVC');
       return null;
     }
   }
 
-  /// Compresses the image and returns a temporary file
+  /// Compresses the image and returns a temporary File.
   Future<File?> _compressImage(File file) async {
     try {
       final Directory tempDir = await getTemporaryDirectory();
@@ -125,13 +106,12 @@ class ImgbbService {
         minHeight: 800,
       );
 
-      if (compressed != null) {
-        return File(compressed.path);
-      }
-      return file;
+      if (compressed != null) return File(compressed.path);
+      return null;
     } catch (e) {
-      AppLogger.e('Image compression failed: $e', e, null, 'IMGBB_SVC');
-      return file; 
+      AppLogger.e('Image compression failed: $e', e, null, 'UPLOAD_SVC');
+      return null;
     }
   }
 }
+
