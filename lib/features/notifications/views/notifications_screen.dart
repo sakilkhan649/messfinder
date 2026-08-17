@@ -40,17 +40,68 @@ class NotificationsScreen extends StatelessWidget {
         centerTitle: true,
         actions: [
           Obx(() {
-            if (ctrl.unreadCount.value == 0) return const SizedBox.shrink();
-            return TextButton(
-              onPressed: ctrl.markAllRead,
-              child: Text(
-                'Mark all read',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontSize: 12.sp,
-                  fontWeight: FontWeight.w500,
+            if (ctrl.notifications.isEmpty) return const SizedBox.shrink();
+            return PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
+              color: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+              onSelected: (value) async {
+                if (value == 'mark_read') {
+                  await ctrl.markAllRead();
+                } else if (value == 'clear_all') {
+                  Get.defaultDialog(
+                    title: 'Clear Notifications',
+                    titleStyle: GoogleFonts.poppins(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16.sp,
+                      color: const Color(0xFF1E293B),
+                    ),
+                    middleText: 'Are you sure you want to delete all notifications from the server?',
+                    middleTextStyle: GoogleFonts.poppins(
+                      fontSize: 13.sp,
+                      color: Colors.grey.shade700,
+                    ),
+                    textConfirm: 'Delete All',
+                    textCancel: 'Cancel',
+                    confirmTextColor: Colors.white,
+                    buttonColor: Colors.red,
+                    cancelTextColor: Colors.grey.shade700,
+                    onConfirm: () async {
+                      Get.back();
+                      await ctrl.deleteAllNotifications();
+                    },
+                  );
+                }
+              },
+              itemBuilder: (context) => [
+                if (ctrl.unreadCount.value > 0)
+                  PopupMenuItem(
+                    value: 'mark_read',
+                    child: Row(
+                      children: [
+                        Icon(Icons.done_all_rounded, size: 18.r, color: primaryColor),
+                        SizedBox(width: 10.w),
+                        Text(
+                          'Mark all as read',
+                          style: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.black87),
+                        ),
+                      ],
+                    ),
+                  ),
+                PopupMenuItem(
+                  value: 'clear_all',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_sweep_rounded, size: 18.r, color: Colors.red),
+                      SizedBox(width: 10.w),
+                      Text(
+                        'Clear all notifications',
+                        style: GoogleFonts.poppins(fontSize: 13.sp, color: Colors.red),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
+              ],
             );
           }),
         ],

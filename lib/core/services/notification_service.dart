@@ -304,6 +304,18 @@ class NotificationService {
     await batch.commit();
   }
 
+  Future<void> deleteAllNotifications(String uid) async {
+    final batch = _firestore.batch();
+    final query = await _firestore
+        .collection('notifications')
+        .where('receiverUid', whereIn: [uid, 'all'])
+        .get();
+    for (final doc in query.docs) {
+      batch.delete(doc.reference);
+    }
+    await batch.commit();
+  }
+
   // ── Stream of notifications for a user ──────────────────────────────────
   Stream<List<AppNotificationModel>> getNotificationsStream(String uid) {
     return _firestore
