@@ -18,6 +18,7 @@ class ChatScreen extends StatelessWidget {
   final String targetUserId;
   final String targetUserName;
   final String? targetUserPhoto;
+  final String? initialMessage;
 
   const ChatScreen({
     super.key,
@@ -25,6 +26,7 @@ class ChatScreen extends StatelessWidget {
     required this.targetUserId,
     required this.targetUserName,
     this.targetUserPhoto,
+    this.initialMessage,
   });
 
   ChatScreenController get _screenController =>
@@ -33,7 +35,10 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(ChatScreenController(chatRoomId), tag: chatRoomId);
+    Get.put(
+      ChatScreenController(chatRoomId, initialMessage: initialMessage),
+      tag: chatRoomId,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
@@ -1085,12 +1090,17 @@ class ChatScreen extends StatelessWidget {
 // ── Screen Controller ────────────────────────────────────────────────
 class ChatScreenController extends GetxController {
   final String chatRoomId;
+  final String? initialMessage;
   late final ChatController chatController;
   final TextEditingController messageController = TextEditingController();
   final RxBool hasText = false.obs;
 
-  ChatScreenController(this.chatRoomId) {
+  ChatScreenController(this.chatRoomId, {this.initialMessage}) {
     chatController = Get.find<ChatController>();
+    if (initialMessage != null && initialMessage!.trim().isNotEmpty) {
+      messageController.text = initialMessage!.trim();
+      hasText.value = true;
+    }
   }
 
   @override

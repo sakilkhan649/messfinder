@@ -129,12 +129,16 @@ class RoomDetailScreen extends StatelessWidget {
       );
       Get.back(); // close loading dialog
 
+      final autoDraftMessage =
+          'Hello $landlordName, I am interested in your room "${post.title}" at ${post.address} (Rent: ৳${post.rent.toInt()}/month). Is it currently available?';
+
       Get.to(
         () => ChatScreen(
           chatRoomId: chatRoomId,
           targetUserId: post.ownerUid,
           targetUserName: landlordName,
           targetUserPhoto: landlordPhoto,
+          initialMessage: autoDraftMessage,
         ),
       );
     } catch (e) {
