@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
+import '../utils/api_constants.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -8,9 +9,8 @@ class ApiService {
   
   late Dio _dio;
 
-  // For Android Emulator localhost is 10.0.2.2.
-  // For iOS Simulator or Web, it's 127.0.0.1 or localhost.
-  static const String baseUrl = 'http://10.0.2.2:5000/api';
+  // Uses centralized URL from ApiConstants
+  static const String baseUrl = ApiConstants.apiBaseUrl;
 
   ApiService._internal() {
     _dio = Dio(BaseOptions(

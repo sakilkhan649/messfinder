@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
 import 'package:mess_finder/core/utils/app_logger.dart';
+import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
@@ -65,7 +66,7 @@ class CallController extends GetxController {
     final currentUid = authCtrl.currentUser.value?.uid;
     if (currentUid == null || currentUid.isEmpty) return;
 
-    final backendUrl = dotenv.env['SOCKET_URL'] ?? 'http://10.0.2.2:5000';
+    final backendUrl = dotenv.env['SOCKET_URL'] ?? ApiConstants.serverBaseUrl;
     _socket = IO.io(
       backendUrl,
       IO.OptionBuilder()
