@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 
 import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
@@ -26,7 +26,7 @@ class CallController extends GetxController {
   RtcEngine? _engine;
   RtcEngine? get engine => _engine;
 
-  IO.Socket? _socket;
+  socket_io.Socket? _socket;
 
   // Call States
   final Rx<CallState> callState = CallState.idle.obs;
@@ -67,9 +67,9 @@ class CallController extends GetxController {
     if (currentUid == null || currentUid.isEmpty) return;
 
     final backendUrl = dotenv.env['SOCKET_URL'] ?? ApiConstants.serverBaseUrl;
-    _socket = IO.io(
+    _socket = socket_io.io(
       backendUrl,
-      IO.OptionBuilder()
+      socket_io.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
           .setQuery({'userId': currentUid})

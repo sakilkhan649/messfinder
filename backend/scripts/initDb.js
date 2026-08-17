@@ -60,6 +60,9 @@ const initSql = `
     image_url TEXT,
     video_url TEXT,
     is_read BOOLEAN DEFAULT false,
+    is_edited BOOLEAN DEFAULT false,
+    is_deleted BOOLEAN DEFAULT false,
+    reactions JSONB DEFAULT '{}',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -73,13 +76,20 @@ const initSql = `
     is_read BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
+
+  -- Ensure missing columns exist in case tables were previously created
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_edited BOOLEAN DEFAULT false;
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT false;
+  ALTER TABLE messages ADD COLUMN IF NOT EXISTS reactions JSONB DEFAULT '{}';
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS video_url TEXT;
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS seat_description VARCHAR(255);
 `;
 
 const setupDatabase = async () => {
   try {
-    console.log('Initializing database tables...');
+    console.log('Initializing database tables & migrations...');
     await pool.query(initSql);
-    console.log('Database tables created successfully!');
+    console.log('Database tables & migrations executed successfully!');
     process.exit(0);
   } catch (error) {
     console.error('Error creating database tables:', error);

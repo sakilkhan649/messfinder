@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 import 'package:image_picker/image_picker.dart';
 
 import 'package:mess_finder/core/utils/app_logger.dart';
+import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/api_service.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/core/utils/imgbb_service.dart';
@@ -16,7 +17,7 @@ import 'package:mess_finder/features/notifications/models/app_notification_model
 
 class ChatController extends GetxController {
   final ApiService _apiService = ApiService();
-  IO.Socket? _socket;
+  socket_io.Socket? _socket;
 
   String get currentUserId {
     if (Get.isRegistered<AuthController>()) {
@@ -49,12 +50,10 @@ class ChatController extends GetxController {
   }
 
   void _initSocket() {
-    // ApiService.baseUrl = 'http://10.0.2.2:5000/api'
-    // Socket.io needs the base server URL (without /api)
-    final socketUrl = ApiService.baseUrl.replaceAll('/api', '');
+    final socketUrl = ApiConstants.serverBaseUrl;
     AppLogger.i('Connecting Socket.io to: $socketUrl', tag: 'CHAT_CTRL');
 
-    _socket = IO.io(socketUrl, IO.OptionBuilder()
+    _socket = socket_io.io(socketUrl, socket_io.OptionBuilder()
         .setTransports(['websocket'])
         .disableAutoConnect()
         .build());

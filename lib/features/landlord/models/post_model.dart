@@ -14,8 +14,7 @@ class PostModel {
   final String division;
   final String district;
   final String bachelorType; // 'male', 'female', 'both'
-  final String? _preferredTenant; // 'Student', 'Job', 'Student / Job holder'
-  String get preferredTenant => _preferredTenant ?? 'Student / Job holder';
+  final String preferredTenant; // 'Student', 'Job', 'Student / Job holder'
   final List<String> facilities;
   final bool isAvailable;
   final DateTime? createdAt;
@@ -40,7 +39,7 @@ class PostModel {
     required this.division,
     required this.district,
     required this.bachelorType,
-    String? preferredTenant = 'Student / Job holder',
+    this.preferredTenant = 'Student / Job holder',
     required this.facilities,
     this.isAvailable = true,
     this.createdAt,
@@ -49,7 +48,7 @@ class PostModel {
     this.isPublished = true,
     this.paymentTrxId,
     this.senderNumber,
-  }) : _preferredTenant = preferredTenant;
+  });
 
   String get displaySeats {
     if (seatDescription != null && seatDescription!.trim().isNotEmpty) {

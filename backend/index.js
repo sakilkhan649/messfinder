@@ -40,6 +40,12 @@ const io = new Server(server, {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
+  const queryUid = socket.handshake.query?.userId;
+  if (queryUid) {
+    socket.join(queryUid);
+    console.log(`User auto-joined room from query: ${queryUid}`);
+  }
+
   socket.on('join_chat', (chatId) => {
     socket.join(chatId);
     console.log(`User joined chat: ${chatId}`);

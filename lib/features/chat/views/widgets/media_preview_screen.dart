@@ -121,7 +121,7 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
 
   Future<void> _shareMedia() async {
     try {
-      await Share.share(widget.mediaUrl);
+      await SharePlus.instance.share(ShareParams(text: widget.mediaUrl));
     } catch (_) {
       // Fallback
     }

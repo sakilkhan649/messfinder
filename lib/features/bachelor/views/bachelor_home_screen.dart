@@ -802,7 +802,7 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
 class BachelorPostCard extends StatefulWidget {
   final PostModel post;
 
-  const BachelorPostCard({required this.post});
+  const BachelorPostCard({super.key, required this.post});
 
   @override
   State<BachelorPostCard> createState() => BachelorPostCardState();
