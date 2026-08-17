@@ -106,11 +106,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
             
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted && _mapController != null) {
-            try {
-              _fitMapToMarkers(activePosts);
-            } catch (e) {
-              debugPrint('Error fitting map to markers: $e');
-            }
+            _fitMapToMarkers(activePosts);
           }
         });
 
@@ -301,64 +297,70 @@ class _MessMapScreenState extends State<MessMapScreen> {
   }
 
   void _fitMapToMarkers(List<PostModel> posts) {
-    if (_mapController == null) return;
-
-    if (posts.isEmpty) {
-      final postCtrl = Get.find<PostController>();
-      final pos = postCtrl.userLocation.value;
-      if (pos != null) {
-        _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-          LatLng(pos.latitude, pos.longitude),
-          14.0,
-        ));
-      }
-      return;
-    }
-
-    if (posts.length == 1) {
-      // If only one post, just center it
-      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng(posts.first.latitude, posts.first.longitude),
-        14.0,
-      ));
-      return;
-    }
-
-    double minLat = double.infinity;
-    double maxLat = -double.infinity;
-    double minLng = double.infinity;
-    double maxLng = -double.infinity;
-
-    for (int i = 0; i < posts.length; i++) {
-      final post = posts[i];
-      double lat = post.latitude;
-      double lng = post.longitude;
-      
-      if (lat < minLat) minLat = lat;
-      if (lat > maxLat) maxLat = lat;
-      if (lng < minLng) minLng = lng;
-      if (lng > maxLng) maxLng = lng;
-    }
-
-    // If all posts are at the exact same location, bounds padding will crash the map
-    if (maxLat - minLat < 0.0001 && maxLng - minLng < 0.0001) {
-      _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-        LatLng(minLat, minLng),
-        14.0,
-      ));
-      return;
-    }
+    if (!mounted || _mapController == null) return;
 
     try {
-      _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
-        LatLngBounds(
-          southwest: LatLng(minLat, minLng),
-          northeast: LatLng(maxLat, maxLng),
-        ),
-        50.0, // Padding
-      ));
+      if (posts.isEmpty) {
+        final postCtrl = Get.find<PostController>();
+        final pos = postCtrl.userLocation.value;
+        if (pos != null && mounted && _mapController != null) {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+            LatLng(pos.latitude, pos.longitude),
+            14.0,
+          ));
+        }
+        return;
+      }
+
+      if (posts.length == 1) {
+        // If only one post, just center it
+        if (mounted && _mapController != null) {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+            LatLng(posts.first.latitude, posts.first.longitude),
+            14.0,
+          ));
+        }
+        return;
+      }
+
+      double minLat = double.infinity;
+      double maxLat = -double.infinity;
+      double minLng = double.infinity;
+      double maxLng = -double.infinity;
+
+      for (int i = 0; i < posts.length; i++) {
+        final post = posts[i];
+        double lat = post.latitude;
+        double lng = post.longitude;
+        
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+        if (lng < minLng) minLng = lng;
+        if (lng > maxLng) maxLng = lng;
+      }
+
+      // If all posts are at the exact same location, bounds padding will crash the map
+      if (maxLat - minLat < 0.0001 && maxLng - minLng < 0.0001) {
+        if (mounted && _mapController != null) {
+          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+            LatLng(minLat, minLng),
+            14.0,
+          ));
+        }
+        return;
+      }
+
+      if (mounted && _mapController != null) {
+        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          50.0, // Padding
+        ));
+      }
     } catch (e) {
-      debugPrint("Map bounds error: $e");
+      debugPrint("Map bounds/animation error ignored: $e");
     }
   }
 }

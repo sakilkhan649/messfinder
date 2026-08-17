@@ -26,10 +26,14 @@ class AuthRepository {
       });
 
       if (response.statusCode == 201) {
-        final token = response.data['token'];
+        final token = response.data['token'] ?? response.data['accessToken'];
+        final refreshToken = response.data['refreshToken'] ?? '';
         final userJson = response.data['user'];
         
-        await _apiService.setToken(token);
+        await _apiService.setTokens(
+          accessToken: token.toString(),
+          refreshToken: refreshToken.toString(),
+        );
         AppLogger.s('Registration successful', tag: 'AUTH_REPO');
         
         return UserModel(
@@ -69,10 +73,14 @@ class AuthRepository {
       });
 
       if (response.statusCode == 200) {
-        final token = response.data['token'];
+        final token = response.data['token'] ?? response.data['accessToken'];
+        final refreshToken = response.data['refreshToken'] ?? '';
         final userJson = response.data['user'];
         
-        await _apiService.setToken(token);
+        await _apiService.setTokens(
+          accessToken: token.toString(),
+          refreshToken: refreshToken.toString(),
+        );
         AppLogger.s('Login successful', tag: 'AUTH_REPO');
         
         return UserModel(
@@ -88,11 +96,11 @@ class AuthRepository {
       return null;
     } on DioException catch (e) {
       AppLogger.e('DioException (Login): ${e.message}', e, null, 'AUTH_REPO');
-      if (e.response?.statusCode == 401 || e.response?.statusCode == 404) {
-        throw 'Invalid email or password. Please try again.';
-      }
       if (e.response?.data != null && e.response?.data['error'] != null) {
         throw e.response?.data['error'];
+      }
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 404) {
+        throw 'Invalid email or password. Please try again.';
       }
       throw 'Login failed. Please check your connection.';
     } catch (e, stack) {
@@ -121,10 +129,14 @@ class AuthRepository {
       });
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final token = response.data['token'];
+        final token = response.data['token'] ?? response.data['accessToken'];
+        final refreshToken = response.data['refreshToken'] ?? '';
         final userJson = response.data['user'];
 
-        await _apiService.setToken(token);
+        await _apiService.setTokens(
+          accessToken: token.toString(),
+          refreshToken: refreshToken.toString(),
+        );
         AppLogger.s('Google login successful', tag: 'AUTH_REPO');
 
         return UserModel(
@@ -225,6 +237,32 @@ class AuthRepository {
     }
   }
 
+  // Change Password for Logged-In User
+  Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    try {
+      AppLogger.i('Changing password for current user...', tag: 'AUTH_REPO');
+      final response = await _apiService.dio.put(ApiConstants.authChangePassword, data: {
+        'oldPassword': oldPassword,
+        'newPassword': newPassword,
+      });
+      if (response.statusCode == 200) {
+        AppLogger.s('Password updated successfully', tag: 'AUTH_REPO');
+        return;
+      }
+      throw 'Failed to update password';
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response?.data['error'] != null) {
+        throw e.response?.data['error'];
+      }
+      throw 'Failed to change password. Please verify current password.';
+    } catch (e) {
+      throw e.toString();
+    }
+  }
+
   Future<void> sendPasswordResetEmail(String email) => sendResetOtp(email);
 
   // Save user details to API
@@ -255,7 +293,14 @@ class AuthRepository {
 
   Future<bool> isLoggedIn() async {
     final token = await _apiService.getToken();
-    return token != null && token.isNotEmpty;
+    final refreshToken = await _apiService.getRefreshToken();
+    return (token != null && token.isNotEmpty) || (refreshToken != null && refreshToken.isNotEmpty);
+  }
+
+  // Refresh auth tokens
+  Future<bool> refreshToken() async {
+    final newToken = await _apiService.refreshAccessToken();
+    return newToken != null && newToken.isNotEmpty;
   }
 
   // Sign out

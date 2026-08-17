@@ -121,66 +121,58 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
                           ),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          _buildBudgetFilterButton(
-                            context,
-                            postController,
-                            primaryColor,
-                            accentColor,
-                          ),
-                          SizedBox(width: 8.w),
-                          _buildLocationFilterButton(
-                            context,
-                            postController,
-                            primaryColor,
-                            accentColor,
-                          ),
-                          SizedBox(width: 8.w),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              physics: const BouncingScrollPhysics(),
-                              child: Obx(() {
-                                return Row(
-                                  children: [
-                                    _buildFilterChip(
-                                      postController,
-                                      'all',
-                                      'All',
-                                      primaryColor,
-                                      accentColor,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    _buildFilterChip(
-                                      postController,
-                                      'male',
-                                      'Male Only',
-                                      primaryColor,
-                                      accentColor,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    _buildFilterChip(
-                                      postController,
-                                      'female',
-                                      'Female Only',
-                                      primaryColor,
-                                      accentColor,
-                                    ),
-                                    SizedBox(width: 8.w),
-                                    _buildFilterChip(
-                                      postController,
-                                      'both',
-                                      'Any',
-                                      primaryColor,
-                                      accentColor,
-                                    ),
-                                  ],
-                                );
-                              }),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: [
+                            _buildBudgetFilterButton(
+                              context,
+                              postController,
+                              primaryColor,
+                              accentColor,
                             ),
-                          ),
-                        ],
+                            SizedBox(width: 8.w),
+                            _buildLocationFilterButton(
+                              context,
+                              postController,
+                              primaryColor,
+                              accentColor,
+                            ),
+                            SizedBox(width: 8.w),
+                            _buildFilterChip(
+                              postController,
+                              'all',
+                              'All',
+                              primaryColor,
+                              accentColor,
+                            ),
+                            SizedBox(width: 8.w),
+                            _buildFilterChip(
+                              postController,
+                              'male',
+                              'Male Only',
+                              primaryColor,
+                              accentColor,
+                            ),
+                            SizedBox(width: 8.w),
+                            _buildFilterChip(
+                              postController,
+                              'female',
+                              'Female Only',
+                              primaryColor,
+                              accentColor,
+                            ),
+                            SizedBox(width: 8.w),
+                            _buildFilterChip(
+                              postController,
+                              'both',
+                              'Any',
+                              primaryColor,
+                              accentColor,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -280,39 +272,41 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
     Color primaryColor,
     Color accentColor,
   ) {
-    final isSelected = controller.selectedGenderFilter.value == value;
+    return Obx(() {
+      final isSelected = controller.selectedGenderFilter.value == value;
 
-    return GestureDetector(
-      onTap: () => controller.selectedGenderFilter.value = value,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
-        decoration: BoxDecoration(
-          color: isSelected ? accentColor : Colors.white,
-          borderRadius: BorderRadius.circular(20.r),
-          border: Border.all(
-            color: isSelected ? accentColor : Colors.grey.shade200,
+      return GestureDetector(
+        onTap: () => controller.selectedGenderFilter.value = value,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: isSelected ? accentColor : Colors.white,
+            borderRadius: BorderRadius.circular(20.r),
+            border: Border.all(
+              color: isSelected ? accentColor : Colors.grey.shade200,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: accentColor.withValues(alpha: 0.3),
+                      blurRadius: 8.r,
+                      offset: Offset(0, 3.h),
+                    ),
+                  ]
+                : null,
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: accentColor.withValues(alpha: 0.3),
-                    blurRadius: 8.r,
-                    offset: Offset(0, 3.h),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            fontSize: 13.sp,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-            color: isSelected ? Colors.white : AppTheme.textSecondary,
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 13.sp,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildBudgetFilterButton(

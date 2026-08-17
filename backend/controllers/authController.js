@@ -3,10 +3,17 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 
-// Helper to generate JWT
-const generateToken = (uid) => {
-  return jwt.sign({ uid }, process.env.JWT_SECRET, { expiresIn: '30d' });
+const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_mess_finder';
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || (JWT_SECRET + '_refresh');
+
+// Helper to generate both Access Token and Refresh Token
+const generateTokens = (uid) => {
+  const accessToken = jwt.sign({ uid }, JWT_SECRET, { expiresIn: '1d' });
+  const refreshToken = jwt.sign({ uid }, REFRESH_TOKEN_SECRET, { expiresIn: '90d' });
+  return { accessToken, refreshToken, token: accessToken };
 };
+
+const generateToken = (uid) => generateTokens(uid).accessToken;
 
 // Mail transporter helper (uses environment SMTP or falls back to console logging)
 const sendEmailOtp = async (toEmail, otp) => {
@@ -63,7 +70,13 @@ exports.signup = async (req, res) => {
   const crypto = require('crypto');
 
   try {
-    const userCheck = await pool.query('SELECT * FROM users WHERE email = $1 OR phone = $2', [email, phone]);
+    const cleanEmail = email ? email.trim().toLowerCase() : null;
+    const cleanPhone = phone ? phone.trim() : null;
+
+    const userCheck = await pool.query(
+      'SELECT * FROM users WHERE (email IS NOT NULL AND LOWER(email) = $1) OR (phone IS NOT NULL AND phone = $2)',
+      [cleanEmail, cleanPhone]
+    );
     if (userCheck.rows.length > 0) {
       return res.status(400).json({ error: 'User with this email or phone already exists' });
     }
@@ -75,48 +88,91 @@ exports.signup = async (req, res) => {
     const newUser = await pool.query(
       `INSERT INTO users (uid, name, phone, email, password, gender, role) 
        VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-      [uid, name, phone, email, hashedPassword, gender || null, role || 'bachelor']
+      [uid, name ? name.trim() : '', cleanPhone, cleanEmail, hashedPassword, gender || null, role || 'bachelor']
     );
 
     const user = newUser.rows[0];
     delete user.password;
 
-    const token = generateToken(user.uid);
-    res.status(201).json({ user, token });
+    const tokens = generateTokens(user.uid);
+    res.status(201).json({ user, ...tokens });
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during signup' });
   }
 };
 
-// Login (Supports Email OR Phone Number)
+// Login (Supports Case-Insensitive Email OR Phone Number)
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email/Phone and password are required' });
+  }
+
+  const cleanIdentifier = email.trim();
+
   try {
     const userResult = await pool.query(
-      'SELECT * FROM users WHERE email = $1 OR phone = $1',
-      [email]
+      'SELECT * FROM users WHERE LOWER(email) = LOWER($1) OR phone = $1',
+      [cleanIdentifier]
     );
     
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Invalid email or password' });
+      return res.status(404).json({ error: 'No account found with this email/phone. Please create an account first.' });
     }
 
     const user = userResult.rows[0];
     
+    if (!user.password) {
+      return res.status(400).json({ error: 'This account was created with Google Sign-In. Please click "Continue with Google".' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid password. Please try again.' });
     }
 
     delete user.password;
 
-    const token = generateToken(user.uid);
-    res.status(200).json({ user, token });
+    const tokens = generateTokens(user.uid);
+    res.status(200).json({ user, ...tokens });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Server error during login' });
+  }
+};
+
+// Refresh Token
+exports.refreshToken = async (req, res) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) {
+    return res.status(400).json({ error: 'Refresh token is required' });
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+    
+    const userResult = await pool.query(
+      'SELECT uid, name, email, phone, role, status, profile_image, created_at FROM users WHERE uid = $1',
+      [decoded.uid]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(401).json({ error: 'User no longer exists' });
+    }
+
+    const user = userResult.rows[0];
+    const tokens = generateTokens(user.uid);
+
+    res.status(200).json({
+      user,
+      ...tokens
+    });
+  } catch (err) {
+    console.error('Refresh token error:', err.message);
+    return res.status(401).json({ error: 'Invalid or expired refresh token' });
   }
 };
 
@@ -162,9 +218,9 @@ exports.googleLogin = async (req, res) => {
     }
 
     delete user.password;
-    const token = generateToken(user.uid);
+    const tokens = generateTokens(user.uid);
 
-    res.status(200).json({ user, token });
+    res.status(200).json({ user, ...tokens });
   } catch (error) {
     console.error('Google login error:', error);
     res.status(500).json({ error: 'Server error during Google Sign-In' });

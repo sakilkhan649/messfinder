@@ -165,12 +165,14 @@ class AuthController extends GetxController {
           currentUser.value = user;
           handleNavigation(user);
         } else {
+          await _authRepo.logout();
           Get.offAll(() => const LoginScreen());
         }
       } else {
         Get.offAll(() => const LoginScreen());
       }
     } catch (e) {
+      await _authRepo.logout();
       Get.offAll(() => const LoginScreen());
     }
   }

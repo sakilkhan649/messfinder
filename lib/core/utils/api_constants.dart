@@ -17,6 +17,7 @@ class ApiConstants {
   static const String authSignup = '/auth/signup';
   static const String authLogin = '/auth/login';
   static const String authGoogleLogin = '/auth/google-login';
+  static const String authRefreshToken = '/auth/refresh-token';
   static const String authProfile = '/auth/profile';
   static const String authForgotPassword = '/auth/forgot-password';
   static const String authSendResetOtp = '/auth/send-reset-otp';
@@ -110,6 +111,7 @@ class ApiConstants {
   // ─── Local Storage / Shared Preferences Keys ─────────────────────────────
   static const String tokenKey = 'token';
   static const String authTokenKey = 'auth_token';
+  static const String refreshTokenKey = 'refresh_token';
   static const String userIdKey = 'userId';
   static const String userRoleKey = 'userRole';
   static const String isLoggedInKey = 'isLoggedIn';

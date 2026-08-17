@@ -9,30 +9,49 @@ import '../../profile/views/profile_screen.dart';
 import '../../landlord/views/add_post_screen.dart';
 import 'bottom_nav_painter.dart';
 import 'package:get/get.dart';
-class UserHomeScreen extends StatelessWidget {
+
+class UserHomeScreen extends StatefulWidget {
   final UserModel user;
 
   const UserHomeScreen({super.key, required this.user});
 
   @override
-  Widget build(BuildContext context) {
-    final RxInt currentIndex = 0.obs;
-    final RxBool isBottomNavVisible = true.obs;
-    const primaryEmerald = Color(0xFF059669);
+  State<UserHomeScreen> createState() => _UserHomeScreenState();
+}
 
-    final List<Widget> screens = [
-      BachelorHomeScreen(user: user),
+class _UserHomeScreenState extends State<UserHomeScreen> {
+  final RxInt _currentIndex = 0.obs;
+  final RxBool _isBottomNavVisible = true.obs;
+  static const Color _primaryEmerald = Color(0xFF059669);
+
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      BachelorHomeScreen(user: widget.user),
       const MessMapScreen(),
       AddPostScreen(
         showBackButton: false,
         onPostAdded: () {
-          currentIndex.value = 0;
+          _currentIndex.value = 0;
+          _isBottomNavVisible.value = true;
         },
       ),
       ChatListScreen(),
-      ProfileScreen(user: user),
+      ProfileScreen(user: widget.user),
     ];
+  }
 
+  void _onTabSelected(int index) {
+    _currentIndex.value = index;
+    _isBottomNavVisible.value = true;
+    FocusScope.of(context).unfocus();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       extendBody: true,
@@ -43,14 +62,19 @@ class UserHomeScreen extends StatelessWidget {
           // 1. The Main Content
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
-              if (notification.direction == ScrollDirection.forward) {
-                if (!isBottomNavVisible.value) isBottomNavVisible.value = true;
-              } else if (notification.direction == ScrollDirection.reverse) {
-                if (isBottomNavVisible.value) isBottomNavVisible.value = false;
+              // Only allow hiding on Feed screen (index 0)
+              if (_currentIndex.value == 0) {
+                if (notification.direction == ScrollDirection.forward) {
+                  if (!_isBottomNavVisible.value) _isBottomNavVisible.value = true;
+                } else if (notification.direction == ScrollDirection.reverse) {
+                  if (_isBottomNavVisible.value) _isBottomNavVisible.value = false;
+                }
+              } else {
+                if (!_isBottomNavVisible.value) _isBottomNavVisible.value = true;
               }
               return false;
             },
-            child: Obx(() => IndexedStack(index: currentIndex.value, children: screens)),
+            child: Obx(() => IndexedStack(index: _currentIndex.value, children: _screens)),
           ),
 
           // 2. The Custom Bottom Navbar & FAB with absolute positioning
@@ -60,7 +84,7 @@ class UserHomeScreen extends StatelessWidget {
             bottom: 0,
             child: Obx(() => AnimatedSlide(
               duration: const Duration(milliseconds: 300),
-              offset: isBottomNavVisible.value ? Offset.zero : const Offset(0, 1.8),
+              offset: _isBottomNavVisible.value ? Offset.zero : const Offset(0, 1.8),
               child: Stack(
                 clipBehavior: Clip.none,
                 alignment: Alignment.bottomCenter,
@@ -74,7 +98,7 @@ class UserHomeScreen extends StatelessWidget {
                         shadowColor: Colors.black.withValues(alpha: 0.15),
                       ),
                       child: Container(
-                        height: 85, // Slightly taller than 70 to give breathing room
+                        height: 85, // Slightly taller to give breathing room
                         padding: const EdgeInsets.only(bottom: 15), // Pushes icons up away from the gesture bar
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -85,17 +109,15 @@ class UserHomeScreen extends StatelessWidget {
                                 children: [
                                   _buildNavItem(
                                     index: 0,
-                                    currentIndex: currentIndex,
                                     icon: Icons.home_outlined,
                                     activeIcon: Icons.home_rounded,
-                                    activeColor: primaryEmerald,
+                                    activeColor: _primaryEmerald,
                                   ),
                                   _buildNavItem(
                                     index: 1,
-                                    currentIndex: currentIndex,
                                     icon: Icons.location_on_outlined,
                                     activeIcon: Icons.location_on_rounded,
-                                    activeColor: primaryEmerald,
+                                    activeColor: _primaryEmerald,
                                   ),
                                 ],
                               ),
@@ -107,17 +129,15 @@ class UserHomeScreen extends StatelessWidget {
                                 children: [
                                   _buildNavItem(
                                     index: 3,
-                                    currentIndex: currentIndex,
                                     icon: Icons.chat_bubble_outline_rounded,
                                     activeIcon: Icons.chat_bubble_rounded,
-                                    activeColor: primaryEmerald,
+                                    activeColor: _primaryEmerald,
                                   ),
                                   _buildNavItem(
                                     index: 4,
-                                    currentIndex: currentIndex,
                                     icon: Icons.person_outline_rounded,
                                     activeIcon: Icons.person_rounded,
-                                    activeColor: primaryEmerald,
+                                    activeColor: _primaryEmerald,
                                   ),
                                 ],
                               ),
@@ -133,15 +153,15 @@ class UserHomeScreen extends StatelessWidget {
                     top: 0,
                     child: Material(
                       type: MaterialType.circle,
-                      color: primaryEmerald,
+                      color: _primaryEmerald,
                       elevation: 4,
                       child: InkWell(
                         customBorder: const CircleBorder(),
-                        onTap: () => currentIndex.value = 2,
-                        child: SizedBox(
+                        onTap: () => _onTabSelected(2),
+                        child: const SizedBox(
                           height: 72,
                           width: 72,
-                          child: const Icon(Icons.add, color: Colors.white, size: 36),
+                          child: Icon(Icons.add, color: Colors.white, size: 36),
                         ),
                       ),
                     ),
@@ -155,45 +175,44 @@ class UserHomeScreen extends StatelessWidget {
     );
   }
 
-    Widget _buildNavItem({
+  Widget _buildNavItem({
     required int index,
-    required RxInt currentIndex,
     required IconData icon,
     required IconData activeIcon,
     required Color activeColor,
   }) {
     return GestureDetector(
-      onTap: () => currentIndex.value = index,
+      onTap: () => _onTabSelected(index),
       behavior: HitTestBehavior.opaque,
       child: Obx(() {
-        final isSelected = currentIndex.value == index;
+        final isSelected = _currentIndex.value == index;
         return SizedBox(
-        width: 55,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              size: 28,
-              color: isSelected ? activeColor : Colors.black87,
-            ),
-            const SizedBox(height: 6),
-            AnimatedOpacity(
-              duration: const Duration(milliseconds: 250),
-              opacity: isSelected ? 1.0 : 0.0,
-              child: Container(
-                height: 3,
-                width: 16,
-                decoration: BoxDecoration(
-                  color: activeColor,
-                  borderRadius: BorderRadius.circular(1.5),
+          width: 55,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isSelected ? activeIcon : icon,
+                size: 28,
+                color: isSelected ? activeColor : Colors.black87,
+              ),
+              const SizedBox(height: 6),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 250),
+                opacity: isSelected ? 1.0 : 0.0,
+                child: Container(
+                  height: 3,
+                  width: 16,
+                  decoration: BoxDecoration(
+                    color: activeColor,
+                    borderRadius: BorderRadius.circular(1.5),
+                  ),
                 ),
               ),
-            ),
-          ],
-        ),
-      );
+            ],
+          ),
+        );
       }),
     );
   }

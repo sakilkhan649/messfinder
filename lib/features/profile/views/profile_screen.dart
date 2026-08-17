@@ -10,6 +10,7 @@ import '../../auth/models/user_model.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 
 import 'edit_profile_screen.dart';
+import 'change_password_screen.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../bachelor/views/my_bookings_screen.dart';
 import '../../bachelor/views/saved_posts_screen.dart';
@@ -194,6 +195,14 @@ class ProfileScreen extends StatelessWidget {
                         index: 4,
                       ),
 
+                    // Change Password
+                    _buildMenuItem(
+                      icon: Icons.lock_outline_rounded,
+                      title: 'Change Password',
+                      onTap: () => Get.to(() => const ChangePasswordScreen()),
+                      index: 5,
+                    ),
+
                     _buildMenuItem(
                       icon: Icons.help_outline_rounded,
                       title: 'Help & Support',
@@ -210,7 +219,7 @@ class ProfileScreen extends StatelessWidget {
                         buttonColor: primaryColor,
                         onConfirm: () => Get.back(),
                       ),
-                      index: 5,
+                      index: 6,
                     ),
 
                     SizedBox(height: 32.h),
