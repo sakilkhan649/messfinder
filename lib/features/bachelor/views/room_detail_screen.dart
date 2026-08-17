@@ -114,125 +114,179 @@ class RoomDetailScreen extends StatelessWidget {
 
             // 1. Direct Phone Call
             if (phone != null && phone.isNotEmpty)
-              ListTile(
-                contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                tileColor: const Color(0xFFF1F5F9),
-                leading: Container(
-                  padding: EdgeInsets.all(10.r),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFF059669),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 20.r),
-                ),
-                title: Text(
-                  'Phone Call (Mobile SIM)',
-                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
-                ),
-                subtitle: Text(
-                  phone,
-                  style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
-                ),
-                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-                onTap: () async {
-                  Get.back();
-                  final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
-                  final Uri launchUri = Uri(scheme: 'tel', path: cleanPhone);
-                  try {
-                    if (await canLaunchUrl(launchUri)) {
-                      await launchUrl(launchUri);
-                    } else {
-                      await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+              Material(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(16.r),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16.r),
+                  onTap: () async {
+                    Get.back();
+                    final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+                    final Uri launchUri = Uri(scheme: 'tel', path: cleanPhone);
+                    try {
+                      if (await canLaunchUrl(launchUri)) {
+                        await launchUrl(launchUri);
+                      } else {
+                        await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+                      }
+                    } catch (e) {
+                      Get.snackbar(
+                        'Error',
+                        'Could not open phone dialer: $e',
+                        snackPosition: SnackPosition.BOTTOM,
+                      );
                     }
-                  } catch (e) {
-                    Get.snackbar(
-                      'Error',
-                      'Could not open phone dialer: $e',
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  }
-                },
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(10.r),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF059669),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 20.r),
+                        ),
+                        SizedBox(width: 14.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Phone Call (Mobile SIM)',
+                                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp, color: const Color(0xFF1E293B)),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                phone,
+                                style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
               ),
 
             if (phone != null && phone.isNotEmpty) SizedBox(height: 12.h),
 
             // 2. In-App Voice Call
-            ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-              tileColor: const Color(0xFFF1F5F9),
-              leading: Container(
-                padding: EdgeInsets.all(10.r),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2563EB),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.call_rounded, color: Colors.white, size: 20.r),
-              ),
-              title: Text(
-                'In-App Voice Call',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
-              ),
-              subtitle: Text(
-                'Free internet voice call',
-                style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-              onTap: () async {
-                Get.back();
-                final postCtrl = Get.find<PostController>();
-                final profile = await postCtrl.getLandlordProfile(post.ownerUid);
-                final landlordName = profile?['name']?.toString() ?? 'Landlord';
-                final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+            Material(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16.r),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16.r),
+                onTap: () async {
+                  Get.back();
+                  final postCtrl = Get.find<PostController>();
+                  final profile = await postCtrl.getLandlordProfile(post.ownerUid);
+                  final landlordName = profile?['name']?.toString() ?? 'Landlord';
+                  final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
 
-                CallController.to.makeCall(
-                  targetUserId: post.ownerUid,
-                  targetUserName: landlordName,
-                  targetUserPhoto: landlordPhoto,
-                  isVideo: false,
-                );
-              },
+                  CallController.to.makeCall(
+                    targetUserId: post.ownerUid,
+                    targetUserName: landlordName,
+                    targetUserPhoto: landlordPhoto,
+                    isVideo: false,
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10.r),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF2563EB),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.call_rounded, color: Colors.white, size: 20.r),
+                      ),
+                      SizedBox(width: 14.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'In-App Voice Call',
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp, color: const Color(0xFF1E293B)),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Free internet voice call',
+                              style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
             ),
 
             SizedBox(height: 12.h),
 
             // 3. In-App Video Call
-            ListTile(
-              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-              tileColor: const Color(0xFFF1F5F9),
-              leading: Container(
-                padding: EdgeInsets.all(10.r),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF7C3AED),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(Icons.videocam_rounded, color: Colors.white, size: 20.r),
-              ),
-              title: Text(
-                'In-App Video Call',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
-              ),
-              subtitle: Text(
-                'Live video preview & virtual tour',
-                style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
-              ),
-              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
-              onTap: () async {
-                Get.back();
-                final postCtrl = Get.find<PostController>();
-                final profile = await postCtrl.getLandlordProfile(post.ownerUid);
-                final landlordName = profile?['name']?.toString() ?? 'Landlord';
-                final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+            Material(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(16.r),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16.r),
+                onTap: () async {
+                  Get.back();
+                  final postCtrl = Get.find<PostController>();
+                  final profile = await postCtrl.getLandlordProfile(post.ownerUid);
+                  final landlordName = profile?['name']?.toString() ?? 'Landlord';
+                  final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
 
-                CallController.to.makeCall(
-                  targetUserId: post.ownerUid,
-                  targetUserName: landlordName,
-                  targetUserPhoto: landlordPhoto,
-                  isVideo: true,
-                );
-              },
+                  CallController.to.makeCall(
+                    targetUserId: post.ownerUid,
+                    targetUserName: landlordName,
+                    targetUserPhoto: landlordPhoto,
+                    isVideo: true,
+                  );
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: EdgeInsets.all(10.r),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF7C3AED),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.videocam_rounded, color: Colors.white, size: 20.r),
+                      ),
+                      SizedBox(width: 14.w),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'In-App Video Call',
+                              style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp, color: const Color(0xFF1E293B)),
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              'Live video preview & virtual tour',
+                              style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ],
         ),
