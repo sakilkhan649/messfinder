@@ -67,3 +67,67 @@ exports.createChat = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
+// Edit message
+exports.editMessage = async (req, res) => {
+  const { messageId } = req.params;
+  const { text } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE messages SET text = $1, is_edited = true WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
+      [text, messageId, req.user.uid]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found or unauthorized' });
+    }
+    res.status(200).json(result.rows[0]);
+  } catch (error) {
+    console.error('Edit message error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Delete message
+exports.deleteMessage = async (req, res) => {
+  const { messageId } = req.params;
+  try {
+    const result = await pool.query(
+      'UPDATE messages SET is_deleted = true, text = $1 WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
+      ['', messageId, req.user.uid]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found or unauthorized' });
+    }
+    res.status(200).json({ success: true, message: result.rows[0] });
+  } catch (error) {
+    console.error('Delete message error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Toggle reaction on message
+exports.toggleReaction = async (req, res) => {
+  const { messageId } = req.params;
+  const { emoji } = req.body;
+  const uid = req.user.uid;
+  try {
+    const msgRes = await pool.query('SELECT reactions FROM messages WHERE message_id = $1', [messageId]);
+    if (msgRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    let reactions = msgRes.rows[0].reactions || {};
+    if (reactions[uid] === emoji) {
+      delete reactions[uid];
+    } else {
+      reactions[uid] = emoji;
+    }
+    const updateRes = await pool.query(
+      'UPDATE messages SET reactions = $1 WHERE message_id = $2 RETURNING *',
+      [JSON.stringify(reactions), messageId]
+    );
+    res.status(200).json(updateRes.rows[0]);
+  } catch (error) {
+    console.error('Reaction error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

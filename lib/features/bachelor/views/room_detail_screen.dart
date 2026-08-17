@@ -113,11 +113,19 @@ class RoomDetailScreen extends StatelessWidget {
     );
 
     try {
-      final chatCtrl = Get.put(ChatController());
+      final postCtrl = Get.find<PostController>();
+      final profile = await postCtrl.getLandlordProfile(post.ownerUid);
+      final landlordName = profile?['name']?.toString() ?? 'Landlord';
+      final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+
+      final chatCtrl = Get.isRegistered<ChatController>()
+          ? Get.find<ChatController>()
+          : Get.put(ChatController());
+
       final chatRoomId = await chatCtrl.createOrGetChatRoom(
         post.ownerUid,
-        'Loading...',
-        null,
+        landlordName,
+        landlordPhoto,
       );
       Get.back(); // close loading dialog
 
@@ -125,15 +133,15 @@ class RoomDetailScreen extends StatelessWidget {
         () => ChatScreen(
           chatRoomId: chatRoomId,
           targetUserId: post.ownerUid,
-          targetUserName: 'Loading...',
-          targetUserPhoto: null,
+          targetUserName: landlordName,
+          targetUserPhoto: landlordPhoto,
         ),
       );
     } catch (e) {
       Get.back(); // close dialog
       Get.snackbar(
         'Error',
-        'Failed to start chat',
+        'Failed to start chat: $e',
         snackPosition: SnackPosition.BOTTOM,
       );
     }

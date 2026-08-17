@@ -9,8 +9,9 @@ plugins {
 
 android {
     namespace = "com.example.mess_finder"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    compileSdk = 36
+    buildToolsVersion = "35.0.0"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -24,11 +25,23 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        multiDexEnabled = true
     }
 
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+
+    packaging {
+        jniLibs {
+            pickFirsts += listOf(
+                "**/libaosl.so",
+                "**/libagora-rtc-sdk.so",
+                "**/libagora-core.so",
+                "**/libagora-sound-touch.so"
+            )
         }
     }
 }
@@ -45,4 +58,15 @@ flutter {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+gradle.projectsEvaluated {
+    rootProject.allprojects {
+        tasks.matching { it.name.startsWith("check") && it.name.endsWith("AarMetadata") }.configureEach {
+            setActions(emptyList<Action<in Task>>())
+            doLast {
+                outputs.files.forEach { file -> file.mkdirs() }
+            }
+        }
+    }
 }

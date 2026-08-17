@@ -113,6 +113,28 @@ class NotificationService {
     );
   }
 
+  // ── Show Call Notification ───────────────────────────────────────────────
+  Future<void> showCallNotification({
+    required String callerName,
+    required bool isVideo,
+    String? payload,
+  }) async {
+    await _showLocalNotification(
+      id: 9999,
+      title: isVideo ? '📹 Incoming Video Call' : '📞 Incoming Audio Call',
+      body: '$callerName is calling you...',
+      payload: payload,
+    );
+  }
+
+  Future<void> cancelCallNotification() async {
+    try {
+      await _localNotifications.cancel(9999);
+    } catch (e) {
+      debugPrint('Cancel notification error: $e');
+    }
+  }
+
   // ── Notification Tap Handler ─────────────────────────────────────────────
   void _handleNotificationTap(RemoteMessage message) {
     final type = message.data['type'] ?? '';

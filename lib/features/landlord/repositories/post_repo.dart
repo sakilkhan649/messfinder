@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/services/api_service.dart';
 import '../models/post_model.dart';
@@ -53,6 +54,10 @@ class PostRepository {
   // Fetch Landlord's posts
   Future<List<PostModel>> getLandlordPosts() async {
     try {
+      final token = await _apiService.getToken();
+      if (token == null || token.isEmpty) {
+        return [];
+      }
       final response = await _apiService.dio.get('/posts/user/my-posts');
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
@@ -60,7 +65,9 @@ class PostRepository {
       }
       return [];
     } catch (e) {
-      AppLogger.e('Failed to fetch landlord posts: $e', e, null, 'POST_REPO');
+      if (e is! DioException || e.response?.statusCode != 401) {
+        AppLogger.e('Failed to fetch landlord posts: $e', e, null, 'POST_REPO');
+      }
       return [];
     }
   }

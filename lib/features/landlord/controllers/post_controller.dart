@@ -197,9 +197,13 @@ class PostController extends GetxController {
     // Listen to current user's posts
     if (Get.isRegistered<AuthController>()) {
       final auth = Get.find<AuthController>();
-      ever(auth.currentUser, (_) {
+      ever(auth.currentUser, (user) {
         _loadSavedPostsFromLocal();
-        _fetchMyPosts();
+        if (user != null) {
+          _fetchMyPosts();
+        } else {
+          myPosts.clear();
+        }
       });
       if (auth.currentUser.value != null) {
         _fetchMyPosts();
@@ -208,6 +212,13 @@ class PostController extends GetxController {
   }
 
   Future<void> _fetchMyPosts() async {
+    if (Get.isRegistered<AuthController>()) {
+      final auth = Get.find<AuthController>();
+      if (auth.currentUser.value == null) {
+        myPosts.clear();
+        return;
+      }
+    }
     final posts = await _postRepo.getLandlordPosts();
     myPosts.assignAll(posts);
   }

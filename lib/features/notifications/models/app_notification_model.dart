@@ -7,6 +7,8 @@ enum NotificationType {
   bookingRejected,
   paymentVerified,
   adminBroadcast,
+  call,
+  chat,
   general,
 }
 

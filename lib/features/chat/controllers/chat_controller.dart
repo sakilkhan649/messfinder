@@ -63,19 +63,54 @@ class ChatController extends GetxController {
 
     _socket?.onConnect((_) {
       AppLogger.s('Socket.IO connected', tag: 'CHAT_CTRL');
+      if (_currentActiveChatId != null) {
+        _socket?.emit('join_chat', _currentActiveChatId);
+      }
     });
 
     _socket?.on('receive_message', (data) {
-      final msg = MessageModel.fromMap(data);
+      if (data == null) return;
+      final map = Map<String, dynamic>.from(data);
+      final msg = MessageModel.fromMap(map);
+      final chatId = (map['chat_id'] ?? map['chatId'])?.toString();
       // If we are currently in this chat room, add message to list
-      if (data['chat_id'] == _currentActiveChatId) {
+      if (chatId == _currentActiveChatId) {
         // Only add if not already in list to avoid duplicates
-        if (!currentMessages.any((m) => m.id == msg.id)) {
+        if (!currentMessages.any((m) => m.id.isNotEmpty && m.id == msg.id)) {
           currentMessages.insert(0, msg);
         }
       }
       // Refresh chat rooms list to update last message
       fetchChatRooms();
+    });
+
+    _socket?.on('message_reacted', (data) {
+      if (data == null) return;
+      final messageId = data['messageId']?.toString();
+      final reactions = data['reactions'] != null ? Map<String, String>.from(data['reactions']) : <String, String>{};
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        currentMessages[index] = currentMessages[index].copyWith(reactions: reactions);
+      }
+    });
+
+    _socket?.on('message_edited', (data) {
+      if (data == null) return;
+      final messageId = data['messageId']?.toString();
+      final text = data['text']?.toString() ?? '';
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        currentMessages[index] = currentMessages[index].copyWith(text: text, isEdited: true);
+      }
+    });
+
+    _socket?.on('message_deleted', (data) {
+      if (data == null) return;
+      final messageId = data['messageId']?.toString();
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        currentMessages[index] = currentMessages[index].copyWith(text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
+      }
     });
 
     _socket?.onDisconnect((_) {
@@ -187,146 +222,248 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> sendImageMessage(String chatRoomId, String targetUserId) async {
-    final ImagePicker picker = ImagePicker();
-    final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
-    if (images.isEmpty) return;
-    
-    final TextEditingController textCtrl = TextEditingController();
+  bool _isPickingMedia = false;
 
-    final result = await Get.bottomSheet<Map<String, dynamic>>(
-      Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+  Future<void> sendImageMessage(String chatRoomId, String targetUserId) async {
+    if (_isPickingMedia) return;
+    _isPickingMedia = true;
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
+      if (images.isEmpty) return;
+      
+      final TextEditingController textCtrl = TextEditingController();
+
+      final result = await Get.bottomSheet<Map<String, dynamic>>(
+        Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              SizedBox(
-                height: 250,
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  itemCount: images.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.file(
-                          File(images[index].path),
-                          fit: BoxFit.cover,
-                          width: images.length == 1 ? Get.width - 32 : Get.width * 0.7,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: textCtrl,
-                        maxLines: 4,
-                        minLines: 1,
-                        decoration: InputDecoration(
-                          hintText: 'Add a message...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(24),
-                            borderSide: BorderSide.none,
+                SizedBox(
+                  height: 250,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    itemCount: images.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Image.file(
+                            File(images[index].path),
+                            fit: BoxFit.cover,
+                            width: images.length == 1 ? Get.width - 32 : Get.width * 0.7,
                           ),
-                          filled: true,
-                          fillColor: Colors.grey.shade100,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    GestureDetector(
-                      onTap: () => Get.back(result: {'send': true, 'text': textCtrl.text}),
-                      child: Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF1E88E5),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.send_rounded, color: Colors.white),
-                      ),
-                    ),
-                  ],
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: textCtrl,
+                          maxLines: 4,
+                          minLines: 1,
+                          decoration: InputDecoration(
+                            hintText: 'Add a message...',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade100,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () => Get.back(result: {'send': true, 'text': textCtrl.text}),
+                        child: Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF059669),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.send_rounded, color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-    );
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+      );
 
-    if (result != null && result['send'] == true) {
-      isSending.value = true;
-      for (var image in images) {
-        final imageUrl = await ImgbbService().uploadImage(image.path);
-        if (imageUrl != null) {
-          await sendMessage(chatRoomId, result['text'] ?? '', targetUserId, imageUrl: imageUrl);
+      if (result != null && result['send'] == true) {
+        isSending.value = true;
+        for (var image in images) {
+          final imageUrl = await ImgbbService().uploadImage(image.path);
+          if (imageUrl != null) {
+            await sendMessage(chatRoomId, result['text'] ?? '', targetUserId, imageUrl: imageUrl);
+          }
         }
+        isSending.value = false;
       }
-      isSending.value = false;
+    } catch (e) {
+      AppLogger.e('Error picking images: $e', e, null, 'CHAT_CTRL');
+    } finally {
+      _isPickingMedia = false;
     }
   }
 
   Future<void> sendVideoMessage(String chatRoomId, String targetUserId) async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
-    if (video == null) return;
-    
-    isSending.value = true;
+    if (_isPickingMedia) return;
+    _isPickingMedia = true;
+
     try {
-      final videoUrl = await ImgbbService().uploadVideo(video.path);
-      if (videoUrl != null) {
-        await sendMessage(chatRoomId, '', targetUserId, videoUrl: videoUrl);
-      } else {
-        Get.snackbar('Upload Failed', 'Could not upload video. Please try again.');
+      final ImagePicker picker = ImagePicker();
+      final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+      if (video == null) return;
+      
+      isSending.value = true;
+      try {
+        final videoUrl = await ImgbbService().uploadVideo(video.path);
+        if (videoUrl != null) {
+          await sendMessage(chatRoomId, '', targetUserId, videoUrl: videoUrl);
+        } else {
+          Get.snackbar('Upload Failed', 'Could not upload video. Please try again.');
+        }
+      } catch (e) {
+        AppLogger.e('Error uploading video: $e', e, null, 'CHAT_CTRL');
+        Get.snackbar('Error', 'An error occurred while sending video.');
+      } finally {
+        isSending.value = false;
       }
     } catch (e) {
-      AppLogger.e('Error uploading video: $e', e, null, 'CHAT_CTRL');
-      Get.snackbar('Error', 'An error occurred while sending video.');
+      AppLogger.e('Error picking video: $e', e, null, 'CHAT_CTRL');
     } finally {
-      isSending.value = false;
+      _isPickingMedia = false;
     }
   }
 
   Future<void> toggleReaction(String chatRoomId, String messageId, String emoji) async {
-    // Reactions are not currently implemented in the REST backend.
+    try {
+      // 1. Optimistic local update
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        final old = currentMessages[index];
+        final reactions = Map<String, String>.from(old.reactions ?? {});
+        if (reactions[currentUserId] == emoji) {
+          reactions.remove(currentUserId);
+        } else {
+          reactions[currentUserId] = emoji;
+        }
+        currentMessages[index] = old.copyWith(reactions: reactions);
+      }
+
+      // 2. Emit via socket
+      _socket?.emit('react_message', {
+        'chatId': chatRoomId,
+        'messageId': messageId,
+        'emoji': emoji,
+        'uid': currentUserId,
+      });
+
+      // 3. Fallback REST call
+      try {
+        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId/react', data: {
+          'emoji': emoji,
+        });
+      } catch (e) {
+        debugPrint('REST react error: $e');
+      }
+    } catch (e) {
+      AppLogger.e('Error toggling reaction: $e', e, null, 'CHAT_CTRL');
+    }
   }
 
   Future<void> editMessage(String chatRoomId, String messageId, String newText) async {
-    // Message editing is not currently implemented in the REST backend.
+    if (newText.trim().isEmpty) return;
+    try {
+      // 1. Optimistic local update
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        final old = currentMessages[index];
+        currentMessages[index] = old.copyWith(text: newText.trim(), isEdited: true);
+      }
+
+      // 2. Emit via socket
+      _socket?.emit('edit_message', {
+        'chatId': chatRoomId,
+        'messageId': messageId,
+        'text': newText.trim(),
+        'senderUid': currentUserId,
+      });
+
+      // 3. Fallback REST call
+      try {
+        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId', data: {
+          'text': newText.trim(),
+        });
+      } catch (e) {
+        debugPrint('REST edit error: $e');
+      }
+    } catch (e) {
+      AppLogger.e('Error editing message: $e', e, null, 'CHAT_CTRL');
+    }
   }
 
   Future<void> deleteMessage(String chatRoomId, String messageId) async {
-    // Message deletion is not currently implemented in the REST backend.
+    try {
+      // 1. Optimistic local update
+      final index = currentMessages.indexWhere((m) => m.id == messageId);
+      if (index != -1) {
+        final old = currentMessages[index];
+        currentMessages[index] = old.copyWith(text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
+      }
+
+      // 2. Emit via socket
+      _socket?.emit('delete_message', {
+        'chatId': chatRoomId,
+        'messageId': messageId,
+        'senderUid': currentUserId,
+      });
+
+      // 3. Fallback REST call
+      try {
+        await _apiService.dio.delete('/chats/$chatRoomId/messages/$messageId');
+      } catch (e) {
+        debugPrint('REST delete error: $e');
+      }
+    } catch (e) {
+      AppLogger.e('Error deleting message: $e', e, null, 'CHAT_CTRL');
+    }
   }
 
   Future<void> markMessagesAsRead(String chatRoomId) async {
-    // Mark as read is not currently implemented in the REST backend.
+    // Marked locally
   }
 }
