@@ -40,7 +40,7 @@ class CallScreen extends StatelessWidget {
             child: Stack(
               children: [
                 // ── 1. Video Canvas or Audio Gradient ─────────────────
-                if (isVideo && isConnected && remoteUid != 0 && callCtrl.engine != null)
+                if (isVideo && isConnected && remoteUid != 0 && callCtrl.engine != null && callCtrl.isEngineReady.value)
                   Positioned.fill(
                     child: AgoraVideoView(
                       controller: VideoViewController.remote(
@@ -62,7 +62,7 @@ class CallScreen extends StatelessWidget {
                 ),
 
                 // ── 3. Local Camera PiP (Video Calls only) ─────────────
-                if (isVideo && callCtrl.engine != null && !callCtrl.isVideoDisabled.value)
+                if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
                   Positioned(
                     top: 50.h,
                     right: 16.w,

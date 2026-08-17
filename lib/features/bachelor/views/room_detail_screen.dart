@@ -14,6 +14,7 @@ import '../repositories/booking_repo.dart';
 import 'widgets/facebook_image_grid.dart';
 import '../../auth/models/user_model.dart';
 import '../../chat/controllers/chat_controller.dart';
+import '../../chat/controllers/call_controller.dart';
 import '../../chat/views/chat_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../core/services/location_service.dart';
@@ -61,36 +62,182 @@ class RoomDetailScreen extends StatelessWidget {
       return;
     }
 
-    final phone = post.ownerPhone;
-    if (phone == null || phone.isEmpty) {
-      Get.snackbar(
-        'Unavailable',
-        'Landlord has not provided a phone number.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-
+    final phone = post.ownerPhone?.trim();
     _generateLead(user);
 
-    final Uri launchUri = Uri(scheme: 'tel', path: phone);
-    try {
-      if (await canLaunchUrl(launchUri)) {
-        await launchUrl(launchUri);
-      } else {
-        Get.snackbar(
-          'Error',
-          'Could not open dialer.',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-      }
-    } catch (e) {
-      Get.snackbar(
-        'Error',
-        'Could not open dialer.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 24.h),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28.r)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 20.r,
+              offset: const Offset(0, -4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+              ),
+            ),
+            SizedBox(height: 18.h),
+            Text(
+              'Choose Call Option',
+              style: GoogleFonts.poppins(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: const Color(0xFF1E293B),
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              'Select how you want to connect with the landlord',
+              style: GoogleFonts.poppins(
+                fontSize: 12.5.sp,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            SizedBox(height: 20.h),
+
+            // 1. Direct Phone Call
+            if (phone != null && phone.isNotEmpty)
+              ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                tileColor: const Color(0xFFF1F5F9),
+                leading: Container(
+                  padding: EdgeInsets.all(10.r),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF059669),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.phone_in_talk_rounded, color: Colors.white, size: 20.r),
+                ),
+                title: Text(
+                  'Phone Call (Mobile SIM)',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
+                ),
+                subtitle: Text(
+                  phone,
+                  style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+                ),
+                trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+                onTap: () async {
+                  Get.back();
+                  final cleanPhone = phone.replaceAll(RegExp(r'[^\d+]'), '');
+                  final Uri launchUri = Uri(scheme: 'tel', path: cleanPhone);
+                  try {
+                    if (await canLaunchUrl(launchUri)) {
+                      await launchUrl(launchUri);
+                    } else {
+                      await launchUrl(launchUri, mode: LaunchMode.externalApplication);
+                    }
+                  } catch (e) {
+                    Get.snackbar(
+                      'Error',
+                      'Could not open phone dialer: $e',
+                      snackPosition: SnackPosition.BOTTOM,
+                    );
+                  }
+                },
+              ),
+
+            if (phone != null && phone.isNotEmpty) SizedBox(height: 12.h),
+
+            // 2. In-App Voice Call
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+              tileColor: const Color(0xFFF1F5F9),
+              leading: Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF2563EB),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.call_rounded, color: Colors.white, size: 20.r),
+              ),
+              title: Text(
+                'In-App Voice Call',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
+              ),
+              subtitle: Text(
+                'Free internet voice call',
+                style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+              onTap: () async {
+                Get.back();
+                final postCtrl = Get.find<PostController>();
+                final profile = await postCtrl.getLandlordProfile(post.ownerUid);
+                final landlordName = profile?['name']?.toString() ?? 'Landlord';
+                final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+
+                CallController.to.makeCall(
+                  targetUserId: post.ownerUid,
+                  targetUserName: landlordName,
+                  targetUserPhoto: landlordPhoto,
+                  isVideo: false,
+                );
+              },
+            ),
+
+            SizedBox(height: 12.h),
+
+            // 3. In-App Video Call
+            ListTile(
+              contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+              tileColor: const Color(0xFFF1F5F9),
+              leading: Container(
+                padding: EdgeInsets.all(10.r),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF7C3AED),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.videocam_rounded, color: Colors.white, size: 20.r),
+              ),
+              title: Text(
+                'In-App Video Call',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14.sp),
+              ),
+              subtitle: Text(
+                'Live video preview & virtual tour',
+                style: GoogleFonts.poppins(fontSize: 12.sp, color: Colors.grey.shade600),
+              ),
+              trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.grey),
+              onTap: () async {
+                Get.back();
+                final postCtrl = Get.find<PostController>();
+                final profile = await postCtrl.getLandlordProfile(post.ownerUid);
+                final landlordName = profile?['name']?.toString() ?? 'Landlord';
+                final landlordPhoto = (profile?['profile_image'] ?? profile?['photoUrl'])?.toString();
+
+                CallController.to.makeCall(
+                  targetUserId: post.ownerUid,
+                  targetUserName: landlordName,
+                  targetUserPhoto: landlordPhoto,
+                  isVideo: true,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _startChat(BuildContext context) async {

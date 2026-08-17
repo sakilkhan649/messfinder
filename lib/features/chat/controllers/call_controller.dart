@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
@@ -38,6 +39,7 @@ class CallController extends GetxController {
   final RxBool isFrontCamera = true.obs;
   final RxInt remoteUid = 0.obs;
   final RxInt callDuration = 0.obs;
+  final RxBool isEngineReady = false.obs;
 
   // Participant Info
   String currentChannel = '';
@@ -116,6 +118,9 @@ class CallController extends GetxController {
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
 
+      // Play Incoming Call Ringtone
+      _startIncomingRingtone();
+
       NotificationService().showCallNotification(
         callerName: peerUserName,
         isVideo: isVideoCall.value,
@@ -128,11 +133,13 @@ class CallController extends GetxController {
           callerPhoto: peerUserPhoto,
           isVideo: isVideoCall.value,
           onAccept: () {
+            _stopRingtone();
             NotificationService().cancelCallNotification();
             Get.back();
             acceptCall();
           },
           onDecline: () {
+            _stopRingtone();
             NotificationService().cancelCallNotification();
             Get.back();
             rejectCall();
@@ -145,6 +152,7 @@ class CallController extends GetxController {
     // 2. Call Accepted Listener
     _socket?.on('call_accepted', (data) async {
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
+      _stopRingtone();
       _ringingTimeoutTimer?.cancel();
       NotificationService().cancelCallNotification();
       currentRtcToken = data['token'] ?? '';
@@ -156,6 +164,7 @@ class CallController extends GetxController {
     // 3. Call Rejected / Busy Listener
     _socket?.on('call_rejected', (data) {
       AppLogger.i('Call rejected by peer: $data', tag: 'CALL_CTRL');
+      _stopRingtone();
       _ringingTimeoutTimer?.cancel();
       NotificationService().cancelCallNotification();
 
@@ -180,6 +189,7 @@ class CallController extends GetxController {
     // 4. Target User Offline Listener
     _socket?.on('call_user_offline', (data) async {
       AppLogger.i('Target user is offline: $data', tag: 'CALL_CTRL');
+      _stopRingtone();
       _ringingTimeoutTimer?.cancel();
       callStatusText.value = 'User is Offline';
 
@@ -214,6 +224,7 @@ class CallController extends GetxController {
     // 5. Call Ended Listener
     _socket?.on('call_ended', (data) {
       AppLogger.i('Call ended by peer', tag: 'CALL_CTRL');
+      _stopRingtone();
       _ringingTimeoutTimer?.cancel();
       NotificationService().cancelCallNotification();
       callStatusText.value = 'Call Ended';
@@ -254,6 +265,9 @@ class CallController extends GetxController {
     callState.value = CallState.outgoing;
     callStatusText.value = 'Ringing...';
 
+    // Start Outgoing Ringback Sound
+    _startOutgoingRingtone();
+
     // 1. Open Call Screen IMMEDIATELY so transition is smooth & instant
     Get.to(() => const CallScreen());
 
@@ -264,6 +278,7 @@ class CallController extends GetxController {
     _ringingTimeoutTimer?.cancel();
     _ringingTimeoutTimer = Timer(const Duration(seconds: 30), () {
       if (callState.value == CallState.outgoing) {
+        _stopRingtone();
         callStatusText.value = 'No Answer';
         // Send missed call notification
         NotificationService().sendAndStore(
@@ -310,6 +325,7 @@ class CallController extends GetxController {
 
   // ── Accept Call (Receiver) ──────────────────────────────────────────
   Future<void> acceptCall() async {
+    _stopRingtone();
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
       Get.snackbar('Permission Required', 'Microphone permission is required.');
@@ -342,12 +358,14 @@ class CallController extends GetxController {
 
   // ── Reject Call (Receiver) ──────────────────────────────────────────
   void rejectCall() {
+    _stopRingtone();
     _socket?.emit('reject_call', {'callerId': peerUserId});
     _cleanupCall();
   }
 
   // ── End Call (Either participant) ──────────────────────────────────
   Future<void> endCall({bool notifyPeer = true}) async {
+    _stopRingtone();
     _ringingTimeoutTimer?.cancel();
     if (notifyPeer && peerUserId.isNotEmpty) {
       _socket?.emit('end_call', {'targetUserId': peerUserId});
@@ -376,6 +394,7 @@ class CallController extends GetxController {
           },
           onUserJoined: (RtcConnection connection, int uid, int elapsed) {
             AppLogger.i('Remote user joined: $uid', tag: 'CALL_CTRL');
+            _stopRingtone();
             remoteUid.value = uid;
             callState.value = CallState.connected;
             callStatusText.value = 'Connected';
@@ -383,6 +402,7 @@ class CallController extends GetxController {
           },
           onUserOffline: (RtcConnection connection, int uid, UserOfflineReasonType reason) {
             AppLogger.i('Remote user offline: $uid', tag: 'CALL_CTRL');
+            _stopRingtone();
             endCall(notifyPeer: false);
           },
           onLeaveChannel: (RtcConnection connection, RtcStats stats) {
@@ -420,7 +440,10 @@ class CallController extends GetxController {
       } catch (speakerError) {
         AppLogger.w('Speakerphone routing notice: $speakerError', tag: 'CALL_CTRL');
       }
+
+      isEngineReady.value = true;
     } catch (e) {
+      isEngineReady.value = false;
       AppLogger.e('Error initializing Agora Engine: $e', e, null, 'CALL_CTRL');
     }
   }
@@ -470,7 +493,41 @@ class CallController extends GetxController {
     });
   }
 
+  // ── Ringtone Sounds Helpers ─────────────────────────────────────────
+  void _startOutgoingRingtone() {
+    try {
+      FlutterRingtonePlayer().play(
+        android: AndroidSounds.ringtone,
+        ios: IosSounds.glass,
+        looping: true,
+        volume: 0.7,
+      );
+    } catch (e) {
+      AppLogger.w('Outgoing ringtone notice: $e', tag: 'CALL_CTRL');
+    }
+  }
+
+  void _startIncomingRingtone() {
+    try {
+      FlutterRingtonePlayer().playRingtone(
+        looping: true,
+        volume: 1.0,
+      );
+    } catch (e) {
+      AppLogger.w('Incoming ringtone notice: $e', tag: 'CALL_CTRL');
+    }
+  }
+
+  void _stopRingtone() {
+    try {
+      FlutterRingtonePlayer().stop();
+    } catch (e) {
+      AppLogger.w('Stop ringtone notice: $e', tag: 'CALL_CTRL');
+    }
+  }
+
   void _cleanupCall() {
+    _stopRingtone();
     _ringingTimeoutTimer?.cancel();
     _ringingTimeoutTimer = null;
     _timer?.cancel();
@@ -481,6 +538,7 @@ class CallController extends GetxController {
     isVideoDisabled.value = false;
     isSpeakerOn.value = true;
     isFrontCamera.value = true;
+    isEngineReady.value = false;
     callState.value = CallState.idle;
     callStatusText.value = 'Calling...';
 
