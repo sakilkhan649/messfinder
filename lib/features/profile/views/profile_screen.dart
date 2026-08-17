@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../auth/models/user_model.dart';
@@ -80,12 +81,12 @@ class ProfileScreen extends StatelessWidget {
                       backgroundColor: Colors.white.withValues(alpha: 0.2),
                       backgroundImage:
                           activeUser.photoUrl != null &&
-                              activeUser.photoUrl!.isNotEmpty
-                          ? NetworkImage(activeUser.photoUrl!)
+                              activeUser.photoUrl!.trim().isNotEmpty
+                          ? CachedNetworkImageProvider(activeUser.photoUrl!.trim())
                           : null,
                       child:
                           activeUser.photoUrl == null ||
-                              activeUser.photoUrl!.isEmpty
+                              activeUser.photoUrl!.trim().isEmpty
                           ? Icon(
                               Icons.person_rounded,
                               size: 50.r,

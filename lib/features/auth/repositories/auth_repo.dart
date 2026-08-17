@@ -35,8 +35,9 @@ class AuthRepository {
         return UserModel(
           uid: userJson['uid'],
           name: userJson['name'],
-          phone: userJson['phone'],
+          phone: userJson['phone'] ?? '',
           role: userJson['role'] ?? 'bachelor',
+          photoUrl: userJson['profile_image'] ?? userJson['photoUrl'],
           isPaid: false,
           createdAt: DateTime.parse(userJson['created_at']),
         );
@@ -77,8 +78,9 @@ class AuthRepository {
         return UserModel(
           uid: userJson['uid'],
           name: userJson['name'],
-          phone: userJson['phone'],
+          phone: userJson['phone'] ?? '',
           role: userJson['role'] ?? 'bachelor',
+          photoUrl: userJson['profile_image'] ?? userJson['photoUrl'],
           isPaid: userJson['status'] == 'active', 
           createdAt: DateTime.parse(userJson['created_at']),
         );
