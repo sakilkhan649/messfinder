@@ -60,6 +60,27 @@ class ApiConstants {
   static String getStaticFileUrl(String filename) =>
       '$serverBaseUrl/uploads/$filename';
 
+  // ─── Admin Endpoints (/api/admin) ────────────────────────────────────────
+  static const String adminStats = '/admin/stats';
+  static const String adminUsers = '/admin/users';
+  static const String adminPosts = '/admin/posts';
+  static const String adminBookings = '/admin/bookings';
+  static const String adminPayments = '/admin/payments';
+  static const String adminBroadcast = '/admin/broadcast';
+
+  // Dynamic Admin Route Helpers
+  static String adminUserDelete(String uid) => '/admin/users/$uid';
+  static String adminUserRole(String uid) => '/admin/users/$uid/role';
+  static String adminUserStatus(String uid) => '/admin/users/$uid/status';
+
+  static String adminPostApprove(String postId) => '/admin/posts/$postId/approve';
+  static String adminPostReject(String postId) => '/admin/posts/$postId/reject';
+  static String adminPostDelete(String postId) => '/admin/posts/$postId';
+
+  static String adminBookingApprove(String bookingId) => '/admin/bookings/$bookingId/approve';
+  static String adminBookingReject(String bookingId) => '/admin/bookings/$bookingId/reject';
+  static String adminBookingDelete(String bookingId) => '/admin/bookings/$bookingId';
+
   // ─── Push Notification Endpoints (Vercel Backend) ─────────────────────────
   static const String sendPushNotification = '/api/send';
   static const String sendPushNotificationUrl = '$vercelBackendUrl/api/send';

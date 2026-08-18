@@ -142,7 +142,10 @@ class NotificationsScreen extends StatelessWidget {
               ),
               child: _NotificationTile(
                 notification: list[i],
-                onTap: () => ctrl.markRead(list[i].id),
+                onTap: () {
+                  ctrl.markRead(list[i].id);
+                  _showNotificationDetail(context, list[i]);
+                },
               ),
             )
             .animate()
@@ -156,6 +159,108 @@ class NotificationsScreen extends StatelessWidget {
           },
         );
       }),
+    );
+  }
+
+  void _showNotificationDetail(BuildContext context, AppNotificationModel item) {
+    final icon = _getNotificationIcon(item.type);
+    final color = _getNotificationColor(item.type);
+
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24.r),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40.w,
+                height: 4.h,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2.r),
+                ),
+              ),
+            ),
+            SizedBox(height: 18.h),
+            Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(10.r),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(icon, color: color, size: 24.r),
+                ),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        style: GoogleFonts.poppins(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      Text(
+                        _formatNotificationTime(item.createdAt),
+                        style: GoogleFonts.poppins(
+                          fontSize: 11.5.sp,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 16.h),
+            const Divider(),
+            SizedBox(height: 12.h),
+            Text(
+              item.body,
+              style: GoogleFonts.poppins(
+                fontSize: 13.5.sp,
+                color: const Color(0xFF334155),
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 24.h),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Get.back(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Close',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 
@@ -311,50 +416,54 @@ class _NotificationTile extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(NotificationType type) {
-    switch (type) {
-      case NotificationType.newPost:
-        return Icons.home_work_rounded;
-      case NotificationType.bookingRequest:
-        return Icons.person_add_rounded;
-      case NotificationType.bookingApproved:
-        return Icons.check_circle_rounded;
-      case NotificationType.bookingRejected:
-        return Icons.cancel_rounded;
-      case NotificationType.paymentVerified:
-        return Icons.payment_rounded;
-      case NotificationType.adminBroadcast:
-        return Icons.campaign_rounded;
-      default:
-        return Icons.notifications_rounded;
-    }
-  }
+  IconData _getIcon(NotificationType type) => _getNotificationIcon(type);
+  Color _getColor(NotificationType type) => _getNotificationColor(type);
+  String _formatTime(DateTime dt) => _formatNotificationTime(dt);
+}
 
-  Color _getColor(NotificationType type) {
-    switch (type) {
-      case NotificationType.newPost:
-        return const Color(0xFF059669);
-      case NotificationType.bookingRequest:
-        return const Color(0xFF3B82F6);
-      case NotificationType.bookingApproved:
-        return const Color(0xFF10B981);
-      case NotificationType.bookingRejected:
-        return const Color(0xFFEF4444);
-      case NotificationType.paymentVerified:
-        return const Color(0xFFF59E0B);
-      case NotificationType.adminBroadcast:
-        return const Color(0xFF8B5CF6);
-      default:
-        return const Color(0xFF64748B);
-    }
+IconData _getNotificationIcon(NotificationType type) {
+  switch (type) {
+    case NotificationType.newPost:
+      return Icons.home_work_rounded;
+    case NotificationType.bookingRequest:
+      return Icons.person_add_rounded;
+    case NotificationType.bookingApproved:
+      return Icons.check_circle_rounded;
+    case NotificationType.bookingRejected:
+      return Icons.cancel_rounded;
+    case NotificationType.paymentVerified:
+      return Icons.payment_rounded;
+    case NotificationType.adminBroadcast:
+      return Icons.campaign_rounded;
+    default:
+      return Icons.notifications_rounded;
   }
+}
 
-  String _formatTime(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${dt.day}/${dt.month}/${dt.year}';
+Color _getNotificationColor(NotificationType type) {
+  switch (type) {
+    case NotificationType.newPost:
+      return const Color(0xFF059669);
+    case NotificationType.bookingRequest:
+      return const Color(0xFF3B82F6);
+    case NotificationType.bookingApproved:
+      return const Color(0xFF10B981);
+    case NotificationType.bookingRejected:
+      return const Color(0xFFEF4444);
+    case NotificationType.paymentVerified:
+      return const Color(0xFFF59E0B);
+    case NotificationType.adminBroadcast:
+      return const Color(0xFF8B5CF6);
+    default:
+      return const Color(0xFF64748B);
   }
+}
+
+String _formatNotificationTime(DateTime dt) {
+  final diff = DateTime.now().difference(dt);
+  if (diff.inMinutes < 1) return 'Just now';
+  if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+  if (diff.inHours < 24) return '${diff.inHours}h ago';
+  if (diff.inDays < 7) return '${diff.inDays}d ago';
+  return '${dt.day}/${dt.month}/${dt.year}';
 }

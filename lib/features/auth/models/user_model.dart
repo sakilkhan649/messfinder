@@ -3,7 +3,9 @@ class UserModel {
   final String uid;
   final String name;
   final String phone;
-  final String role; // 'user' or 'admin'
+  final String email;
+  final String role; // 'bachelor', 'landlord', 'admin'
+  final String status; // 'active', 'suspended', 'banned'
   final bool isPaid;
   final DateTime? createdAt;
   final String? photoUrl;
@@ -13,7 +15,9 @@ class UserModel {
     required this.uid,
     required this.name,
     required this.phone,
+    this.email = '',
     required this.role,
+    this.status = 'active',
     this.isPaid = false,
     this.createdAt,
     this.photoUrl,
@@ -37,7 +41,9 @@ class UserModel {
       uid: docId.isNotEmpty ? docId : (map['uid']?.toString() ?? ''),
       name: map['name'] ?? map['userName'] ?? map['displayName'] ?? '',
       phone: map['phone'] ?? map['phoneNumber'] ?? map['userPhone'] ?? map['mobile'] ?? '',
+      email: map['email']?.toString() ?? '',
       role: map['role'] ?? 'bachelor',
+      status: map['status']?.toString() ?? 'active',
       isPaid: map['isPaid'] ?? (map['status'] == 'active'),
       trxId: map['trxId'] ?? map['paymentTrxId'],
       createdAt: parseDate(map['created_at'] ?? map['createdAt']),
@@ -50,7 +56,9 @@ class UserModel {
       'uid': uid,
       'name': name,
       'phone': phone,
+      'email': email,
       'role': role,
+      'status': status,
       'isPaid': isPaid,
       'profile_image': photoUrl,
       'photoUrl': photoUrl,
@@ -62,7 +70,9 @@ class UserModel {
     String? uid,
     String? name,
     String? phone,
+    String? email,
     String? role,
+    String? status,
     bool? isPaid,
     DateTime? createdAt,
     String? photoUrl,
@@ -72,7 +82,9 @@ class UserModel {
       uid: uid ?? this.uid,
       name: name ?? this.name,
       phone: phone ?? this.phone,
+      email: email ?? this.email,
       role: role ?? this.role,
+      status: status ?? this.status,
       isPaid: isPaid ?? this.isPaid,
       createdAt: createdAt ?? this.createdAt,
       photoUrl: photoUrl ?? this.photoUrl,

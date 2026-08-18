@@ -22,34 +22,35 @@ class AdminSummaryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 10.w),
+      padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 8.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(color: color.withValues(alpha: 0.25)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.05),
-            blurRadius: 10.r,
-            offset: Offset(0, 4.h),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.03),
+            blurRadius: 8.r,
+            offset: Offset(0, 3.h),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: EdgeInsets.all(8.r),
+            padding: EdgeInsets.all(7.r),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: color, size: 20.r),
+            child: Icon(icon, color: color, size: 18.r),
           ),
-          SizedBox(height: 10.h),
+          SizedBox(height: 8.h),
           Text(
             count,
             style: GoogleFonts.poppins(
-              fontSize: 22.sp,
+              fontSize: 20.sp,
               fontWeight: FontWeight.w800,
               color: color,
             ),
@@ -58,9 +59,9 @@ class AdminSummaryCard extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 11.5.sp,
+              fontSize: 11.sp,
               fontWeight: FontWeight.w600,
-              color: const Color(0xFF64748B), // Slate light
+              color: const Color(0xFF64748B),
             ),
             textAlign: TextAlign.center,
             maxLines: 1,

@@ -291,11 +291,15 @@ class NotificationService {
         .delete();
   }
 
-  Future<void> markAllAsRead(String uid) async {
+  Future<void> markAllAsRead(String uid, {String? role}) async {
     final batch = _firestore.batch();
+    final targets = <String>[uid, 'all'];
+    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
+      targets.add(role.toLowerCase());
+    }
     final query = await _firestore
         .collection('notifications')
-        .where('receiverUid', whereIn: [uid, 'all'])
+        .where('receiverUid', whereIn: targets)
         .where('isRead', isEqualTo: false)
         .get();
     for (final doc in query.docs) {
@@ -304,11 +308,15 @@ class NotificationService {
     await batch.commit();
   }
 
-  Future<void> deleteAllNotifications(String uid) async {
+  Future<void> deleteAllNotifications(String uid, {String? role}) async {
     final batch = _firestore.batch();
+    final targets = <String>[uid, 'all'];
+    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
+      targets.add(role.toLowerCase());
+    }
     final query = await _firestore
         .collection('notifications')
-        .where('receiverUid', whereIn: [uid, 'all'])
+        .where('receiverUid', whereIn: targets)
         .get();
     for (final doc in query.docs) {
       batch.delete(doc.reference);
@@ -317,10 +325,14 @@ class NotificationService {
   }
 
   // ── Stream of notifications for a user ──────────────────────────────────
-  Stream<List<AppNotificationModel>> getNotificationsStream(String uid) {
+  Stream<List<AppNotificationModel>> getNotificationsStream(String uid, {String? role}) {
+    final targets = <String>[uid, 'all'];
+    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
+      targets.add(role.toLowerCase());
+    }
     return _firestore
         .collection('notifications')
-        .where('receiverUid', whereIn: [uid, 'all'])
+        .where('receiverUid', whereIn: targets)
         .snapshots()
         .map((snap) {
           final list = snap.docs
@@ -335,10 +347,14 @@ class NotificationService {
   }
 
   // ── Unread count stream ──────────────────────────────────────────────────
-  Stream<int> getUnreadCountStream(String uid) {
+  Stream<int> getUnreadCountStream(String uid, {String? role}) {
+    final targets = <String>[uid, 'all'];
+    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
+      targets.add(role.toLowerCase());
+    }
     return _firestore
         .collection('notifications')
-        .where('receiverUid', whereIn: [uid, 'all'])
+        .where('receiverUid', whereIn: targets)
         .snapshots()
         .map((snap) => snap.docs
             .where((doc) => (doc.data()['isRead'] ?? false) == false)

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../core/utils/app_constants.dart';
 
 /// ===================================================================
 /// [MODEL LAYER - MVC PATTERN]
@@ -27,9 +26,9 @@ class AdminNavItemModel {
     ),
     AdminNavItemModel(
       index: 1,
-      label: 'Requests',
-      icon: Icons.pending_actions_outlined,
-      activeIcon: Icons.pending_actions_rounded,
+      label: 'Listings',
+      icon: Icons.home_work_outlined,
+      activeIcon: Icons.home_work_rounded,
     ),
     AdminNavItemModel(
       index: 2,
@@ -57,16 +56,16 @@ class AdminCategoryModel {
     required this.icon,
   });
 
-  static List<AdminCategoryModel> get categories => [
+  static List<AdminCategoryModel> get categories => const [
         AdminCategoryModel(
           index: 0,
-          title: 'Bookings (Tk.${AppConstants.bachelorFee})',
-          icon: Icons.school_rounded,
+          title: 'Mess Listings',
+          icon: Icons.home_work_rounded,
         ),
         AdminCategoryModel(
           index: 1,
-          title: 'Mess Posts (Tk.${AppConstants.landlordFee})',
-          icon: Icons.home_work_rounded,
+          title: 'Room Inquiries',
+          icon: Icons.connect_without_contact_rounded,
         ),
       ];
 }

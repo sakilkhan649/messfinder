@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,18 +25,13 @@ class AdminUserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLandlord =
-        user.role.trim().toLowerCase() == 'landlord';
+    final isAdmin = user.role.trim().toLowerCase() == 'admin';
 
     final phoneText = (resolvedPhone != null && resolvedPhone!.isNotEmpty)
         ? resolvedPhone!
         : (user.phone.isNotEmpty ? user.phone : 'No phone number');
 
-    final trxIdText = (resolvedTrxId != null && resolvedTrxId!.isNotEmpty)
-        ? resolvedTrxId!
-        : (user.trxId != null && user.trxId!.isNotEmpty
-            ? user.trxId!
-            : 'Not submitted');
+    final emailText = user.email.isNotEmpty ? user.email : 'No email address';
 
     return Dismissible(
       key: Key('${user.uid}_${user.role}'),
@@ -47,7 +41,7 @@ class AdminUserCard extends StatelessWidget {
           title: 'Delete User Account',
           titleStyle: GoogleFonts.poppins(
             fontWeight: FontWeight.w700,
-            fontSize: 17.sp,
+            fontSize: 16.sp,
             color: AdminColors.accentDark,
           ),
           content: Padding(
@@ -56,7 +50,7 @@ class AdminUserCard extends StatelessWidget {
               'Are you sure you want to permanently delete "${user.name.isNotEmpty ? user.name : "this user"}"?\nThis action cannot be undone.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 13.sp,
+                fontSize: 12.5.sp,
                 color: AdminColors.accentMid,
               ),
             ),
@@ -66,9 +60,7 @@ class AdminUserCard extends StatelessWidget {
           confirmTextColor: Colors.white,
           buttonColor: AdminColors.statusRejected,
           cancelTextColor: AdminColors.accentMid,
-          onConfirm: () {
-            Get.back(result: true);
-          },
+          onConfirm: () => Get.back(result: true),
           onCancel: () {},
         ) ?? false;
       },
@@ -78,16 +70,20 @@ class AdminUserCard extends StatelessWidget {
       background: _buildSwipeBackground(Alignment.centerLeft, true),
       secondaryBackground: _buildSwipeBackground(Alignment.centerRight, false),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+        padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          border: Border.all(color: AdminColors.border),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: isAdmin
+                ? const Color(0xFFF97316).withValues(alpha: 0.3)
+                : AdminColors.border,
+          ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF0F172A).withValues(alpha: 0.035),
-              blurRadius: 10.r,
-              offset: Offset(0, 3.h),
+              color: const Color(0xFF0F172A).withValues(alpha: 0.025),
+              blurRadius: 8.r,
+              offset: Offset(0, 2.h),
             ),
           ],
         ),
@@ -95,21 +91,21 @@ class AdminUserCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             CircleAvatar(
-              radius: 23.r,
-              backgroundColor: isLandlord
-                  ? const Color(0xFFE0F2FE)
-                  : const Color(0xFFF3E8FF),
+              radius: 20.r,
+              backgroundColor: isAdmin
+                  ? const Color(0xFFFFF7ED)
+                  : const Color(0xFFF1F5F9),
               child: Icon(
-                isLandlord
-                    ? Icons.real_estate_agent_rounded
-                    : Icons.school_rounded,
-                color: isLandlord
-                    ? const Color(0xFF0284C7)
-                    : const Color(0xFF9333EA),
-                size: 21.r,
+                isAdmin
+                    ? Icons.admin_panel_settings_rounded
+                    : Icons.person_rounded,
+                color: isAdmin
+                    ? const Color(0xFFEA580C)
+                    : const Color(0xFF475569),
+                size: 20.r,
               ),
             ),
-            SizedBox(width: 14.w),
+            SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,7 +118,7 @@ class AdminUserCard extends StatelessWidget {
                         child: Text(
                           user.name.isNotEmpty ? user.name : 'Unknown User',
                           style: GoogleFonts.poppins(
-                            fontSize: 14.sp,
+                            fontSize: 13.5.sp,
                             fontWeight: FontWeight.w700,
                             color: AdminColors.accentDark,
                           ),
@@ -131,25 +127,25 @@ class AdminUserCard extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 8.w),
-                      _buildRoleBadge(user.role),
+                      _buildRoleBadge(isAdmin),
                     ],
                   ),
-                  SizedBox(height: 5.h),
+                  SizedBox(height: 4.h),
 
                   // ─── Phone Number ───
                   Row(
                     children: [
                       Icon(
                         Icons.phone_rounded,
-                        size: 13.r,
+                        size: 12.r,
                         color: AdminColors.accentMid,
                       ),
-                      SizedBox(width: 6.w),
+                      SizedBox(width: 5.w),
                       Expanded(
                         child: Text(
                           phoneText,
                           style: GoogleFonts.poppins(
-                            fontSize: 12.sp,
+                            fontSize: 11.5.sp,
                             color: AdminColors.accentMid,
                             fontWeight: FontWeight.w500,
                           ),
@@ -159,57 +155,29 @@ class AdminUserCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 5.h),
+                  SizedBox(height: 3.h),
 
-                  // ─── TrxID Info ───
+                  // ─── Email ───
                   Row(
                     children: [
                       Icon(
-                        Icons.receipt_long_rounded,
-                        size: 13.r,
-                        color: trxIdText == 'Not submitted'
-                            ? AdminColors.accentLight
-                            : const Color(0xFF0D9488),
+                        Icons.email_outlined,
+                        size: 12.r,
+                        color: AdminColors.accentLight,
                       ),
-                      SizedBox(width: 6.w),
-                      Text(
-                        'TrxID: ',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.8.sp,
-                          fontWeight: FontWeight.w500,
-                          color: AdminColors.accentMid,
-                        ),
-                      ),
-                      Text(
-                        trxIdText,
-                        style: GoogleFonts.poppins(
-                          fontSize: 11.8.sp,
-                          fontWeight: FontWeight.w700,
-                          color: trxIdText == 'Not submitted'
-                              ? AdminColors.accentLight
-                              : const Color(0xFF0F172A),
-                        ),
-                      ),
-                      if (trxIdText != 'Not submitted') ...[
-                        SizedBox(width: 6.w),
-                        GestureDetector(
-                          onTap: () {
-                            Clipboard.setData(ClipboardData(text: trxIdText));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('TrxID copied: $trxIdText'),
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                              ),
-                            );
-                          },
-                          child: Icon(
-                            Icons.copy_rounded,
-                            size: 14.r,
-                            color: const Color(0xFF0D9488),
+                      SizedBox(width: 5.w),
+                      Expanded(
+                        child: Text(
+                          emailText,
+                          style: GoogleFonts.poppins(
+                            fontSize: 11.sp,
+                            color: AdminColors.accentLight,
+                            fontWeight: FontWeight.w400,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
+                      ),
                     ],
                   ),
                 ],
@@ -224,10 +192,10 @@ class AdminUserCard extends StatelessWidget {
   Widget _buildSwipeBackground(Alignment alignment, bool isLeft) {
     return Container(
       alignment: alignment,
-      padding: EdgeInsets.symmetric(horizontal: 24.w),
+      padding: EdgeInsets.symmetric(horizontal: 20.w),
       decoration: BoxDecoration(
         color: AdminColors.statusRejected,
-        borderRadius: BorderRadius.circular(16.r),
+        borderRadius: BorderRadius.circular(14.r),
       ),
       child: Row(
         mainAxisAlignment:
@@ -235,12 +203,12 @@ class AdminUserCard extends StatelessWidget {
         children: isLeft
             ? [
                 Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
-                SizedBox(width: 8.w),
+                    color: Colors.white, size: 22.r),
+                SizedBox(width: 6.w),
                 Text(
                   'Delete Account',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -250,37 +218,41 @@ class AdminUserCard extends StatelessWidget {
                 Text(
                   'Delete Account',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 6.w),
                 Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
+                    color: Colors.white, size: 22.r),
               ],
       ),
     );
   }
 
-  Widget _buildRoleBadge(String role) {
-    final isLandlord = role.trim().toLowerCase() == 'landlord';
+  Widget _buildRoleBadge(bool isAdmin) {
+    final Color badgeColor = isAdmin
+        ? const Color(0xFFEA580C)
+        : const Color(0xFF0284C7);
+
+    final Color bgColor = isAdmin
+        ? const Color(0xFFFFF7ED)
+        : const Color(0xFFF0F9FF);
+
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.5.h),
       decoration: BoxDecoration(
-        color: isLandlord
-            ? const Color(0xFF0284C7).withValues(alpha: 0.1)
-            : const Color(0xFF9333EA).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8.r),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(6.r),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
       ),
       child: Text(
-        role.toUpperCase(),
+        isAdmin ? 'ADMIN' : 'USER',
         style: GoogleFonts.poppins(
-          fontSize: 10.sp,
+          fontSize: 9.5.sp,
           fontWeight: FontWeight.bold,
-          color: isLandlord
-              ? const Color(0xFF0284C7)
-              : const Color(0xFF9333EA),
+          color: badgeColor,
         ),
       ),
     );

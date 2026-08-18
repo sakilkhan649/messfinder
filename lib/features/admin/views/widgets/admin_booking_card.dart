@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/network/api_checker.dart';
-import '../../../../core/utils/app_constants.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../bachelor/models/booking_model.dart';
 import '../utils/admin_colors.dart';
 
-/// ===================================================================
-/// [VIEW WIDGET - MVC PATTERN]
-/// 
-/// ===================================================================
 class AdminBookingCard extends StatelessWidget {
   final BookingModel booking;
   final VoidCallback onApprove;
@@ -28,25 +22,19 @@ class AdminBookingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isApproved =
-        booking.paymentStatus.trim().toLowerCase() == 'approved' ||
-            booking.isUnlocked == true;
-    final bool isPending =
-        booking.paymentStatus.trim().toLowerCase() == 'pending';
-
-    final String name = booking.bachelorName ?? 'Unknown Bachelor';
-    final String phone = booking.bachelorPhone ?? 'N/A';
+    final String name = booking.bachelorName?.isNotEmpty == true
+        ? booking.bachelorName!
+        : 'Bachelor Lead';
+    final String phone = booking.bachelorPhone?.isNotEmpty == true
+        ? booking.bachelorPhone!
+        : (booking.senderNumber.isNotEmpty ? booking.senderNumber : 'N/A');
 
     final cardContent = Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: isApproved
-              ? AdminColors.statusApproved.withValues(alpha: 0.35)
-              : AdminColors.border,
-        ),
+        border: Border.all(color: AdminColors.border),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0F172A).withValues(alpha: 0.035),
@@ -58,129 +46,105 @@ class AdminBookingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ─── Header: Bachelor Name & Amount Badge ───
+          // ─── Header: Name & Role Badge ───
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              CircleAvatar(
+                radius: 18.r,
+                backgroundColor: const Color(0xFFF3E8FF),
+                child: Icon(Icons.school_rounded, color: const Color(0xFF9333EA), size: 18.r),
+              ),
+              SizedBox(width: 10.w),
               Expanded(
-                child: Text(
-                  name,
-                  style: GoogleFonts.poppins(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.bold,
-                    color: AdminColors.accentDark,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: GoogleFonts.poppins(
+                        fontSize: 14.5.sp,
+                        fontWeight: FontWeight.w700,
+                        color: AdminColors.accentDark,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      'Bachelor Inquiry Lead',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.5.sp,
+                        color: AdminColors.accentMid,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: 8.w),
-              _buildFeeBadge('Tk.${AppConstants.bachelorFee}'),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFECFDF5),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.3)),
+                ),
+                child: Text(
+                  'Connected',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10.5.sp,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF059669),
+                  ),
+                ),
+              ),
             ],
-          ),
-          SizedBox(height: 3.h),
-
-          // ─── Subtitle: Role & Phone ───
-          Text(
-            'Bachelor • $phone',
-            style: GoogleFonts.poppins(
-              fontSize: 12.sp,
-              color: AdminColors.accentLight,
-              fontWeight: FontWeight.w500,
-            ),
           ),
 
           Padding(
             padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Divider(color: AdminColors.border, height: 1),
+            child: Divider(color: const Color(0xFFF1F5F9), height: 1),
           ),
 
-          // ─── Payment Info: Sender & Method ───
+          // ─── Phone & Direct Call ───
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Text(
-                  'Sender: ${booking.senderNumber.isNotEmpty ? booking.senderNumber : "N/A"}',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AdminColors.accentMid,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              _buildMethodBadge('BKASH'),
-            ],
-          ),
-          SizedBox(height: 10.h),
-
-          // ─── TrxID Box with Copy Button ───
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'TrxID: ${booking.trxId.isNotEmpty ? booking.trxId : "N/A"}',
+              Row(
+                children: [
+                  Icon(Icons.phone_rounded, size: 14.r, color: AdminColors.accentMid),
+                  SizedBox(width: 6.w),
+                  Text(
+                    phone,
                     style: GoogleFonts.poppins(
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 12.5.sp,
+                      fontWeight: FontWeight.w600,
                       color: AdminColors.accentDark,
                     ),
                   ),
-                ),
+                ],
+              ),
+              if (phone != 'N/A')
                 GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: booking.trxId));
-                    ApiChecker.showSuccess(
-                      'TrxID copied to clipboard!',
-                      title: 'Copied',
-                    );
+                  onTap: () async {
+                    final uri = Uri.parse('tel:$phone');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    }
                   },
-                  child: Icon(
-                    Icons.copy_rounded,
-                    size: 16.r,
-                    color: AdminColors.accentMid,
+                  child: Container(
+                    padding: EdgeInsets.all(7.r),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: const Color(0xFF86EFAC)),
+                    ),
+                    child: Icon(
+                      Icons.phone_rounded,
+                      size: 14.r,
+                      color: const Color(0xFF16A34A),
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-          SizedBox(height: 14.h),
-
-          // ─── Action Buttons / Status Badge ───
-          if (isPending)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionBtn(
-                    label: 'REJECT',
-                    color: AdminColors.statusRejected,
-                    isOutlined: true,
-                    onTap: onReject,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildActionBtn(
-                    label: 'APPROVE',
-                    color: AdminColors.statusApproved,
-                    isOutlined: false,
-                    onTap: onApprove,
-                  ),
-                ),
-              ],
-            )
-          else
-            _buildStatusBadge(isApproved),
         ],
       ),
     );
@@ -191,19 +155,19 @@ class AdminBookingCard extends StatelessWidget {
         direction: DismissDirection.horizontal,
         confirmDismiss: (direction) async {
           return await Get.defaultDialog<bool>(
-            title: 'Delete Booking Record',
+            title: 'Delete Lead Record',
             titleStyle: GoogleFonts.poppins(
               fontWeight: FontWeight.w700,
-              fontSize: 17.sp,
+              fontSize: 16.sp,
               color: AdminColors.accentDark,
             ),
             content: Padding(
               padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
               child: Text(
-                'Are you sure you want to permanently delete this booking record?\nThis action cannot be undone.',
+                'Are you sure you want to permanently delete this lead record?\nThis action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 13.sp,
+                  fontSize: 12.5.sp,
                   color: AdminColors.accentMid,
                 ),
               ),
@@ -240,13 +204,12 @@ class AdminBookingCard extends StatelessWidget {
             isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
         children: isLeft
             ? [
-                Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
+                Icon(Icons.delete_forever_rounded, color: Colors.white, size: 24.r),
                 SizedBox(width: 8.w),
                 Text(
                   'Delete Record',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.5.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -256,113 +219,14 @@ class AdminBookingCard extends StatelessWidget {
                 Text(
                   'Delete Record',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.5.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
                 SizedBox(width: 8.w),
-                Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
+                Icon(Icons.delete_forever_rounded, color: Colors.white, size: 24.r),
               ],
-      ),
-    );
-  }
-
-  Widget _buildFeeBadge(String fee) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: AdminColors.accentDark,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Text(
-        fee,
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 13.sp,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMethodBadge(String method) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        method,
-        style: GoogleFonts.poppins(
-          color: AdminColors.accentDark,
-          fontWeight: FontWeight.w700,
-          fontSize: 11.sp,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionBtn({
-    required String label,
-    required Color color,
-    required bool isOutlined,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: isOutlined ? Colors.transparent : color,
-          borderRadius: BorderRadius.circular(12.r),
-          border: isOutlined ? Border.all(color: color, width: 1.5) : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            color: isOutlined ? color : Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 13.sp,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(bool isApproved) {
-    final color =
-        isApproved ? AdminColors.statusApproved : AdminColors.statusRejected;
-    final text = isApproved ? 'APPROVED' : 'REJECTED';
-    final icon =
-        isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 10.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 16.r),
-          SizedBox(width: 6.w),
-          Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12.sp,
-            ),
-          ),
-        ],
       ),
     );
   }

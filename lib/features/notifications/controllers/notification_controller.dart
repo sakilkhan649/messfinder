@@ -11,24 +11,27 @@ class NotificationController extends GetxController {
   final RxInt unreadCount = 0.obs;
   final RxBool isLoading = false.obs;
   final RxString currentUid = ''.obs;
+  final RxString currentRole = ''.obs;
 
   StreamSubscription? _notifSub;
   StreamSubscription? _unreadSub;
 
-  void listenForUser(String uid) {
-    if (uid.isEmpty || uid == currentUid.value) return;
+  void listenForUser(String uid, {String? role}) {
+    if (uid.isEmpty) return;
+    if (uid == currentUid.value && role == currentRole.value && _notifSub != null) return;
     currentUid.value = uid;
+    currentRole.value = role ?? '';
 
     _notifSub?.cancel();
     _unreadSub?.cancel();
 
-    _notifSub = _service.getNotificationsStream(uid).listen((list) {
+    _notifSub = _service.getNotificationsStream(uid, role: role).listen((list) {
       notifications.value = list;
     }, onError: (e) {
       AppLogger.e('Error listening to notifications: $e', e, null, 'NOTIF_CTRL');
     });
 
-    _unreadSub = _service.getUnreadCountStream(uid).listen((count) {
+    _unreadSub = _service.getUnreadCountStream(uid, role: role).listen((count) {
       unreadCount.value = count;
     }, onError: (e) {
       AppLogger.e('Error listening to unread count: $e', e, null, 'NOTIF_CTRL');
@@ -37,7 +40,7 @@ class NotificationController extends GetxController {
 
   Future<void> markAllRead() async {
     if (currentUid.value.isEmpty) return;
-    await _service.markAllAsRead(currentUid.value);
+    await _service.markAllAsRead(currentUid.value, role: currentRole.value);
   }
 
   Future<void> markRead(String id) async {
@@ -50,7 +53,7 @@ class NotificationController extends GetxController {
 
   Future<void> deleteAllNotifications() async {
     if (currentUid.value.isEmpty) return;
-    await _service.deleteAllNotifications(currentUid.value);
+    await _service.deleteAllNotifications(currentUid.value, role: currentRole.value);
   }
 
   @override

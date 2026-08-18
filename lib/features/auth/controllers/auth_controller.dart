@@ -196,11 +196,14 @@ class AuthController extends GetxController {
     final notifService = NotificationService();
     // Save FCM token to Firestore
     await notifService.saveTokenToFirestore(user.uid);
-    // Subscribe to role-based topic for broadcast notifications
+    // Subscribe to topic for broadcast notifications
     await notifService.subscribeToTopic('all_users');
+    if (user.role.isNotEmpty) {
+      await notifService.subscribeToTopic(user.role.toLowerCase());
+    }
     // Start listening to in-app notifications
     if (Get.isRegistered<NotificationController>()) {
-      Get.find<NotificationController>().listenForUser(user.uid);
+      Get.find<NotificationController>().listenForUser(user.uid, role: user.role);
     }
   }
 

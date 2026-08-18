@@ -1,17 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/network/api_checker.dart';
-import '../../../../core/utils/app_constants.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../landlord/models/post_model.dart';
 import '../utils/admin_colors.dart';
 
-/// ===================================================================
-/// [VIEW WIDGET - MVC PATTERN]
-/// 
-/// ===================================================================
 class AdminPostCard extends StatelessWidget {
   final PostModel post;
   final VoidCallback onApprove;
@@ -28,26 +22,17 @@ class AdminPostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isApproved =
-        post.paymentStatus.trim().toLowerCase() == 'approved' ||
-            post.isPublished == true;
-    final bool isPending =
-        post.paymentStatus.trim().toLowerCase() == 'pending';
-
-    final String ownerPhone = post.ownerPhone ?? 'N/A';
-    final String trxId = post.paymentTrxId ?? 'N/A';
-    final String senderNumber = post.senderNumber ?? 'N/A';
+    final String ownerPhone = post.ownerPhone ?? '';
+    final String address = post.address.isNotEmpty
+        ? post.address
+        : '${post.district}, ${post.division}';
 
     final cardContent = Container(
       padding: EdgeInsets.all(16.r),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-        border: Border.all(
-          color: isApproved
-              ? AdminColors.statusApproved.withValues(alpha: 0.35)
-              : AdminColors.border,
-        ),
+        border: Border.all(color: AdminColors.border),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0F172A).withValues(alpha: 0.035),
@@ -59,129 +44,169 @@ class AdminPostCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ─── Header: Post Title & Amount Badge ───
+          // ─── Header: Post Title & Rent Badge ───
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
-                  post.title,
+                  post.title.isNotEmpty ? post.title : 'Mess Room Listing',
                   style: GoogleFonts.poppins(
-                    fontSize: 15.sp,
-                    fontWeight: FontWeight.bold,
+                    fontSize: 14.5.sp,
+                    fontWeight: FontWeight.w700,
                     color: AdminColors.accentDark,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               SizedBox(width: 8.w),
-              _buildFeeBadge('Tk.${AppConstants.landlordFee}'),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 5.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0F172A),
+                  borderRadius: BorderRadius.circular(10.r),
+                ),
+                child: Text(
+                  '৳${post.rent.toInt()}/mo',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12.sp,
+                  ),
+                ),
+              ),
             ],
           ),
-          SizedBox(height: 3.h),
+          SizedBox(height: 8.h),
 
-          // ─── Subtitle: Role & Phone ───
-          Text(
-            'Landlord • $ownerPhone',
-            style: GoogleFonts.poppins(
-              fontSize: 12.sp,
-              color: AdminColors.accentLight,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Divider(color: AdminColors.border, height: 1),
-          ),
-
-          // ─── Payment Info: Sender & Method ───
+          // ─── Location ───
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Icon(
+                Icons.location_on_outlined,
+                size: 14.r,
+                color: const Color(0xFF0284C7),
+              ),
+              SizedBox(width: 5.w),
               Expanded(
                 child: Text(
-                  'Sender: ${senderNumber.isNotEmpty ? senderNumber : "N/A"}',
+                  address,
                   style: GoogleFonts.poppins(
-                    fontSize: 13.sp,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12.sp,
                     color: AdminColors.accentMid,
+                    fontWeight: FontWeight.w500,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              _buildMethodBadge('BKASH'),
             ],
           ),
-          SizedBox(height: 10.h),
 
-          // ─── TrxID Box with Copy Button ───
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    'TrxID: ${trxId.isNotEmpty ? trxId : "N/A"}',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13.5.sp,
-                      fontWeight: FontWeight.w700,
-                      color: AdminColors.accentDark,
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10.h),
+            child: Divider(color: const Color(0xFFF1F5F9), height: 1),
+          ),
+
+          // ─── Landlord Info & Actions ───
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Landlord contact
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.person_pin_circle_rounded,
+                      size: 16.r,
+                      color: AdminColors.accentMid,
+                    ),
+                    SizedBox(width: 6.w),
+                    Expanded(
+                      child: Text(
+                        ownerPhone.isNotEmpty ? ownerPhone : 'Owner: N/A',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AdminColors.accentDark,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Status Chip
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 9.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: post.isAvailable
+                      ? const Color(0xFFECFDF5)
+                      : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: post.isAvailable
+                        ? const Color(0xFF10B981).withValues(alpha: 0.3)
+                        : AdminColors.border,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 5.r,
+                      height: 5.r,
+                      decoration: BoxDecoration(
+                        color: post.isAvailable
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFF94A3B8),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    Text(
+                      post.isAvailable ? 'Available' : 'Booked',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: post.isAvailable
+                            ? const Color(0xFF059669)
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              if (ownerPhone.isNotEmpty) ...[
+                SizedBox(width: 8.w),
+                GestureDetector(
+                  onTap: () async {
+                    final uri = Uri.parse('tel:$ownerPhone');
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri);
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(7.r),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(8.r),
+                      border: Border.all(color: const Color(0xFF86EFAC)),
+                    ),
+                    child: Icon(
+                      Icons.phone_rounded,
+                      size: 14.r,
+                      color: const Color(0xFF16A34A),
                     ),
                   ),
                 ),
-                GestureDetector(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: trxId));
-                    ApiChecker.showSuccess(
-                      'TrxID copied to clipboard!',
-                      title: 'Copied',
-                    );
-                  },
-                  child: Icon(
-                    Icons.copy_rounded,
-                    size: 16.r,
-                    color: AdminColors.accentMid,
-                  ),
-                ),
               ],
-            ),
+            ],
           ),
-          SizedBox(height: 14.h),
-
-          // ─── Action Buttons / Status Badge ───
-          if (isPending)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionBtn(
-                    label: 'REJECT',
-                    color: AdminColors.statusRejected,
-                    isOutlined: true,
-                    onTap: onReject,
-                  ),
-                ),
-                SizedBox(width: 12.w),
-                Expanded(
-                  child: _buildActionBtn(
-                    label: 'APPROVE',
-                    color: AdminColors.statusApproved,
-                    isOutlined: false,
-                    onTap: onApprove,
-                  ),
-                ),
-              ],
-            )
-          else
-            _buildStatusBadge(isApproved),
         ],
       ),
     );
@@ -192,10 +217,10 @@ class AdminPostCard extends StatelessWidget {
         direction: DismissDirection.horizontal,
         confirmDismiss: (direction) async {
           return await Get.defaultDialog<bool>(
-            title: 'Delete Post Record',
+            title: 'Delete Listing',
             titleStyle: GoogleFonts.poppins(
               fontWeight: FontWeight.w700,
-              fontSize: 17.sp,
+              fontSize: 16.sp,
               color: AdminColors.accentDark,
             ),
             content: Padding(
@@ -204,7 +229,7 @@ class AdminPostCard extends StatelessWidget {
                 'Are you sure you want to permanently delete "${post.title}"?\nThis action cannot be undone.',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                  fontSize: 13.sp,
+                  fontSize: 12.5.sp,
                   color: AdminColors.accentMid,
                 ),
               ),
@@ -241,13 +266,12 @@ class AdminPostCard extends StatelessWidget {
             isLeft ? MainAxisAlignment.start : MainAxisAlignment.end,
         children: isLeft
             ? [
-                Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
+                Icon(Icons.delete_forever_rounded, color: Colors.white, size: 24.r),
                 SizedBox(width: 8.w),
                 Text(
-                  'Delete Record',
+                  'Delete Listing',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.5.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
@@ -255,115 +279,16 @@ class AdminPostCard extends StatelessWidget {
               ]
             : [
                 Text(
-                  'Delete Record',
+                  'Delete Listing',
                   style: GoogleFonts.poppins(
-                    fontSize: 14.sp,
+                    fontSize: 13.5.sp,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                 ),
                 SizedBox(width: 8.w),
-                Icon(Icons.delete_forever_rounded,
-                    color: Colors.white, size: 26.r),
+                Icon(Icons.delete_forever_rounded, color: Colors.white, size: 24.r),
               ],
-      ),
-    );
-  }
-
-  Widget _buildFeeBadge(String fee) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-      decoration: BoxDecoration(
-        color: AdminColors.accentDark,
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: Text(
-        fee,
-        style: GoogleFonts.poppins(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 13.sp,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMethodBadge(String method) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(8.r),
-      ),
-      child: Text(
-        method,
-        style: GoogleFonts.poppins(
-          color: AdminColors.accentDark,
-          fontWeight: FontWeight.w700,
-          fontSize: 11.sp,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionBtn({
-    required String label,
-    required Color color,
-    required bool isOutlined,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12.r),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: isOutlined ? Colors.transparent : color,
-          borderRadius: BorderRadius.circular(12.r),
-          border: isOutlined ? Border.all(color: color, width: 1.5) : null,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: GoogleFonts.poppins(
-            color: isOutlined ? color : Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 13.sp,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(bool isApproved) {
-    final color =
-        isApproved ? AdminColors.statusApproved : AdminColors.statusRejected;
-    final text = isApproved ? 'APPROVED' : 'REJECTED';
-    final icon =
-        isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded;
-
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: 10.h),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 16.r),
-          SizedBox(width: 6.w),
-          Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: color,
-              fontWeight: FontWeight.bold,
-              fontSize: 12.sp,
-            ),
-          ),
-        ],
       ),
     );
   }

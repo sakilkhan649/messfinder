@@ -90,6 +90,43 @@ class AdminStatsModel {
     );
   }
 
+  factory AdminStatsModel.fromJson(Map<String, dynamic> json) {
+    final posts = json['posts'] as Map<String, dynamic>? ?? {};
+    final bookings = json['bookings'] as Map<String, dynamic>? ?? {};
+    final summary = json['summary'] as Map<String, dynamic>? ?? {};
+
+    final pendingB = (bookings['pending'] as num?)?.toInt() ?? 0;
+    final approvedB = (bookings['approved'] as num?)?.toInt() ?? 0;
+    final rejectedB = (bookings['rejected'] as num?)?.toInt() ?? 0;
+
+    final pendingP = (posts['pending'] as num?)?.toInt() ?? 0;
+    final approvedP = (posts['approved'] as num?)?.toInt() ?? 0;
+    final rejectedP = (posts['rejected'] as num?)?.toInt() ?? 0;
+
+    final totalPen = (summary['totalPending'] as num?)?.toInt() ?? (pendingB + pendingP);
+    final totalApp = (summary['totalApproved'] as num?)?.toInt() ?? (approvedB + approvedP);
+    final totalRej = (summary['totalRejected'] as num?)?.toInt() ?? (rejectedB + rejectedP);
+
+    final bRevenue = (json['bookingRevenue'] as num?)?.toInt() ?? (approvedB * AppConstants.bachelorFee);
+    final pRevenue = (json['postRevenue'] as num?)?.toInt() ?? (approvedP * AppConstants.landlordFee);
+    final tRevenue = (json['totalRevenue'] as num?)?.toInt() ?? (bRevenue + pRevenue);
+
+    return AdminStatsModel(
+      pendingBookings: pendingB,
+      approvedBookings: approvedB,
+      rejectedBookings: rejectedB,
+      pendingPosts: pendingP,
+      approvedPosts: approvedP,
+      rejectedPosts: rejectedP,
+      totalPending: totalPen,
+      totalApproved: totalApp,
+      totalRejected: totalRej,
+      bookingRevenue: bRevenue,
+      postRevenue: pRevenue,
+      totalRevenue: tRevenue,
+    );
+  }
+
   factory AdminStatsModel.empty() {
     return const AdminStatsModel(
       pendingBookings: 0,

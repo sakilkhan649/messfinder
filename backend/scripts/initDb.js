@@ -84,6 +84,36 @@ const initSql = `
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
 
+  CREATE TABLE IF NOT EXISTS bookings (
+    booking_id VARCHAR(255) PRIMARY KEY,
+    post_id VARCHAR(255) NOT NULL,
+    bachelor_uid VARCHAR(255) REFERENCES users(uid) ON DELETE CASCADE,
+    landlord_uid VARCHAR(255) REFERENCES users(uid) ON DELETE CASCADE,
+    bachelor_name VARCHAR(255),
+    bachelor_phone VARCHAR(20),
+    trx_id VARCHAR(100),
+    sender_number VARCHAR(20),
+    payment_status VARCHAR(50) DEFAULT 'pending',
+    is_unlocked BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    payment_id VARCHAR(255) PRIMARY KEY,
+    user_uid VARCHAR(255) REFERENCES users(uid) ON DELETE CASCADE,
+    user_name VARCHAR(255),
+    user_phone VARCHAR(20),
+    role VARCHAR(50) DEFAULT 'bachelor',
+    amount INTEGER DEFAULT 50,
+    trx_id VARCHAR(100),
+    sender_number VARCHAR(20),
+    payment_method VARCHAR(50) DEFAULT 'bkash',
+    status VARCHAR(50) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
   -- Ensure missing columns exist in case tables were previously created
   ALTER TABLE users ALTER COLUMN phone DROP NOT NULL;
   ALTER TABLE users ALTER COLUMN password DROP NOT NULL;
@@ -93,6 +123,10 @@ const initSql = `
   ALTER TABLE messages ADD COLUMN IF NOT EXISTS reactions JSONB DEFAULT '{}';
   ALTER TABLE posts ADD COLUMN IF NOT EXISTS video_url TEXT;
   ALTER TABLE posts ADD COLUMN IF NOT EXISTS seat_description VARCHAR(255);
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS payment_status VARCHAR(50) DEFAULT 'approved';
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS payment_trx_id VARCHAR(100);
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS sender_number VARCHAR(20);
+  ALTER TABLE posts ADD COLUMN IF NOT EXISTS owner_phone VARCHAR(20);
 `;
 
 const setupDatabase = async () => {

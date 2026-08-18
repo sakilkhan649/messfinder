@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../../core/utils/app_constants.dart';
-import '../utils/admin_colors.dart';
 
 /// ===================================================================
 /// [VIEW WIDGET - MVC PATTERN]
@@ -24,108 +22,138 @@ class AdminRevenueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(22.r),
+      padding: EdgeInsets.all(20.r),
       decoration: BoxDecoration(
-        gradient: AdminColors.heroGradient,
-        borderRadius: BorderRadius.circular(22.r),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF0F172A), Color(0xFF1E293B)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
+        borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF0F172A).withValues(alpha: 0.28),
+            color: const Color(0xFF0F172A).withValues(alpha: 0.18),
             blurRadius: 16.r,
-            offset: Offset(0, 7.h),
+            offset: Offset(0, 6.h),
           ),
         ],
       ),
-      child: Stack(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Positioned(
-            right: -10.w,
-            top: -10.h,
-            child: Icon(
-              Icons.shield_rounded,
-              size: 100.r,
-              color: Colors.white.withValues(alpha: 0.05),
-            ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          // ── Top Header Row ─────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // ── Top Header Row ─────────────────────────────
               Row(
                 children: [
                   Container(
-                    padding: EdgeInsets.all(7.r),
+                    padding: EdgeInsets.all(6.r),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10.r),
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8.r),
                     ),
                     child: Icon(
-                      Icons.account_balance_wallet_rounded,
+                      Icons.shield_outlined,
                       color: Colors.white,
-                      size: 18.r,
+                      size: 16.r,
                     ),
                   ),
-                  SizedBox(width: 10.w),
+                  SizedBox(width: 8.w),
                   Text(
-                    'Total Revenue Earned',
+                    'Control Center',
                     style: GoogleFonts.poppins(
-                      fontSize: 13.5.sp,
+                      fontSize: 13.sp,
                       fontWeight: FontWeight.w500,
-                      color: Colors.white.withValues(alpha: 0.75),
+                      color: const Color(0xFF94A3B8),
                     ),
                   ),
                 ],
               ),
-              SizedBox(height: 10.h),
-
-              // ── Total Amount ───────────────────────────────
-              Text(
-                'Tk.$totalRevenue',
-                style: GoogleFonts.poppins(
-                  fontSize: 36.sp,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -1,
-                  height: 1.1,
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20.r),
+                  border: Border.all(color: const Color(0xFF10B981).withValues(alpha: 0.4)),
                 ),
-              ),
-
-              // ── Horizontal Divider ─────────────────────────
-              Divider(
-                color: Colors.white.withValues(alpha: 0.15),
-                height: 32.h,
-                thickness: 1,
-              ),
-
-              // ── Bottom Columns with Vertical Divider ───────
-              IntrinsicHeight(
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: _buildRevenueRowItem(
-                        'Bookings (Tk.${AppConstants.bachelorFee})',
-                        'Tk.$bookingRev',
-                        Icons.school_rounded,
-                        const Color(0xFFA78BFA), // Violet accent
+                    Container(
+                      width: 6.r,
+                      height: 6.r,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF10B981),
+                        shape: BoxShape.circle,
                       ),
                     ),
-                    VerticalDivider(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      width: 32.w,
-                      thickness: 1,
-                    ),
-                    Expanded(
-                      child: _buildRevenueRowItem(
-                        'Postings (Tk.${AppConstants.landlordFee})',
-                        'Tk.$postRev',
-                        Icons.home_work_rounded,
-                        const Color(0xFF38BDF8), // Light blue accent
+                    SizedBox(width: 5.w),
+                    Text(
+                      '100% Free Plan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11.sp,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF34D399),
                       ),
                     ),
                   ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 14.h),
+
+          // ── Title & Subtitle ───────────────────────────
+          Text(
+            'Community Management',
+            style: GoogleFonts.poppins(
+              fontSize: 20.sp,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+              letterSpacing: -0.3,
+            ),
+          ),
+          SizedBox(height: 3.h),
+          Text(
+            'Direct access to mess listings, tenant leads, and member directory.',
+            style: GoogleFonts.poppins(
+              fontSize: 12.sp,
+              color: const Color(0xFF94A3B8),
+              height: 1.35,
+            ),
+          ),
+
+          SizedBox(height: 16.h),
+          Divider(
+            color: Colors.white.withValues(alpha: 0.1),
+            height: 1.h,
+          ),
+          SizedBox(height: 14.h),
+
+          // ── Bottom Highlights ──
+          Row(
+            children: [
+              Expanded(
+                child: _buildBadgeItem(
+                  'Instant Publish',
+                  'No Posting Fee',
+                  Icons.verified_rounded,
+                  const Color(0xFF38BDF8),
+                ),
+              ),
+              Container(
+                width: 1.w,
+                height: 28.h,
+                color: Colors.white.withValues(alpha: 0.1),
+                margin: EdgeInsets.symmetric(horizontal: 10.w),
+              ),
+              Expanded(
+                child: _buildBadgeItem(
+                  'Free Inquiries',
+                  'Direct Calls & Chat',
+                  Icons.connect_without_contact_rounded,
+                  const Color(0xFFA78BFA),
                 ),
               ),
             ],
@@ -135,42 +163,40 @@ class AdminRevenueCard extends StatelessWidget {
     );
   }
 
-  Widget _buildRevenueRowItem(
-    String label,
-    String amount,
+  Widget _buildBadgeItem(
+    String title,
+    String subtitle,
     IconData icon,
     Color iconColor,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
       children: [
-        Row(
-          children: [
-            Icon(icon, size: 15.r, color: iconColor),
-            SizedBox(width: 6.w),
-            Expanded(
-              child: Text(
-                label,
+        Icon(icon, size: 16.r, color: iconColor),
+        SizedBox(width: 8.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
                 style: GoogleFonts.poppins(
                   fontSize: 12.sp,
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-            ),
-          ],
-        ),
-        SizedBox(height: 6.h),
-        Text(
-          amount,
-          style: GoogleFonts.poppins(
-            fontSize: 19.sp,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-            height: 1.1,
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 10.5.sp,
+                  color: const Color(0xFF94A3B8),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
       ],

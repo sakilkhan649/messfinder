@@ -3,18 +3,11 @@ import 'package:get/get.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../auth/models/user_model.dart';
-import '../../../bachelor/models/booking_model.dart';
-import '../../../landlord/models/post_model.dart';
-import '../../../payment/models/payment_model.dart';
 import '../../controllers/admin_controller.dart';
 import '../utils/admin_colors.dart';
 import '../widgets/admin_search_bar.dart';
 import '../widgets/admin_user_card.dart';
 
-/// ===================================================================
-/// [VIEW LAYER - MVC PATTERN]
-/// 
-/// ===================================================================
 class AdminUsersTab extends StatelessWidget {
   final AdminController controller;
 
@@ -25,162 +18,79 @@ class AdminUsersTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<UserModel>>(
-      stream: controller.allUsersStream,
-      builder: (context, userSnapshot) {
-        return StreamBuilder<List<PostModel>>(
-          stream: controller.allPostsStream,
-          builder: (context, postSnapshot) {
-            return StreamBuilder<List<BookingModel>>(
-              stream: controller.allBookingsStream,
-              builder: (context, bookingSnapshot) {
-                return StreamBuilder<List<PaymentModel>>(
-                  stream: controller.allPaymentsStream,
-                  builder: (context, paymentSnapshot) {
-                    if (userSnapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AdminColors.accentDark,
-                        ),
-                      );
-                    }
+    return Obx(() {
+      if (controller.isLoading.value && controller.allUsers.isEmpty) {
+        return const Center(
+          child: CircularProgressIndicator(
+            color: AdminColors.accentDark,
+          ),
+        );
+      }
 
-                    final allUsers = userSnapshot.data ?? [];
-                    final allPosts = postSnapshot.data ?? [];
-                    final allBookings = bookingSnapshot.data ?? [];
-                    final allPayments = paymentSnapshot.data ?? [];
+      final allUsers = controller.allUsers;
+      final regularUsers = allUsers.where((u) => !controller.isAdminUser(u)).toList();
+      final adminUsers = allUsers.where((u) => controller.isAdminUser(u)).toList();
 
-                    final landlordUsers = allUsers
-                        .where((u) => controller.isLandlordUser(
-                              u,
-                              allPosts,
-                              allPayments,
-                            ))
-                        .toList();
-                    final bachelorUsers = allUsers
-                        .where((u) => controller.isBachelorUser(
-                              u,
-                              allBookings,
-                              allPayments,
-                              allPosts,
-                            ))
-                        .toList();
+      return RefreshIndicator(
+        color: AdminColors.accentDark,
+        onRefresh: () => controller.fetchDashboardData(showLoader: false),
+        child: Column(
+          children: [
+            AdminSearchBar(
+              hintText: 'Search by Name, Phone, Email, or UID...',
+              onChanged: (val) => controller.updateSearch(val),
+            ),
+            _buildUserRoleTabs(
+              allCount: allUsers.length,
+              usersCount: regularUsers.length,
+              adminCount: adminUsers.length,
+            ),
+            Expanded(
+              child: Obx(() {
+                final tabIndex = controller.selectedUserRoleIndex.value;
+                final query = controller.searchQuery.value.trim().toLowerCase();
 
-                    return Column(
-                      children: [
-                        AdminSearchBar(
-                          hintText: 'Search by Name, Phone, TrxID, or UID...',
-                          onChanged: (val) => controller.updateSearch(val),
-                        ),
-                        _buildUserRoleTabs(
-                          landlordCount: landlordUsers.length,
-                          bachelorCount: bachelorUsers.length,
-                        ),
-                        Expanded(
-                          child: Obx(() {
-                            final tabIndex =
-                                controller.selectedUserRoleIndex.value;
-                            final query = controller.searchQuery.value
-                                .trim()
-                                .toLowerCase();
+                List<UserModel> list;
+                if (tabIndex == 1) {
+                  list = regularUsers;
+                } else if (tabIndex == 2) {
+                  list = adminUsers;
+                } else {
+                  list = allUsers;
+                }
 
-                            List<UserModel> list = (tabIndex == 0)
-                                ? landlordUsers
-                                : bachelorUsers;
+                if (query.isNotEmpty) {
+                  list = list.where((u) {
+                    final phone = u.phone;
+                    final email = u.email;
+                    return u.name.toLowerCase().contains(query) ||
+                        phone.toLowerCase().contains(query) ||
+                        email.toLowerCase().contains(query) ||
+                        u.uid.toLowerCase().contains(query);
+                  }).toList();
+                }
 
-                            if (query.isNotEmpty) {
-                              list = list.where((u) {
-                                final contactInfo =
-                                    controller.getUserContactInfo(
-                                  u,
-                                  allPosts,
-                                  allBookings,
-                                  allPayments,
-                                );
-                                final phone = contactInfo['phone'] ?? '';
-                                final trxId = contactInfo['trxId'] ?? '';
-                                return u.name.toLowerCase().contains(query) ||
-                                    phone.toLowerCase().contains(query) ||
-                                    trxId.toLowerCase().contains(query) ||
-                                    u.uid.toLowerCase().contains(query);
-                              }).toList();
-                            }
+                if (list.isEmpty) {
+                  String emptyLabel = 'No accounts found';
+                  if (tabIndex == 1) emptyLabel = 'No User accounts found';
+                  if (tabIndex == 2) emptyLabel = 'No Admin accounts found';
+                  return _buildEmptyState(emptyLabel);
+                }
 
-                            if (list.isEmpty) {
-                              return _buildEmptyState(
-                                tabIndex == 0
-                                    ? 'No Landlord accounts found'
-                                    : 'No Bachelor accounts found',
-                              );
-                            }
-
-                            return ListView.separated(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 20.w, vertical: 12.h),
-                              itemCount: list.length,
-                              separatorBuilder: (c, i) => SizedBox(height: 12.h),
-                              itemBuilder: (c, i) {
-                                final user = list[i];
-                                final contactInfo =
-                                    controller.getUserContactInfo(
-                                  user,
-                                  allPosts,
-                                  allBookings,
-                                  allPayments,
-                                );
-                                return AdminUserCard(
-                                  user: user,
-                                  resolvedPhone: contactInfo['phone'],
-                                  resolvedTrxId: contactInfo['trxId'],
-                                  onDelete: () =>
-                                      controller.confirmDeleteUser(user),
-                                );
-                              },
-                            );
-                          }),
-                        ),
-                      ],
+                return ListView.separated(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+                  itemCount: list.length,
+                  separatorBuilder: (c, i) => SizedBox(height: 12.h),
+                  itemBuilder: (c, i) {
+                    final user = list[i];
+                    return AdminUserCard(
+                      user: user,
+                      resolvedPhone: user.phone,
+                      onDelete: () => controller.confirmDeleteUser(user),
                     );
                   },
                 );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildUserRoleTabs({
-    required int landlordCount,
-    required int bachelorCount,
-  }) {
-    return Obx(() {
-      final selectedTab = controller.selectedUserRoleIndex.value;
-      return Container(
-        margin: EdgeInsets.fromLTRB(20.w, 10.h, 20.w, 8.h),
-        padding: EdgeInsets.all(5.r),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE2E8F0),
-          borderRadius: BorderRadius.circular(16.r),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _buildRoleTabButton(
-                index: 0,
-                title: 'Landlords ($landlordCount)',
-                icon: Icons.real_estate_agent_rounded,
-                isSelected: selectedTab == 0,
-              ),
-            ),
-            Expanded(
-              child: _buildRoleTabButton(
-                index: 1,
-                title: 'Bachelors ($bachelorCount)',
-                icon: Icons.school_rounded,
-                isSelected: selectedTab == 1,
-              ),
+              }),
             ),
           ],
         ),
@@ -188,54 +98,66 @@ class AdminUsersTab extends StatelessWidget {
     });
   }
 
-  Widget _buildRoleTabButton({
-    required int index,
-    required String title,
-    required IconData icon,
-    required bool isSelected,
+  Widget _buildUserRoleTabs({
+    required int allCount,
+    required int usersCount,
+    required int adminCount,
   }) {
-    return GestureDetector(
-      onTap: () => controller.setUserRoleTab(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeInOut,
-        padding: EdgeInsets.symmetric(vertical: 12.h),
-        decoration: BoxDecoration(
-          color: isSelected ? AdminColors.accentDark : Colors.transparent,
-          borderRadius: BorderRadius.circular(12.r),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: AdminColors.accentDark.withValues(alpha: 0.22),
-                    blurRadius: 10.r,
-                    offset: Offset(0, 4.h),
+    return Obx(() {
+      final selectedTab = controller.selectedUserRoleIndex.value;
+      final tabs = [
+        {'title': 'All Users ($allCount)', 'icon': Icons.groups_rounded},
+        {'title': 'General Users ($usersCount)', 'icon': Icons.person_rounded},
+        {'title': 'Admins ($adminCount)', 'icon': Icons.admin_panel_settings_rounded},
+      ];
+
+      return Container(
+        height: 38.h,
+        margin: EdgeInsets.fromLTRB(20.w, 8.h, 20.w, 8.h),
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: tabs.length,
+          separatorBuilder: (c, i) => SizedBox(width: 8.w),
+          itemBuilder: (context, index) {
+            final isSelected = selectedTab == index;
+            final tab = tabs[index];
+            return GestureDetector(
+              onTap: () => controller.setUserRoleTab(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 6.h),
+                decoration: BoxDecoration(
+                  color: isSelected ? AdminColors.accentDark : Colors.white,
+                  borderRadius: BorderRadius.circular(10.r),
+                  border: Border.all(
+                    color: isSelected ? AdminColors.accentDark : AdminColors.border,
                   ),
-                ]
-              : [],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 16.r,
-              color: isSelected ? Colors.white : AdminColors.accentMid,
-            ),
-            SizedBox(width: 8.w),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 13.sp,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                color: isSelected ? Colors.white : AdminColors.accentMid,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      tab['icon'] as IconData,
+                      size: 14.r,
+                      color: isSelected ? Colors.white : AdminColors.accentMid,
+                    ),
+                    SizedBox(width: 6.w),
+                    Text(
+                      tab['title'] as String,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12.sp,
+                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                        color: isSelected ? Colors.white : AdminColors.accentMid,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            );
+          },
         ),
-      ),
-    );
+      );
+    });
   }
 
   Widget _buildEmptyState(String message) {
@@ -245,14 +167,14 @@ class AdminUsersTab extends StatelessWidget {
         children: [
           Icon(
             Icons.people_outline_rounded,
-            size: 50.r,
+            size: 44.r,
             color: AdminColors.accentLight.withValues(alpha: 0.4),
           ),
-          SizedBox(height: 12.h),
+          SizedBox(height: 10.h),
           Text(
             message,
             style: GoogleFonts.poppins(
-              fontSize: 14.sp,
+              fontSize: 13.5.sp,
               fontWeight: FontWeight.w500,
               color: AdminColors.accentLight,
             ),
