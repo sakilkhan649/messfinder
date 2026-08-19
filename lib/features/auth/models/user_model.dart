@@ -18,7 +18,9 @@ class UserModel {
     this.email = '',
     required this.role,
     this.status = 'active',
-    this.isPaid = false,
+    // 🆓 Free Launch Mode: isPaid is always true until in-app purchase is enabled
+  // TODO: Set back to `false` when launching in-app purchase system
+  this.isPaid = true,
     this.createdAt,
     this.photoUrl,
     this.trxId,
@@ -44,7 +46,7 @@ class UserModel {
       email: map['email']?.toString() ?? '',
       role: map['role'] ?? 'bachelor',
       status: map['status']?.toString() ?? 'active',
-      isPaid: map['isPaid'] ?? (map['status'] == 'active'),
+      isPaid: true, // 🆓 Free Launch: always true (enable for in-app purchase later)
       trxId: map['trxId'] ?? map['paymentTrxId'],
       createdAt: parseDate(map['created_at'] ?? map['createdAt']),
       photoUrl: map['profile_image'] ?? map['photoUrl'],

@@ -182,11 +182,6 @@ class PostController extends GetxController {
 
   Future<void> _initPosts() async {
     isLoading.value = true;
-    try {
-      // Demo post deletion removed so they don't disappear on reload
-    } catch (e) {
-      // Ignore error
-    }
 
     // Attempt to fetch user location silently in the background
     fetchUserLocation();
@@ -307,6 +302,8 @@ class PostController extends GetxController {
   @override
   void onClose() {
     _searchDebounce?.cancel();
+    _mapSearchDebounce?.cancel();
+    feedScrollController.dispose();
     super.onClose();
   }
 

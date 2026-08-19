@@ -451,16 +451,11 @@ class RoomDetailScreen extends StatelessWidget {
     return StreamBuilder<List<BookingModel>>(
       stream: stream,
       builder: (context, snapshot) {
-        final bookings = snapshot.data ?? [];
-        final isUnlocked = bookings.any(
-          (b) => b.isUnlocked && b.paymentStatus == 'approved',
-        );
+        // 🆓 Free Launch: phone always visible, no payment required to see contact
+        const isUnlocked = true;
 
         final fullPhone = post.ownerPhone ?? '01712345678';
-        final maskedPhone = fullPhone.length > 5
-            ? '${fullPhone.substring(0, 5)}******'
-            : '01711******';
-        final displayPhone = isUnlocked ? fullPhone : maskedPhone;
+        final displayPhone = fullPhone; // Always show full phone in free mode
 
         return Scaffold(
           backgroundColor: AppTheme.backgroundColor,
@@ -957,33 +952,10 @@ class RoomDetailScreen extends StatelessWidget {
                                                   BorderRadius.circular(6.r),
                                             ),
                                             child: Text(
-                                              'Verified Number Unlocked ✅',
+                                              'Verified Number ✅',
                                               style: GoogleFonts.poppins(
                                                 fontSize: 10.sp,
                                                 color: const Color(0xFF10B981),
-                                                fontWeight: FontWeight.w600,
-                                              ),
-                                            ),
-                                          )
-                                        else
-                                          Container(
-                                            margin: EdgeInsets.only(top: 4.h),
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 8.w,
-                                              vertical: 2.h,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: primaryColor.withValues(
-                                                alpha: 0.1,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(6.r),
-                                            ),
-                                            child: Text(
-                                              'Click "Get Contact" to unlock number 🔒',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 10.sp,
-                                                color: primaryColor,
                                                 fontWeight: FontWeight.w600,
                                               ),
                                             ),

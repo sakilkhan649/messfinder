@@ -150,15 +150,13 @@ class SavedPostsScreen extends StatelessWidget {
                                     final photoUrl = (profile?['profile_image'] ??
                                              profile?['photoUrl'])
                                          ?.toString();
-                                     final isPaid = profile?['isPaid'] == true ||
-                                         profile?['status'] == 'active';
+                                     const isPaid = true; // 🆓 Free Launch: always verified
                                     final fullPhone =
                                         post.ownerPhone ??
                                         profile?['phone']?.toString() ??
                                         '017********';
-                                    final maskedPhone = fullPhone.length > 5
-                                        ? '${fullPhone.substring(0, 5)}******'
-                                        : '017******';
+                                    // 🆓 Free Launch: always show full phone
+                                    final maskedPhone = fullPhone;
 
                                     return Row(
                                       children: [

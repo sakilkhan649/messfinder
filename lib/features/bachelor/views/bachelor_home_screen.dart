@@ -805,7 +805,7 @@ class BachelorPostCard extends StatefulWidget {
 class BachelorPostCardState extends State<BachelorPostCard> {
   String name = 'Loading...';
   String? profilePic;
-  bool isPaid = false;
+  bool isPaid = true; // 🆓 Free Launch: always true
   bool isLoaded = false;
 
   @override
@@ -821,7 +821,7 @@ class BachelorPostCardState extends State<BachelorPostCard> {
       setState(() {
         name = data['name'] ?? 'Unknown User';
         profilePic = data['profile_image'] ?? data['photoUrl'];
-        isPaid = data['isPaid'] ?? (data['status'] == 'active');
+        isPaid = true; // 🆓 Free Launch: always verified
         isLoaded = true;
       });
     } else if (mounted) {

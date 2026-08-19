@@ -19,7 +19,7 @@ class PublicProfileScreen extends StatefulWidget {
 class _PublicProfileScreenState extends State<PublicProfileScreen> {
   String name = 'Loading...';
   String? profilePic;
-  bool isPaid = false;
+  bool isPaid = true; // 🆓 Free Launch: always verified
   bool isLoaded = false;
   List<PostModel> userPosts = [];
   bool isLoadingPosts = true;
@@ -38,7 +38,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         final data = res.data;
         name = data['name'] ?? 'Landlord';
         profilePic = data['profile_image'] ?? data['photoUrl'];
-        isPaid = data['status'] == 'active' || data['isPaid'] == true;
+        isPaid = true; // 🆓 Free Launch: always verified
       } else {
         name = 'Landlord';
       }

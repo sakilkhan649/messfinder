@@ -42,7 +42,7 @@ class AuthRepository {
           phone: userJson['phone'] ?? '',
           role: userJson['role'] ?? 'bachelor',
           photoUrl: userJson['profile_image'] ?? userJson['photoUrl'],
-          isPaid: false,
+          isPaid: true, // 🆓 Free Launch
           createdAt: DateTime.parse(userJson['created_at']),
         );
       }
@@ -89,7 +89,7 @@ class AuthRepository {
           phone: userJson['phone'] ?? '',
           role: userJson['role'] ?? 'bachelor',
           photoUrl: userJson['profile_image'] ?? userJson['photoUrl'],
-          isPaid: userJson['status'] == 'active', 
+          isPaid: true, // 🆓 Free Launch
           createdAt: DateTime.parse(userJson['created_at']),
         );
       }
@@ -145,7 +145,7 @@ class AuthRepository {
           phone: userJson['phone'] ?? '',
           photoUrl: userJson['profile_image'] ?? profileImage,
           role: userJson['role'] ?? role ?? 'bachelor',
-          isPaid: userJson['status'] == 'active',
+          isPaid: true, // 🆓 Free Launch
           createdAt: userJson['created_at'] != null
               ? DateTime.parse(userJson['created_at'])
               : DateTime.now(),

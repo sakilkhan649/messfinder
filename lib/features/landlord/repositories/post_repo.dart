@@ -124,10 +124,10 @@ class PostRepository {
   // Admin: Approve a post
   Future<void> approvePost(String postId) async {
     try {
-      // Temporary REST logic for Admin Approval
-      await _apiService.dio.put('/posts/$postId', data: {'isPublished': true, 'paymentStatus': 'approved'});
+      await _apiService.dio.put('/admin/posts/$postId/approve');
       AppLogger.s('Post approved successfully: $postId', tag: 'POST_REPO');
     } catch (e) {
+      AppLogger.e('Failed to approve post: $e', e, null, 'POST_REPO');
       throw 'Failed to approve post: $e';
     }
   }
@@ -135,10 +135,10 @@ class PostRepository {
   // Admin: Reject a post
   Future<void> rejectPost(String postId) async {
     try {
-      // Temporary REST logic for Admin Rejection
-      await _apiService.dio.put('/posts/$postId', data: {'isPublished': false, 'paymentStatus': 'rejected'});
+      await _apiService.dio.put('/admin/posts/$postId/reject');
       AppLogger.s('Post rejected: $postId', tag: 'POST_REPO');
     } catch (e) {
+      AppLogger.e('Failed to reject post: $e', e, null, 'POST_REPO');
       throw 'Failed to reject post: $e';
     }
   }
