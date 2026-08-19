@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../core/services/api_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../landlord/models/post_model.dart';
+import '../../chat/controllers/chat_controller.dart';
+import '../../chat/views/chat_screen.dart';
+import '../../auth/controllers/auth_controller.dart';
 import '../../bachelor/views/bachelor_home_screen.dart'; // To access BachelorPostCard
 
 class PublicProfileScreen extends StatefulWidget {
@@ -197,6 +199,41 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
+                            SizedBox(height: 16.h),
+                            // Message Button
+                            if (Get.find<AuthController>().currentUser.value?.uid != widget.userId)
+                              ElevatedButton.icon(
+                                onPressed: () async {
+                                  if (!Get.isRegistered<ChatController>()) {
+                                    Get.put(ChatController());
+                                  }
+                                  final chatCtrl = Get.find<ChatController>();
+                                  final chatId = await chatCtrl.createOrGetChatRoom(
+                                      widget.userId, name, profilePic);
+                                  Get.to(() => ChatScreen(
+                                      chatRoomId: chatId,
+                                      targetUserId: widget.userId,
+                                      targetUserName: name,
+                                      targetUserPhoto: profilePic));
+                                },
+                                icon: Icon(Icons.chat_bubble_outline_rounded, size: 18.r, color: Colors.white),
+                                label: Text(
+                                  'Message',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  elevation: 0,
+                                  padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 10.h),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(24.r),
+                                  ),
+                                ),
+                              ),
                             if (!isLoadingPosts) ...[
                               SizedBox(height: 20.h),
                               Row(
@@ -214,9 +251,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                                       children: [
                                         Icon(Icons.home_work_rounded, size: 16.r, color: primaryColor),
                                         SizedBox(width: 8.w),
-                                        Text(
-                                          '${userPosts.length} Active Listings',
-                                          style: GoogleFonts.poppins(
+                                          Text(
+                                            '${userPosts.length} Active Listing${userPosts.length == 1 ? '' : 's'}',
+                                            style: GoogleFonts.poppins(
                                             fontSize: 13.sp,
                                             fontWeight: FontWeight.w600,
                                             color: AppTheme.textPrimary,
@@ -250,8 +287,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         const Spacer(),
                         if (!isLoadingPosts && userPosts.isNotEmpty)
                           Text(
-                            '${userPosts.length} Results',
-                            style: GoogleFonts.poppins(
+                          '${userPosts.length} Result${userPosts.length == 1 ? '' : 's'}',
+                          style: GoogleFonts.poppins(
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
                               color: AppTheme.textSecondary,

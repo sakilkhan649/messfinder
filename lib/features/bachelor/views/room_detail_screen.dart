@@ -589,6 +589,33 @@ class RoomDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Anti-scam Warning Banner
+                        Container(
+                          margin: EdgeInsets.only(bottom: 16.h),
+                          padding: EdgeInsets.all(12.r),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12.r),
+                            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(Icons.warning_amber_rounded, color: Colors.red, size: 24.r),
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Text(
+                                  'সতর্কতা: রুম না দেখে বা বাড়িওয়ালার সাথে সরাসরি কথা না বলে কাউকে অগ্রিম টাকা পেমেন্ট করবেন না।',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12.sp,
+                                    color: Colors.red.shade700,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
                           Padding(
                             padding: EdgeInsets.only(bottom: 16.h),

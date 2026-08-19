@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/utils/app_constants.dart';
 import '../models/post_model.dart';
 import 'post_controller.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class AddPostController extends GetxController {
   final PostModel? existingPost;
@@ -18,7 +19,8 @@ class AddPostController extends GetxController {
   final TextEditingController rentController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final TextEditingController seatDescController = TextEditingController();
+  final RxInt availableSeats = 1.obs;
+  final RxBool isLoading = false.obs;
 
   final RxString selectedDivision = 'Dhaka'.obs;
   final RxString selectedDistrict = 'Dhaka'.obs;
@@ -29,7 +31,7 @@ class AddPostController extends GetxController {
 
   final RxString bachelorType = 'male'.obs;
   final RxString preferredTenant = 'Student / Job holder'.obs;
-  final RxList<String> selectedFacilities = ['WiFi', '24/7 Water'].obs;
+  final RxList<String> selectedFacilities = ['WiFi', '24/7 Water Supply'].obs;
   final List<String> allFacilities = AppConstants.availableFacilities;
 
   final Rx<LatLng> selectedLocation = const LatLng(23.8103, 90.4125).obs;
@@ -44,7 +46,7 @@ class AddPostController extends GetxController {
       titleController.text = p.title;
       rentController.text = p.rent.toInt().toString();
       addressController.text = p.address;
-      seatDescController.text = p.seatDescription ?? p.seatCount.toString();
+      availableSeats.value = p.seatCount;
       phoneController.text = p.ownerPhone ?? '';
       bachelorType.value = p.bachelorType;
       preferredTenant.value = p.preferredTenant;
@@ -53,6 +55,13 @@ class AddPostController extends GetxController {
       selectedFacilities.clear();
       selectedFacilities.addAll(p.facilities);
       selectedLocation.value = LatLng(p.latitude, p.longitude);
+    } else {
+      if (Get.isRegistered<AuthController>()) {
+        final authUser = Get.find<AuthController>().currentUser.value;
+        if (authUser != null && authUser.phone.isNotEmpty) {
+          phoneController.text = authUser.phone;
+        }
+      }
     }
   }
 
@@ -62,7 +71,6 @@ class AddPostController extends GetxController {
     rentController.dispose();
     addressController.dispose();
     phoneController.dispose();
-    seatDescController.dispose();
     super.onClose();
   }
 
@@ -70,26 +78,16 @@ class AddPostController extends GetxController {
     titleController.clear();
     rentController.clear();
     addressController.clear();
-    seatDescController.clear();
     phoneController.clear();
     pickedLocalImages.clear();
     pickedLocalVideo.value = '';
     selectedFacilities.clear();
-    selectedFacilities.addAll(['WiFi', '24/7 Water']);
+    selectedFacilities.addAll(['WiFi', '24/7 Water Supply']);
     selectedDivision.value = 'Dhaka';
     selectedDistrict.value = 'Dhaka';
   }
 
-  int _parseSeatCount(String desc) {
-    if (desc.isEmpty) return 1;
-    // ignore: deprecated_member_use
-    final regExp = RegExp(r'\d+');
-    final matches = regExp.allMatches(desc);
-    if (matches.isNotEmpty) {
-      return int.tryParse(matches.last.group(0)!) ?? 1;
-    }
-    return 1;
-  }
+
 
   Future<void> pickImagesFromGallery() async {
     try {
@@ -157,15 +155,16 @@ class AddPostController extends GetxController {
         ? pickedLocalImages.map((e) => e.path).toList()
         : (existingPost?.images ?? []);
 
-    final parsedSeats = _parseSeatCount(seatDescController.text);
+    final int parsedSeats = availableSeats.value;
 
+    isLoading.value = true;
     if (isEditing) {
       final updatedPost = existingPost!.copyWith(
         title: titleController.text.trim(),
         rent: double.tryParse(rentController.text.trim()) ?? 4500,
         address: addressController.text.trim(),
         seatCount: parsedSeats,
-        seatDescription: seatDescController.text.trim(),
+        seatDescription: parsedSeats.toString(),
         division: selectedDivision.value,
         district: selectedDistrict.value,
         bachelorType: bachelorType.value,
@@ -200,7 +199,7 @@ class AddPostController extends GetxController {
         rent: double.tryParse(rentController.text.trim()) ?? 4500,
         address: addressController.text.trim(),
         seatCount: parsedSeats,
-        seatDescription: seatDescController.text.trim(),
+        seatDescription: parsedSeats.toString(),
         division: selectedDivision.value,
         district: selectedDistrict.value,
         ownerPhone: phoneController.text.trim(),

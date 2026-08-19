@@ -187,6 +187,7 @@ class AddPostScreen extends StatelessWidget {
 
                 // Rent & Seats Row
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(
                       child: Column(
@@ -229,17 +230,48 @@ class AddPostScreen extends StatelessWidget {
                             ),
                           ),
                           SizedBox(height: 8.h),
-                          TextFormField(
-                            controller: controller.seatDescController,
-                            keyboardType: TextInputType.number,
-                            decoration: _buildInputDecoration(
-                              hintText: 'e.g. 2',
-                              prefixIcon: Icons.single_bed_rounded,
-                            ),
-                            validator: (v) => v == null || v.trim().isEmpty
-                                ? 'Enter seat count'
-                                : null,
-                          ),
+                          Obx(() => Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12.r),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    InkWell(
+                                      onTap: () {
+                                        if (controller.availableSeats.value > 1) {
+                                          controller.availableSeats.value--;
+                                        }
+                                      },
+                                      child: Icon(Icons.remove_circle_outline_rounded,
+                                          color: controller.availableSeats.value > 1
+                                              ? const Color(0xFF059669)
+                                              : Colors.grey,
+                                          size: 28.r),
+                                    ),
+                                    Text(
+                                      '${controller.availableSeats.value}',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16.sp,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        if (controller.availableSeats.value < 20) {
+                                          controller.availableSeats.value++;
+                                        }
+                                      },
+                                      child: Icon(Icons.add_circle_outline_rounded,
+                                          color: const Color(0xFF059669), size: 28.r),
+                                    ),
+                                  ],
+                                ),
+                              )),
                         ],
                       ),
                     ),
@@ -489,61 +521,117 @@ class AddPostScreen extends StatelessWidget {
                 ),
                 SizedBox(height: 24.h),
 
-                // Section 4: Photo Selection (Gallery Only, No Demo Pictures)
+                // Section 4: Room Media (Photos & Video)
                 _buildSectionHeader(
-                  Icons.photo_camera_rounded,
-                  'Real Room Photos',
+                  Icons.perm_media_rounded,
+                  'Room Media (Photos & Video)',
                 ),
                 SizedBox(height: 12.h),
 
-                GestureDetector(
-                  onTap: controller.pickImagesFromGallery,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    decoration: BoxDecoration(
-                      color: emeraldTheme.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: emeraldTheme.withValues(alpha: 0.4),
-                        width: 1.5,
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: controller.pickImagesFromGallery,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 20.h),
+                          decoration: BoxDecoration(
+                            color: emeraldTheme.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(
+                              color: emeraldTheme.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(10.r),
+                                decoration: BoxDecoration(
+                                  color: emeraldTheme.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.add_photo_alternate_rounded,
+                                  color: emeraldTheme,
+                                  size: 28.r,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Upload Photos',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: emeraldTheme,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                'Required',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.sp,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(12.r),
+                    SizedBox(width: 16.w),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: controller.pickVideoFromGallery,
+                        child: Container(
+                          padding: EdgeInsets.symmetric(vertical: 20.h),
                           decoration: BoxDecoration(
-                            color: emeraldTheme.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
+                            color: emeraldTheme.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16.r),
+                            border: Border.all(
+                              color: emeraldTheme.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
                           ),
-                          child: Icon(
-                            Icons.add_photo_alternate_rounded,
-                            color: emeraldTheme,
-                            size: 32.r,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(10.r),
+                                decoration: BoxDecoration(
+                                  color: emeraldTheme.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.video_collection_rounded,
+                                  color: emeraldTheme,
+                                  size: 28.r,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Upload Video',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: emeraldTheme,
+                                ),
+                              ),
+                              SizedBox(height: 2.h),
+                              Text(
+                                'Optional',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11.sp,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 10.h),
-                        Text(
-                          'Tap to Upload Real Room Photos',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: emeraldTheme,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'Select genuine photos from gallery (No demo pictures)',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 SizedBox(height: 14.h),
 
@@ -678,65 +766,7 @@ class AddPostScreen extends StatelessWidget {
                   }
                   return const SizedBox.shrink();
                 }),
-                SizedBox(height: 24.h),
 
-                // Section 5: Video Selection (Optional)
-                _buildSectionHeader(
-                  Icons.videocam_rounded,
-                  'Room Video (Optional)',
-                ),
-                SizedBox(height: 12.h),
-
-                GestureDetector(
-                  onTap: controller.pickVideoFromGallery,
-                  child: Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 20.h),
-                    decoration: BoxDecoration(
-                      color: emeraldTheme.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(16.r),
-                      border: Border.all(
-                        color: emeraldTheme.withValues(alpha: 0.4),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(12.r),
-                          decoration: BoxDecoration(
-                            color: emeraldTheme.withValues(alpha: 0.12),
-                            shape: BoxShape.circle,
-                          ),
-                          child: Icon(
-                            Icons.video_collection_rounded,
-                            color: emeraldTheme,
-                            size: 32.r,
-                          ),
-                        ),
-                        SizedBox(height: 10.h),
-                        Text(
-                          'Tap to Upload a Room Video',
-                          style: GoogleFonts.poppins(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: emeraldTheme,
-                          ),
-                        ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          'A video gives bachelors a better view',
-                          style: GoogleFonts.poppins(
-                            fontSize: 11.5.sp,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 14.h),
 
                 // Display selected local video or existing video
                 Obx(() {
@@ -913,15 +943,17 @@ class AddPostScreen extends StatelessWidget {
               ),
             ),
             alignment: Alignment.center,
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
-                fontSize: 11.5.sp,
-                fontWeight: FontWeight.w600,
-                color: selected ? Colors.white : AppTheme.textPrimary,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                style: GoogleFonts.poppins(
+                  fontSize: 11.5.sp,
+                  fontWeight: FontWeight.w600,
+                  color: selected ? Colors.white : AppTheme.textPrimary,
+                ),
               ),
             ),
           );
