@@ -10,8 +10,9 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Put controller so it's initialized when screen loads
-    final controller = Get.put(OnboardingController());
+    final controller = Get.isRegistered<OnboardingController>()
+        ? Get.find<OnboardingController>()
+        : Get.put(OnboardingController());
     final Color primaryColor = const Color(0xFF059669);
 
     return Scaffold(
@@ -44,56 +45,67 @@ class OnboardingScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final page = controller.pages[index];
                   return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 40.w),
+                    key: ValueKey('onboarding_page_$index'),
+                    padding: EdgeInsets.symmetric(horizontal: 32.w),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        // Animated Image
+                        // Animated Image with Error Fallback
                         Image.asset(
-                              page.imagePath,
-                              height: 250.h,
-                              fit: BoxFit.contain,
-                            )
-                            .animate(target: 1)
-                            .scale(duration: 500.ms, curve: Curves.easeOutBack),
+                          page.imagePath,
+                          key: ValueKey('img_${page.imagePath}'),
+                          height: 240.h,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            height: 240.h,
+                            width: 240.w,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(24.r),
+                            ),
+                            child: Icon(
+                              Icons.apartment_rounded,
+                              size: 80.r,
+                              color: primaryColor,
+                            ),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 400.ms)
+                        .scale(duration: 400.ms, curve: Curves.easeOutBack),
 
-                        SizedBox(height: 60.h),
+                        SizedBox(height: 48.h),
 
                         // Title
                         Text(
-                              page.title,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 24.sp,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF1E293B),
-                              ),
-                            )
-                            .animate()
-                            .slideY(begin: 0.5, end: 0, duration: 400.ms)
-                            .fade(),
+                          page.title,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 22.sp,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF1E293B),
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 350.ms)
+                        .slideY(begin: 0.2, end: 0, duration: 350.ms),
 
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 16.h),
 
                         // Description
                         Text(
-                              page.description,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16.sp,
-                                fontWeight: FontWeight.w400,
-                                color: const Color(0xFF64748B),
-                                height: 1.5,
-                              ),
-                            )
-                            .animate()
-                            .slideY(
-                              begin: 0.5,
-                              end: 0,
-                              duration: 400.ms,
-                              delay: 100.ms,
-                            )
-                            .fade(),
+                          page.description,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.poppins(
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w400,
+                            color: const Color(0xFF64748B),
+                            height: 1.5,
+                          ),
+                        )
+                        .animate()
+                        .fadeIn(duration: 350.ms, delay: 100.ms)
+                        .slideY(begin: 0.2, end: 0, duration: 350.ms),
                       ],
                     ),
                   );

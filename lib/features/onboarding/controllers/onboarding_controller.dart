@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/middlewares/auth_middleware.dart';
+import '../../../core/utils/app_assets.dart';
 
 class OnboardingController extends GetxController {
   final PageController pageController = PageController();
@@ -11,17 +12,17 @@ class OnboardingController extends GetxController {
     OnboardingContent(
       title: 'Find Your Perfect Mess',
       description: 'Search for rooms or bachelors easily using our interactive map.',
-      imagePath: 'assets/images/onboarding_search.png',
+      imagePath: AppAssets.onboardingSearch,
     ),
     OnboardingContent(
       title: 'Direct Chat',
       description: 'Connect instantly with landlords or bachelors through real-time chat.',
-      imagePath: 'assets/images/onboarding_chat.png',
+      imagePath: AppAssets.onboardingChat,
     ),
     OnboardingContent(
       title: 'Manage Bookings',
       description: 'Send booking requests and manage your tenant leads effortlessly.',
-      imagePath: 'assets/images/onboarding_booking.png',
+      imagePath: AppAssets.onboardingBooking,
     ),
   ];
 

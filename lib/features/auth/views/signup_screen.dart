@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/app_assets.dart';
 import '../controllers/signup_controller.dart';
 
 class SignupScreen extends StatelessWidget {
@@ -94,11 +95,11 @@ class SignupScreen extends StatelessWidget {
                             borderRadius: BorderRadius.circular(22.r),
                             border: Border.all(
                               color: const Color(0xFFE2E8F0),
-                              width: 1.w,
+                              width: 1.5.w,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF059669).withValues(alpha: 0.16),
+                                color: const Color(0xFF059669).withValues(alpha: 0.18),
                                 blurRadius: 18.r,
                                 offset: Offset(0, 6.h),
                               ),
@@ -108,7 +109,7 @@ class SignupScreen extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12.r),
                             child: Image.asset(
-                              'assets/images/app_logo_emblem.png',
+                              AppAssets.appLogo,
                               fit: BoxFit.contain,
                             ),
                           ),
@@ -321,7 +322,7 @@ class SignupScreen extends StatelessWidget {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Image.asset(
-                                  'assets/images/google_logo.png',
+                                  AppAssets.googleLogo,
                                   width: 22.r,
                                   height: 22.r,
                                 ),

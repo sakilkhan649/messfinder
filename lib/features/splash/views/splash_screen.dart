@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/app_assets.dart';
 import '../controllers/splash_controller.dart';
 
 class SplashScreen extends GetView<SplashController> {
@@ -21,18 +22,14 @@ class SplashScreen extends GetView<SplashController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 124.r,
-                height: 124.r,
+                width: 126.r,
+                height: 126.r,
                 padding: EdgeInsets.all(18.r),
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Colors.white, Color(0xFFF9FAFB)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30.r),
+                  color: Colors.white,
+                  shape: BoxShape.circle,
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.85),
+                    color: Colors.white.withValues(alpha: 0.9),
                     width: 2.w,
                   ),
                   boxShadow: [
@@ -40,19 +37,18 @@ class SplashScreen extends GetView<SplashController> {
                       color: Colors.black.withValues(alpha: 0.16),
                       blurRadius: 28.r,
                       spreadRadius: 2.r,
-                      offset: Offset(0, 10.h),
+                      offset: Offset(0, 8.h),
                     ),
                     BoxShadow(
-                      color: const Color(0xFF047857).withValues(alpha: 0.25),
-                      blurRadius: 16.r,
+                      color: const Color(0xFF047857).withValues(alpha: 0.3),
+                      blurRadius: 20.r,
                       offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
+                child: ClipOval(
                   child: Image.asset(
-                    'assets/images/app_logo_emblem.png',
+                    AppAssets.appLogo,
                     fit: BoxFit.contain,
                   ),
                 ),
