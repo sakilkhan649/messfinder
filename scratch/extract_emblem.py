@@ -15,9 +15,9 @@ def extract_transparent_logo():
 
     # Clean transparent cutout of emblem: pixels with near white (>240) get alpha 0
     emblem_trans = emblem.copy()
-    datas = emblem_trans.getdata()
+    data = emblem_trans.getdata()
     new_data = []
-    for item in datas:
+    for item in data:
         # If nearly pure white background
         if item[0] > 240 and item[1] > 240 and item[2] > 240:
             new_data.append((255, 255, 255, 0))

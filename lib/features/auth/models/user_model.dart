@@ -6,10 +6,10 @@ class UserModel {
   final String email;
   final String role; // 'bachelor', 'landlord', 'admin'
   final String status; // 'active', 'suspended', 'banned'
-  final bool isPaid;
+  final bool isPaid; // 🆓 Free Launch: always true. Note: restore gate for in-app purchase
   final DateTime? createdAt;
   final String? photoUrl;
-  final String? trxId; // পেমেন্ট ভেরিফিকেশনের TrxID
+  final String? trxId;
 
   UserModel({
     required this.uid,
@@ -18,9 +18,7 @@ class UserModel {
     this.email = '',
     required this.role,
     this.status = 'active',
-    // 🆓 Free Launch Mode: isPaid is always true until in-app purchase is enabled
-  // TODO: Set back to `false` when launching in-app purchase system
-  this.isPaid = true,
+    this.isPaid = true, // 🆓 Free Launch: default true. Note: set false when in-app purchase is live
     this.createdAt,
     this.photoUrl,
     this.trxId,
@@ -46,7 +44,7 @@ class UserModel {
       email: map['email']?.toString() ?? '',
       role: map['role'] ?? 'bachelor',
       status: map['status']?.toString() ?? 'active',
-      isPaid: true, // 🆓 Free Launch: always true (enable for in-app purchase later)
+      isPaid: true, // 🆓 Free Launch: always true. Note: restore → map['isPaid'] ?? (map['status'] == 'active')
       trxId: map['trxId'] ?? map['paymentTrxId'],
       createdAt: parseDate(map['created_at'] ?? map['createdAt']),
       photoUrl: map['profile_image'] ?? map['photoUrl'],
@@ -61,7 +59,6 @@ class UserModel {
       'email': email,
       'role': role,
       'status': status,
-      'isPaid': isPaid,
       'profile_image': photoUrl,
       'photoUrl': photoUrl,
       if (trxId != null && trxId!.isNotEmpty) 'trxId': trxId,
