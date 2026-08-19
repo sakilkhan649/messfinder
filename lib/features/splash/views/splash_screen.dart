@@ -3,7 +3,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/app_constants.dart';
 import '../controllers/splash_controller.dart';
 
 class SplashScreen extends GetView<SplashController> {
@@ -22,45 +21,46 @@ class SplashScreen extends GetView<SplashController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: EdgeInsets.all(24.r),
+                width: 130.r,
+                height: 130.r,
+                padding: EdgeInsets.all(12.r),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
+                  color: Colors.white,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 2.w,
-                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 20.r,
-                      spreadRadius: 5.r,
+                      color: Colors.black.withValues(alpha: 0.18),
+                      blurRadius: 24.r,
+                      spreadRadius: 2.r,
+                      offset: Offset(0, 6.h),
                     ),
                   ],
                 ),
-                child: Icon(
-                  Icons.home_work_rounded,
-                  size: 72.r,
-                  color: Colors.white,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/app_logo_emblem.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
               SizedBox(height: 24.h),
               Text(
-                AppConstants.appName,
+                'MessFinder',
                 style: GoogleFonts.poppins(
-                  fontSize: 36.sp,
-                  fontWeight: FontWeight.bold,
+                  fontSize: 34.sp,
+                  fontWeight: FontWeight.w800,
                   color: Colors.white,
-                  letterSpacing: -1,
+                  letterSpacing: -0.5,
                 ),
               ),
-              SizedBox(height: 8.h),
+              SizedBox(height: 6.h),
               Text(
-                AppConstants.appTagline,
+                'FIND YOUR PERFECT MESS',
                 style: GoogleFonts.poppins(
-                  fontSize: 15.sp,
-                  color: Colors.white.withValues(alpha: 0.9),
-                  fontWeight: FontWeight.w500,
+                  fontSize: 13.sp,
+                  color: Colors.white.withValues(alpha: 0.95),
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 2.5,
                 ),
               ),
               SizedBox(height: 48.h),
