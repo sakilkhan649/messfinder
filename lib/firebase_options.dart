@@ -52,21 +52,19 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCs9hOOD7yGW0g140Ni3nTsawzj3Q4UiIk',
-    appId: '1:1006655599669:android:bf7b1884290fd292ed2d7c',
+    appId: '1:1006655599669:android:a74fb52fff7377c1ed2d7c',
     messagingSenderId: '1006655599669',
     projectId: 'messfinder-efd6f',
     storageBucket: 'messfinder-efd6f.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDSqlfmjl8KpBKgc0AlYPW0qmtrSlCppRU',
-    appId: '1:1006655599669:ios:828692f60bf886f3ed2d7c',
+    appId: '1:1006655599669:ios:55b8ac13f0721413ed2d7c',
     messagingSenderId: '1006655599669',
     projectId: 'messfinder-efd6f',
     storageBucket: 'messfinder-efd6f.firebasestorage.app',
-    iosBundleId: 'com.example.messFinder',
+    iosBundleId: 'com.messfinder.app',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyDSqlfmjl8KpBKgc0AlYPW0qmtrSlCppRU',
     appId: '1:1006655599669:ios:828692f60bf886f3ed2d7c',

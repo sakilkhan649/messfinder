@@ -391,6 +391,7 @@ class ChatScreen extends StatelessWidget {
                             CachedNetworkImage(
                               imageUrl: message.imageUrl!,
                               width: 230.w,
+                              memCacheWidth: 600,
                               fit: BoxFit.cover,
                               placeholder: (context, url) => Container(
                                 height: 160.h,

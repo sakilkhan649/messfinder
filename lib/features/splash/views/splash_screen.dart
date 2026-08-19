@@ -21,22 +21,36 @@ class SplashScreen extends GetView<SplashController> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 130.r,
-                height: 130.r,
-                padding: EdgeInsets.all(12.r),
+                width: 124.r,
+                height: 124.r,
+                padding: EdgeInsets.all(18.r),
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
+                  gradient: const LinearGradient(
+                    colors: [Colors.white, Color(0xFFF9FAFB)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(30.r),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.85),
+                    width: 2.w,
+                  ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.18),
-                      blurRadius: 24.r,
+                      color: Colors.black.withValues(alpha: 0.16),
+                      blurRadius: 28.r,
                       spreadRadius: 2.r,
-                      offset: Offset(0, 6.h),
+                      offset: Offset(0, 10.h),
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF047857).withValues(alpha: 0.25),
+                      blurRadius: 16.r,
+                      offset: Offset(0, 4.h),
                     ),
                   ],
                 ),
-                child: ClipOval(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16.r),
                   child: Image.asset(
                     'assets/images/app_logo_emblem.png',
                     fit: BoxFit.contain,

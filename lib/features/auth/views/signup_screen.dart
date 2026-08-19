@@ -13,9 +13,12 @@ class SignupScreen extends StatelessWidget {
     final controller = Get.put(SignupController());
     final authController = controller.authController;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -33,9 +36,8 @@ class SignupScreen extends StatelessWidget {
                     final obscurePassword = authController.obscureSignupPassword.value;
 
                     // Role Theme Styling
-                    final List<Color> gradientColors = const [Color(0xFF064E3B), Color(0xFF10B981)];
+                    final List<Color> gradientColors = const [Color(0xFF059669), Color(0xFF047857)];
                     final Color accentColor = const Color(0xFF059669);
-                    final IconData roleIcon = Icons.home_work_rounded;
                     const String badgeText = 'SIGNUP';
 
                     return Column(
@@ -83,29 +85,32 @@ class SignupScreen extends StatelessWidget {
 
                         SizedBox(height: 12.h),
 
-                        // Glowing Role Emblem
+                        // Glowing Brand Emblem
                         Container(
-                          width: 56.r,
-                          height: 56.r,
+                          width: 76.r,
+                          height: 76.r,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: gradientColors,
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(22.r),
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
+                              width: 1.w,
                             ),
-                            borderRadius: BorderRadius.circular(18.r),
                             boxShadow: [
                               BoxShadow(
-                                color: accentColor.withValues(alpha: 0.35),
+                                color: const Color(0xFF059669).withValues(alpha: 0.16),
                                 blurRadius: 18.r,
                                 offset: Offset(0, 6.h),
                               ),
                             ],
                           ),
-                          child: Icon(
-                            roleIcon,
-                            size: 28.r,
-                            color: Colors.white,
+                          padding: EdgeInsets.all(12.r),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12.r),
+                            child: Image.asset(
+                              'assets/images/app_logo_emblem.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
 
@@ -369,8 +374,9 @@ class SignupScreen extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   // Exactly matching ForgotPasswordScreen's TextField design
   Widget _buildInputField({

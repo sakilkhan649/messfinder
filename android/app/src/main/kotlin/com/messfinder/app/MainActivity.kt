@@ -1,4 +1,4 @@
-package com.example.mess_finder
+package com.messfinder.app
 
 import io.flutter.embedding.android.FlutterActivity
 

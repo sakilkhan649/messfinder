@@ -127,6 +127,14 @@ const initSql = `
   ALTER TABLE posts ADD COLUMN IF NOT EXISTS payment_trx_id VARCHAR(100);
   ALTER TABLE posts ADD COLUMN IF NOT EXISTS sender_number VARCHAR(20);
   ALTER TABLE posts ADD COLUMN IF NOT EXISTS owner_phone VARCHAR(20);
+
+  -- High-performance database query indexes
+  CREATE INDEX IF NOT EXISTS idx_posts_active ON posts(is_available, is_published, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_posts_owner ON posts(owner_uid);
+  CREATE INDEX IF NOT EXISTS idx_messages_chat_created ON messages(chat_id, created_at ASC);
+  CREATE INDEX IF NOT EXISTS idx_chats_user1_user2 ON chats(user1_uid, user2_uid);
+  CREATE INDEX IF NOT EXISTS idx_chats_last_time ON chats(last_message_time DESC);
+  CREATE INDEX IF NOT EXISTS idx_notifications_receiver ON notifications(receiver_uid, is_read);
 `;
 
 const setupDatabase = async () => {

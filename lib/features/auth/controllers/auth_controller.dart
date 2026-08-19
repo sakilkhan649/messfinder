@@ -49,11 +49,6 @@ class AuthController extends GetxController {
         scopes: ['email', 'profile'],
       );
 
-      // Sign out any previous cached session so account picker opens fresh
-      try {
-        await googleSignIn.signOut();
-      } catch (_) {}
-
       final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
 
       if (googleUser == null) {

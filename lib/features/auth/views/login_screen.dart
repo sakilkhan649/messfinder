@@ -175,9 +175,12 @@ class LoginScreen extends StatelessWidget {
     final controller = Get.put(LoginController());
     final authController = controller.authController;
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      body: SafeArea(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -193,9 +196,8 @@ class LoginScreen extends StatelessWidget {
                   ),
                   child: Obx(() {
                     final obscurePassword = authController.obscureLoginPassword.value;
-                    final List<Color> gradientColors = const [Color(0xFF064E3B), Color(0xFF10B981)];
+                    final List<Color> gradientColors = const [Color(0xFF059669), Color(0xFF047857)];
                     final Color accentColor = const Color(0xFF059669);
-                    final IconData roleIcon = Icons.home_work_rounded;
                     const String badgeText = 'LOGIN';
 
                     return Column(
@@ -204,31 +206,34 @@ class LoginScreen extends StatelessWidget {
                       children: [
                         SizedBox(height: 32.h),
 
-                        // Glowing Role Emblem (৩ বার tap = Admin Portal)
+                        // Glowing Brand Emblem (৩ বার tap = Admin Portal)
                         GestureDetector(
                           onTap: () => controller.handleLogoTap(() => _showAdminLoginDialog(authController)),
                           child: Container(
-                            width: 60.r,
-                            height: 60.r,
+                            width: 76.r,
+                            height: 76.r,
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: gradientColors,
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(22.r),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                                width: 1.w,
                               ),
-                              borderRadius: BorderRadius.circular(20.r),
                               boxShadow: [
                                 BoxShadow(
-                                  color: accentColor.withValues(alpha: 0.35),
-                                  blurRadius: 20.r,
-                                  offset: Offset(0, 8.h),
+                                  color: const Color(0xFF059669).withValues(alpha: 0.16),
+                                  blurRadius: 18.r,
+                                  offset: Offset(0, 6.h),
                                 ),
                               ],
                             ),
-                            child: Icon(
-                              roleIcon,
-                              size: 30.r,
-                              color: Colors.white,
+                            padding: EdgeInsets.all(12.r),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12.r),
+                              child: Image.asset(
+                                'assets/images/app_logo_emblem.png',
+                                fit: BoxFit.contain,
+                              ),
                             ),
                           ),
                         ),
@@ -500,8 +505,9 @@ class LoginScreen extends StatelessWidget {
           },
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildInputField({
     required String label,

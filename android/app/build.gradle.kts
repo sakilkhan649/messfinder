@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mess_finder"
+    namespace = "com.messfinder.app"
     compileSdk = 36
     buildToolsVersion = "35.0.0"
     ndkVersion = "28.2.13676358"
@@ -20,7 +20,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.mess_finder"
+        applicationId = "com.messfinder.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
