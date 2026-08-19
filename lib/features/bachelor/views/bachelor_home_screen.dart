@@ -13,6 +13,7 @@ import 'room_detail_screen.dart';
 import 'widgets/facebook_image_grid.dart';
 import '../../../core/services/location_service.dart';
 import '../../profile/views/public_profile_screen.dart';
+import '../../profile/views/profile_screen.dart';
 import '../../chat/views/widgets/video_player_widget.dart';
 
 class BachelorHomeScreen extends StatefulWidget {
@@ -51,6 +52,23 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
               elevation: 0,
               surfaceTintColor: primaryColor,
               automaticallyImplyLeading: false,
+              leading: GestureDetector(
+                onTap: () {
+                  Get.to(() => ProfileScreen(user: widget.user));
+                },
+                child: Padding(
+                  padding: EdgeInsets.only(left: 16.w),
+                  child: CircleAvatar(
+                    backgroundColor: Colors.white.withValues(alpha: 0.2),
+                    backgroundImage: widget.user.photoUrl != null && widget.user.photoUrl!.isNotEmpty
+                        ? NetworkImage(widget.user.photoUrl!)
+                        : null,
+                    child: widget.user.photoUrl == null || widget.user.photoUrl!.isEmpty
+                        ? Icon(Icons.person, color: Colors.white, size: 20.r)
+                        : null,
+                  ),
+                ),
+              ),
               titleSpacing: 16.w,
               title: Text(
                 'Welcome to MessFinder',

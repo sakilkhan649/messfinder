@@ -135,6 +135,25 @@ const initSql = `
   CREATE INDEX IF NOT EXISTS idx_chats_user1_user2 ON chats(user1_uid, user2_uid);
   CREATE INDEX IF NOT EXISTS idx_chats_last_time ON chats(last_message_time DESC);
   CREATE INDEX IF NOT EXISTS idx_notifications_receiver ON notifications(receiver_uid, is_read);
+
+  CREATE TABLE IF NOT EXISTS products (
+    product_id SERIAL PRIMARY KEY,
+    seller_uid VARCHAR(255) REFERENCES users(uid) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    price NUMERIC(10, 2) NOT NULL,
+    condition VARCHAR(50) DEFAULT 'used',
+    category VARCHAR(100) DEFAULT 'Others',
+    images JSONB DEFAULT '[]',
+    division VARCHAR(100) DEFAULT 'Dhaka',
+    district VARCHAR(100) DEFAULT 'Dhaka',
+    status VARCHAR(50) DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_products_active ON products(status, created_at DESC);
+  CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_uid);
 `;
 
 const setupDatabase = async () => {

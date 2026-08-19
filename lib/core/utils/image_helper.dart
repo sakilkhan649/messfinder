@@ -3,6 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class AppImageHelper {
+  static bool isVideo(String path) {
+    final lower = path.toLowerCase();
+    return lower.endsWith('.mp4') || lower.endsWith('.mov') || lower.endsWith('.avi') || lower.endsWith('.mkv');
+  }
+
   static Widget buildImage(
     String path, {
     double? width,
@@ -15,6 +20,17 @@ class AppImageHelper {
         height: height,
         color: Colors.grey.shade300,
         child: const Icon(Icons.home_work_rounded, color: Colors.grey),
+      );
+    }
+
+    if (isVideo(path)) {
+      return Container(
+        width: width,
+        height: height,
+        color: Colors.black87,
+        child: const Center(
+          child: Icon(Icons.play_circle_fill, color: Colors.white, size: 32),
+        ),
       );
     }
 

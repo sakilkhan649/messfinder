@@ -58,6 +58,68 @@ class MediaUploadService {
     }
   }
 
+  /// Compresses and uploads multiple images to the backend.
+  /// Returns a map with 'urls' containing a list of strings on success.
+  static Future<Map<String, dynamic>?> uploadMultipleImages(List<File> files) async {
+    try {
+      final service = MediaUploadService();
+      final List<MultipartFile> multipartFiles = [];
+      final List<File> tempFiles = [];
+
+      for (var file in files) {
+        if (!file.existsSync()) continue;
+        
+        final ext = path.extension(file.path).toLowerCase();
+        final isVideo = ext == '.mp4' || ext == '.mov' || ext == '.avi' || ext == '.mkv';
+        
+        File fileToUpload = file;
+        if (!isVideo) {
+          final compressedFile = await service._compressImage(file);
+          if (compressedFile != null) {
+            fileToUpload = compressedFile;
+            tempFiles.add(compressedFile);
+          }
+        }
+
+        final uploadExt = isVideo ? ext : '.jpg';
+
+        multipartFiles.add(await MultipartFile.fromFile(
+          fileToUpload.path,
+          filename: '${service._uuid.v4()}$uploadExt',
+        ));
+      }
+
+      if (multipartFiles.isEmpty) return null;
+
+      final formData = FormData.fromMap({
+        'files': multipartFiles,
+      });
+
+      final dio = ApiService().dio;
+      final response = await dio.post('/upload/multiple', data: formData);
+
+      // Clean up temp compressed files
+      for (var tempFile in tempFiles) {
+        if (tempFile.existsSync()) {
+          tempFile.deleteSync();
+        }
+      }
+
+      if (response.statusCode == 200 && response.data['urls'] != null) {
+        final List<dynamic> rawUrls = response.data['urls'];
+        final List<String> stringUrls = rawUrls.map((e) => e['url'] as String).toList();
+        AppLogger.s('Multiple upload success: $stringUrls', tag: 'MEDIA_UPLOAD');
+        return {'urls': stringUrls};
+      }
+
+      AppLogger.e('Multiple upload failed: ${response.data}', null, null, 'MEDIA_UPLOAD');
+      return null;
+    } catch (e, stack) {
+      AppLogger.e('Multiple upload exception: $e', e, stack, 'MEDIA_UPLOAD');
+      return null;
+    }
+  }
+
   /// Uploads a video file to the backend.
   Future<String?> uploadVideo(String filePath) async {
     try {

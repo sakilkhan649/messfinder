@@ -6,7 +6,7 @@ import '../../auth/models/user_model.dart';
 import 'bachelor_home_screen.dart';
 import 'mess_map_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
-import '../../profile/views/profile_screen.dart';
+import '../../marketplace/views/marketplace_screen.dart';
 import 'package:get/get.dart';
 
 import '../controllers/bachelor_main_controller.dart';
@@ -25,7 +25,7 @@ class BachelorMainScreen extends StatelessWidget {
       BachelorHomeScreen(user: user),
       const MessMapScreen(),
       ChatListScreen(),
-      ProfileScreen(user: user),
+      const MarketplaceScreen(),
     ];
 
     return Scaffold(
@@ -125,9 +125,9 @@ class BachelorMainScreen extends StatelessWidget {
                                 ),
                                 _buildNavItem(
                                   index: 3,
-                                  icon: Icons.person_outline_rounded,
-                                  activeIcon: Icons.person_rounded,
-                                  label: 'Profile',
+                                  icon: Icons.storefront_outlined,
+                                  activeIcon: Icons.storefront_rounded,
+                                  label: 'Market',
                                   activeColor: primaryColor,
                                   controller: controller,
                                 ),

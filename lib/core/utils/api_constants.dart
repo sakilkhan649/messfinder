@@ -41,6 +41,13 @@ class ApiConstants {
   static String postById(String id) => '/posts/$id';
   static String postAvailability(String id) => '/posts/$id/availability';
 
+  // ─── Marketplace Endpoints (/api/products) ───────────────────────────────
+  static const String products = '/products';
+  
+  // Dynamic Product Route Helpers
+  static String productById(String id) => '/products/$id';
+  static String userProducts(String uid) => '/products/user/$uid';
+
   // ─── Chat Endpoints (/api/chats) ─────────────────────────────────────────
   static const String chats = '/chats';
 

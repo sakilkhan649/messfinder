@@ -7,6 +7,7 @@ import '../../bachelor/views/mess_map_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
 import '../../profile/views/profile_screen.dart';
 import '../../landlord/views/add_post_screen.dart';
+import '../../marketplace/views/marketplace_screen.dart';
 import 'bottom_nav_painter.dart';
 import 'package:get/get.dart';
 
@@ -40,8 +41,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           _isBottomNavVisible.value = true;
         },
       ),
+      const MarketplaceScreen(),
       ChatListScreen(),
-      ProfileScreen(user: widget.user),
     ];
   }
 
@@ -63,8 +64,8 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
           // 1. The Main Content
           NotificationListener<UserScrollNotification>(
             onNotification: (notification) {
-              // Only allow hiding on Feed screen (index 0)
-              if (_currentIndex.value == 0) {
+              // Only allow hiding on Feed screen (index 0) and Marketplace screen (index 3)
+              if (_currentIndex.value == 0 || _currentIndex.value == 3) {
                 if (notification.direction == ScrollDirection.forward) {
                   if (!_isBottomNavVisible.value) _isBottomNavVisible.value = true;
                 } else if (notification.direction == ScrollDirection.reverse) {
@@ -130,14 +131,14 @@ class _UserHomeScreenState extends State<UserHomeScreen> {
                                 children: [
                                   _buildNavItem(
                                     index: 3,
-                                    icon: Icons.chat_bubble_outline_rounded,
-                                    activeIcon: Icons.chat_bubble_rounded,
+                                    icon: Icons.storefront_outlined,
+                                    activeIcon: Icons.storefront_rounded,
                                     activeColor: _primaryEmerald,
                                   ),
                                   _buildNavItem(
                                     index: 4,
-                                    icon: Icons.person_outline_rounded,
-                                    activeIcon: Icons.person_rounded,
+                                    icon: Icons.chat_bubble_outline_rounded,
+                                    activeIcon: Icons.chat_bubble_rounded,
                                     activeColor: _primaryEmerald,
                                   ),
                                 ],
