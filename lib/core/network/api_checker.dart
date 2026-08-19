@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ApiChecker {
   static void checkApi(dynamic response) {
@@ -18,7 +19,7 @@ class ApiChecker {
       backgroundColor: AppTheme.errorColor,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.r),
       duration: const Duration(seconds: 3),
     );
   }
@@ -30,7 +31,7 @@ class ApiChecker {
       backgroundColor: AppTheme.statusApproved,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.r),
       duration: const Duration(seconds: 3),
     );
   }
@@ -42,7 +43,7 @@ class ApiChecker {
       backgroundColor: AppTheme.errorColor,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
-      margin: const EdgeInsets.all(16),
+      margin: EdgeInsets.all(16.r),
       duration: const Duration(seconds: 3),
     );
   }

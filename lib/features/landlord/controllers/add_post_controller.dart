@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/utils/app_constants.dart';
 import '../models/post_model.dart';
@@ -188,7 +189,7 @@ class AddPostController extends GetxController {
             backgroundColor: const Color(0xFF059669), // AppTheme.statusApproved
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
-            margin: const EdgeInsets.all(16),
+            margin: EdgeInsets.all(16.r),
             duration: const Duration(seconds: 3),
           );
         });
@@ -227,7 +228,7 @@ class AddPostController extends GetxController {
             backgroundColor: const Color(0xFF059669),
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
-            margin: const EdgeInsets.all(16),
+            margin: EdgeInsets.all(16.r),
             duration: const Duration(seconds: 3),
           );
         });
