@@ -5,7 +5,7 @@ import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_constants.dart';
-import '../../../core/utils/imgbb_service.dart';
+import '../../../core/services/media_upload_service.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../home/views/user_home_screen.dart';
 import '../../notifications/controllers/notification_controller.dart';
@@ -228,7 +228,7 @@ class AuthController extends GetxController {
         if (photoUrl.startsWith('http://') || photoUrl.startsWith('https://')) {
           finalPhotoUrl = photoUrl;
         } else {
-          final storageService = ImgbbService();
+          final storageService = MediaUploadService();
           final uploadedUrl = await storageService.uploadImage(photoUrl);
           if (uploadedUrl != null) {
             finalPhotoUrl = uploadedUrl;

@@ -5,12 +5,12 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
 
-import 'app_logger.dart';
-import '../services/api_service.dart';
+import '../utils/app_logger.dart';
+import 'api_service.dart';
 
 /// Uploads images and videos to our own Node.js backend server.
-/// Files are stored in backend/uploads/ and served as static files.
-class ImgbbService {
+/// Files are compressed, stored in backend/uploads/ and served as static files.
+class MediaUploadService {
   final Uuid _uuid = const Uuid();
 
   /// Compresses and uploads a single image to the backend.
@@ -19,7 +19,7 @@ class ImgbbService {
     try {
       final File file = File(filePath);
       if (!file.existsSync()) {
-        AppLogger.e('File does not exist: $filePath', null, null, 'UPLOAD_SVC');
+        AppLogger.e('File does not exist: $filePath', null, null, 'MEDIA_UPLOAD');
         return null;
       }
 
@@ -46,14 +46,14 @@ class ImgbbService {
 
       if (response.statusCode == 200 && response.data['url'] != null) {
         final url = response.data['url'] as String;
-        AppLogger.s('Upload success: $url', tag: 'UPLOAD_SVC');
+        AppLogger.s('Upload success: $url', tag: 'MEDIA_UPLOAD');
         return url;
       }
 
-      AppLogger.e('Upload failed: ${response.data}', null, null, 'UPLOAD_SVC');
+      AppLogger.e('Upload failed: ${response.data}', null, null, 'MEDIA_UPLOAD');
       return null;
     } catch (e, stack) {
-      AppLogger.e('Upload exception: $e', e, stack, 'UPLOAD_SVC');
+      AppLogger.e('Upload exception: $e', e, stack, 'MEDIA_UPLOAD');
       return null;
     }
   }
@@ -63,7 +63,7 @@ class ImgbbService {
     try {
       final File file = File(filePath);
       if (!file.existsSync()) {
-        AppLogger.e('Video file does not exist: $filePath', null, null, 'UPLOAD_SVC');
+        AppLogger.e('Video file does not exist: $filePath', null, null, 'MEDIA_UPLOAD');
         return null;
       }
 
@@ -80,14 +80,14 @@ class ImgbbService {
 
       if (response.statusCode == 200 && response.data['url'] != null) {
         final url = response.data['url'] as String;
-        AppLogger.s('Video upload success: $url', tag: 'UPLOAD_SVC');
+        AppLogger.s('Video upload success: $url', tag: 'MEDIA_UPLOAD');
         return url;
       }
 
-      AppLogger.e('Video upload failed: ${response.data}', null, null, 'UPLOAD_SVC');
+      AppLogger.e('Video upload failed: ${response.data}', null, null, 'MEDIA_UPLOAD');
       return null;
     } catch (e, stack) {
-      AppLogger.e('Video upload exception: $e', e, stack, 'UPLOAD_SVC');
+      AppLogger.e('Video upload exception: $e', e, stack, 'MEDIA_UPLOAD');
       return null;
     }
   }
@@ -109,9 +109,8 @@ class ImgbbService {
       if (compressed != null) return File(compressed.path);
       return null;
     } catch (e) {
-      AppLogger.e('Image compression failed: $e', e, null, 'UPLOAD_SVC');
+      AppLogger.e('Image compression failed: $e', e, null, 'MEDIA_UPLOAD');
       return null;
     }
   }
 }
-

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
@@ -101,7 +102,7 @@ class NotificationService {
     }
 
     if (message.notification != null) {
-      _showLocalNotification(
+      showLocalNotification(
         title: message.notification!.title ?? 'MessFinder',
         body: message.notification!.body ?? '',
         payload: jsonEncode(message.data),
@@ -110,7 +111,7 @@ class NotificationService {
   }
 
   // ── Show Local Notification (when app is open) ────────────────────────────
-  Future<void> _showLocalNotification({
+  Future<void> showLocalNotification({
     required String title,
     required String body,
     String? payload,
@@ -148,7 +149,7 @@ class NotificationService {
     required bool isVideo,
     String? payload,
   }) async {
-    await _showLocalNotification(
+    await showLocalNotification(
       id: 9999,
       title: isVideo ? '📹 Incoming Video Call' : '📞 Incoming Audio Call',
       body: '$callerName is calling you...',
@@ -231,9 +232,10 @@ class NotificationService {
     required String body,
     String type = '',
     String relatedId = '',
+    String senderUid = '',
   }) async {
     try {
-      final vercelUrl = 'https://vercelbackend-ruby.vercel.app/api/send';
+      final vercelUrl = ApiConstants.sendPushNotificationUrl;
       
       final response = await http.post(
         Uri.parse(vercelUrl),
@@ -244,6 +246,7 @@ class NotificationService {
           'body': body,
           'type': type,
           'relatedId': relatedId,
+          'senderUid': senderUid,
         }),
       );
 
@@ -262,6 +265,7 @@ class NotificationService {
     required String topic,
     required String title,
     required String body,
+    String senderUid = '',
     Map<String, String> data = const {},
   }) async {
     await sendPush(
@@ -270,6 +274,7 @@ class NotificationService {
       body: body,
       type: data['type'] ?? '',
       relatedId: data['relatedId'] ?? '',
+      senderUid: senderUid.isNotEmpty ? senderUid : (data['senderUid'] ?? ''),
     );
   }
 

@@ -8,7 +8,7 @@ import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/api_service.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
-import 'package:mess_finder/core/utils/imgbb_service.dart';
+import 'package:mess_finder/core/services/media_upload_service.dart';
 
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
@@ -325,7 +325,7 @@ class ChatController extends GetxController {
       if (result != null && result['send'] == true) {
         isSending.value = true;
         for (var image in images) {
-          final imageUrl = await ImgbbService().uploadImage(image.path);
+          final imageUrl = await MediaUploadService().uploadImage(image.path);
           if (imageUrl != null) {
             await sendMessage(chatRoomId, result['text'] ?? '', targetUserId, imageUrl: imageUrl);
           }
@@ -350,7 +350,7 @@ class ChatController extends GetxController {
       
       isSending.value = true;
       try {
-        final videoUrl = await ImgbbService().uploadVideo(video.path);
+        final videoUrl = await MediaUploadService().uploadVideo(video.path);
         if (videoUrl != null) {
           await sendMessage(chatRoomId, '', targetUserId, videoUrl: videoUrl);
         } else {

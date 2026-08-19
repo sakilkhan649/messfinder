@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/services/media_upload_service.dart';
 import '../../../core/utils/app_logger.dart';
-import '../../../core/utils/imgbb_service.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../models/post_model.dart';
 import '../repositories/post_repo.dart';
@@ -449,7 +449,7 @@ class PostController extends GetxController {
     try {
       isLoading.value = true;
 
-      final storageService = ImgbbService();
+      final storageService = MediaUploadService();
       final List<String> finalImageUrls = [];
 
       for (String path in images) {
@@ -504,7 +504,32 @@ class PostController extends GetxController {
 
       await _postRepo.addPost(newPost);
 
-      // Broadcast push notification to bachelors (and others) about the new room
+      // 1. Personal upload complete notification for author (Facebook style)
+      try {
+        final authorTitle = 'Post Published Successfully! 🎉';
+        final authorBody = 'Your room listing "$title" is now live and visible to tenants.';
+
+        NotificationService().storeNotification(
+          AppNotificationModel(
+            id: '',
+            title: authorTitle,
+            body: authorBody,
+            type: NotificationType.general,
+            receiverUid: user.uid,
+            senderUid: 'system',
+            createdAt: DateTime.now(),
+          ),
+        );
+
+        NotificationService().showLocalNotification(
+          title: authorTitle,
+          body: authorBody,
+        );
+      } catch (e) {
+        // ignore
+      }
+
+      // 2. Broadcast push notification to bachelors about the new room
       try {
         final loc = address.split(',').first;
         final titleStr = 'New Room Available! 🏠';
@@ -517,17 +542,18 @@ class PostController extends GetxController {
             title: titleStr,
             body: bodyStr,
             type: NotificationType.newPost,
-            receiverUid: 'all',
+            receiverUid: 'bachelor',
             senderUid: user.uid,
             createdAt: DateTime.now(),
           ),
         );
 
         NotificationService().sendPushToTopic(
-          topic: 'all_users',
+          topic: 'bachelor',
           title: titleStr,
           body: bodyStr,
-          data: {'type': 'new_post'},
+          senderUid: user.uid,
+          data: {'type': 'new_post', 'senderUid': user.uid},
         );
       } catch (e) {
         // ignore notification errors
@@ -552,7 +578,7 @@ class PostController extends GetxController {
     try {
       isLoading.value = true;
 
-      final storageService = ImgbbService();
+      final storageService = MediaUploadService();
       final List<String> finalImageUrls = [];
       bool anyLocalUploadFailed = false;
 
