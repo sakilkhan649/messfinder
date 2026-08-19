@@ -3,7 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
+import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 
 /// ─── Background message handler (top-level function, required by FCM) ────────
@@ -73,6 +76,30 @@ class NotificationService {
   // ── Foreground Message Handler ───────────────────────────────────────────────
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('📨 [FCM] Foreground message: ${message.notification?.title}');
+
+    // 1. Never show notification if sender is the current logged-in user
+    final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
+    final myUid = Get.isRegistered<AuthController>()
+        ? Get.find<AuthController>().currentUser.value?.uid
+        : null;
+
+    if (myUid != null && senderUid != null && senderUid.toString().trim() == myUid.toString().trim()) {
+      debugPrint('🚫 [FCM] Suppressed self-sent foreground notification');
+      return;
+    }
+
+    // 2. If user is currently looking at this active chat room, don't show an overlapping banner
+    final chatRoomId = message.data['chatRoomId'] ?? message.data['relatedId'];
+    if (Get.isRegistered<ChatController>()) {
+      final chatCtrl = Get.find<ChatController>();
+      if (chatCtrl.currentActiveChatId != null &&
+          chatRoomId != null &&
+          chatCtrl.currentActiveChatId == chatRoomId) {
+        debugPrint('🚫 [FCM] Suppressed notification for currently active chat room');
+        return;
+      }
+    }
+
     if (message.notification != null) {
       _showLocalNotification(
         title: message.notification!.title ?? 'MessFinder',
@@ -101,6 +128,8 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+          color: const Color(0xFF059669),
           playSound: true,
         ),
         iOS: const DarwinNotificationDetails(
@@ -254,6 +283,12 @@ class NotificationService {
     String? relatedId,
     Map<String, String> extraData = const {},
   }) async {
+    // 0. Prevent self-notifications (sender should never notify themselves)
+    if (senderUid != null && senderUid.isNotEmpty && senderUid == receiverUid) {
+      debugPrint('ℹ️ [NotificationService] Skipping self-notification for uid: $senderUid');
+      return;
+    }
+
     // 1. Store in Firestore (in-app notification center)
     await storeNotification(AppNotificationModel(
       id: '',
@@ -303,6 +338,8 @@ class NotificationService {
         .where('isRead', isEqualTo: false)
         .get();
     for (final doc in query.docs) {
+      final sender = doc.data()['senderUid']?.toString();
+      if (sender == uid) continue; // Skip self actions
       batch.update(doc.reference, {'isRead': true});
     }
     await batch.commit();
@@ -319,6 +356,8 @@ class NotificationService {
         .where('receiverUid', whereIn: targets)
         .get();
     for (final doc in query.docs) {
+      final sender = doc.data()['senderUid']?.toString();
+      if (sender == uid) continue;
       batch.delete(doc.reference);
     }
     await batch.commit();
@@ -337,6 +376,7 @@ class NotificationService {
         .map((snap) {
           final list = snap.docs
               .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
+              .where((item) => item.senderUid != uid) // Never show actions performed by myself
               .toList();
           list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
           return list;
@@ -357,7 +397,8 @@ class NotificationService {
         .where('receiverUid', whereIn: targets)
         .snapshots()
         .map((snap) => snap.docs
-            .where((doc) => (doc.data()['isRead'] ?? false) == false)
+            .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
+            .where((item) => item.senderUid != uid && !item.isRead) // Filter out self actions
             .length)
         .handleError((error) {
           debugPrint('❌ Unread count stream error: $error');

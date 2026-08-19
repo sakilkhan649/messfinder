@@ -460,7 +460,10 @@ class ChatScreen extends StatelessWidget {
                       ),
                     ),
                   )
-                // 4. Standard Text Bubble (Compact & Inline)
+                // 4. Call Log Message Bubble (Audio / Video Call status & duration)
+                else if (_isCallMessage(message.text))
+                  _buildCallLogBubble(context, message, isMe)
+                // 5. Standard Text Bubble (Compact & Inline)
                 else
                   Container(
                     constraints: BoxConstraints(maxWidth: maxBubbleWidth),
@@ -604,6 +607,184 @@ class ChatScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ── Call Log Message Helper & Bubble Builder ───────────────────────────
+  bool _isCallMessage(String text) => text.startsWith('[CALL_LOG:');
+
+  Widget _buildCallLogBubble(
+      BuildContext context, MessageModel message, bool isMe) {
+    final parts = message.text
+        .replaceAll('[CALL_LOG:', '')
+        .replaceAll(']', '')
+        .split(':');
+    final callType = parts.isNotEmpty ? parts[0] : 'audio';
+    final status = parts.length > 1 ? parts[1] : 'completed';
+    final durSeconds = parts.length > 2 ? int.tryParse(parts[2]) ?? 0 : 0;
+    final isVideo = callType == 'video';
+
+    final isMissed = status == 'missed';
+    final isDeclined = status == 'declined' || status == 'busy';
+    final isCompleted = status == 'completed';
+
+    final String title;
+    if (isMissed) {
+      title = isMe
+          ? 'Unanswered ${isVideo ? "Video" : "Audio"} Call'
+          : 'Missed ${isVideo ? "Video" : "Audio"} Call';
+    } else if (isDeclined) {
+      title = isMe
+          ? 'Declined ${isVideo ? "Video" : "Audio"} Call'
+          : 'Declined ${isVideo ? "Video" : "Audio"} Call';
+    } else if (isCompleted) {
+      title = isMe
+          ? 'Outgoing ${isVideo ? "Video" : "Audio"} Call'
+          : 'Incoming ${isVideo ? "Video" : "Audio"} Call';
+    } else {
+      title = isMe
+          ? 'Outgoing ${isVideo ? "Video" : "Audio"} Call'
+          : 'Incoming ${isVideo ? "Video" : "Audio"} Call';
+    }
+
+    final String subtitle;
+    if (durSeconds > 0) {
+      final m = durSeconds ~/ 60;
+      final s = durSeconds % 60;
+      subtitle = m > 0 ? '$m min $s sec' : '$s sec';
+    } else if (isMissed) {
+      subtitle = isMe ? 'No answer' : 'Tap to call back';
+    } else if (isDeclined) {
+      subtitle = 'Call unavailable';
+    } else {
+      subtitle = 'Call ended';
+    }
+
+    final IconData iconData;
+    if (isMissed) {
+      iconData =
+          isVideo ? Icons.videocam_off_rounded : Icons.phone_missed_rounded;
+    } else if (isDeclined) {
+      iconData =
+          isVideo ? Icons.videocam_off_rounded : Icons.phone_disabled_rounded;
+    } else {
+      iconData = isVideo
+          ? Icons.videocam_rounded
+          : (isMe
+              ? Icons.phone_forwarded_rounded
+              : Icons.phone_callback_rounded);
+    }
+
+    final Color iconColor;
+    if (isMissed) {
+      iconColor = const Color(0xFFEF4444);
+    } else if (isDeclined) {
+      iconColor = const Color(0xFFF59E0B);
+    } else {
+      iconColor = isMe ? Colors.white : const Color(0xFF059669);
+    }
+
+    return GestureDetector(
+      onTap: () {
+        CallController.to.makeCall(
+          targetUserId: targetUserId,
+          targetUserName: targetUserName,
+          targetUserPhoto: targetUserPhoto,
+          isVideo: isVideo,
+        );
+      },
+      child: Container(
+        constraints: BoxConstraints(maxWidth: 245.w),
+        padding: EdgeInsets.symmetric(horizontal: 13.w, vertical: 10.h),
+        decoration: BoxDecoration(
+          gradient: isMe
+              ? const LinearGradient(
+                  colors: [Color(0xFF059669), Color(0xFF047857)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: isMe ? null : Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          border: isMe
+              ? null
+              : Border.all(color: const Color(0xFFE2E8F0), width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: isMe
+                  ? const Color(0xFF059669).withValues(alpha: 0.2)
+                  : Colors.black.withValues(alpha: 0.04),
+              blurRadius: 8.r,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(8.r),
+              decoration: BoxDecoration(
+                color: isMe
+                    ? Colors.white.withValues(alpha: 0.18)
+                    : (isMissed
+                        ? const Color(0xFFFEE2E2)
+                        : const Color(0xFFE6F4EA)),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(iconData, color: iconColor, size: 19.r),
+            ),
+            SizedBox(width: 10.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12.5.sp,
+                      fontWeight: FontWeight.w600,
+                      color: isMe
+                          ? Colors.white
+                          : (isMissed
+                              ? const Color(0xFFEF4444)
+                              : AppTheme.textPrimary),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: 2.h),
+                  Row(
+                    children: [
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.poppins(
+                          fontSize: 10.5.sp,
+                          fontWeight: FontWeight.w400,
+                          color: isMe
+                              ? Colors.white.withValues(alpha: 0.85)
+                              : AppTheme.textSecondary,
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        _formatTime(message.createdAt ?? DateTime.now()),
+                        style: GoogleFonts.poppins(
+                          fontSize: 9.5.sp,
+                          color: isMe
+                              ? Colors.white.withValues(alpha: 0.75)
+                              : const Color(0xFF94A3B8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

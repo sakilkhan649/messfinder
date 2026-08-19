@@ -34,6 +34,7 @@ class ChatController extends GetxController {
   final RxBool isSending = false.obs;
 
   String? _currentActiveChatId;
+  String? get currentActiveChatId => _currentActiveChatId;
 
   @override
   void onInit() {

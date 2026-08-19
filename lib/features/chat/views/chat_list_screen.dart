@@ -215,8 +215,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     final unreadCount =
         chat.unreadCounts[_chatController.currentUserId] ?? 0;
     final isUnread = unreadCount > 0;
-    final lastMsg =
-        chat.lastMessage.isEmpty ? 'Started a conversation' : chat.lastMessage;
+    final lastMsg = _formatLastMessage(chat.lastMessage);
 
     return Container(
       margin: EdgeInsets.only(bottom: 10.h),
@@ -373,6 +372,24 @@ class _ChatListScreenState extends State<ChatListScreen> {
         ),
       ),
     );
+  }
+
+  String _formatLastMessage(String msg) {
+    if (msg.isEmpty) return 'Started a conversation';
+    if (msg.startsWith('[CALL_LOG:')) {
+      final parts = msg.replaceAll('[CALL_LOG:', '').replaceAll(']', '').split(':');
+      final callType = parts.isNotEmpty ? parts[0] : 'audio';
+      final status = parts.length > 1 ? parts[1] : 'completed';
+      final isVideo = callType == 'video';
+      if (status == 'missed') {
+        return isVideo ? '📹 Missed Video Call' : '📞 Missed Audio Call';
+      } else if (status == 'declined' || status == 'busy') {
+        return isVideo ? '📹 Declined Video Call' : '📞 Declined Audio Call';
+      } else {
+        return isVideo ? '📹 Video Call' : '📞 Audio Call';
+      }
+    }
+    return msg;
   }
 
   String _formatTime(DateTime time) {

@@ -12,6 +12,7 @@ import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
+import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
 import 'package:mess_finder/features/chat/views/widgets/incoming_call_dialog.dart';
 
@@ -40,6 +41,10 @@ class CallController extends GetxController {
   final RxInt remoteUid = 0.obs;
   final RxInt callDuration = 0.obs;
   final RxBool isEngineReady = false.obs;
+
+  // Call Logging Tracking
+  bool isCaller = false;
+  bool _hasLoggedCall = false;
 
   // Participant Info
   String currentChannel = '';
@@ -171,6 +176,10 @@ class CallController extends GetxController {
       final isBusy = data['reason'] == 'busy';
       callStatusText.value = isBusy ? 'Line Busy' : 'Call Declined';
 
+      if (isCaller) {
+        _logCallToChat(status: isBusy ? 'busy' : 'declined');
+      }
+
       Get.snackbar(
         isBusy ? 'Line Busy' : 'Call Declined',
         isBusy
@@ -192,6 +201,10 @@ class CallController extends GetxController {
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
       callStatusText.value = 'User is Offline';
+
+      if (isCaller) {
+        _logCallToChat(status: 'missed');
+      }
 
       final authCtrl = Get.find<AuthController>();
       final myUser = authCtrl.currentUser.value;
@@ -228,6 +241,9 @@ class CallController extends GetxController {
       _ringingTimeoutTimer?.cancel();
       NotificationService().cancelCallNotification();
       callStatusText.value = 'Call Ended';
+      if (callDuration.value > 0) {
+        _logCallToChat(status: 'completed', duration: callDuration.value);
+      }
       endCall(notifyPeer: false);
     });
   }
@@ -257,6 +273,8 @@ class CallController extends GetxController {
     final myUser = authCtrl.currentUser.value;
     final myUid = myUser?.uid ?? '';
 
+    isCaller = true;
+    _hasLoggedCall = false;
     peerUserId = targetUserId;
     peerUserName = targetUserName;
     peerUserPhoto = targetUserPhoto;
@@ -280,6 +298,7 @@ class CallController extends GetxController {
       if (callState.value == CallState.outgoing) {
         _stopRingtone();
         callStatusText.value = 'No Answer';
+        _logCallToChat(status: 'missed');
         // Send missed call notification
         NotificationService().sendAndStore(
           receiverUid: targetUserId,
@@ -326,6 +345,8 @@ class CallController extends GetxController {
   // ── Accept Call (Receiver) ──────────────────────────────────────────
   Future<void> acceptCall() async {
     _stopRingtone();
+    isCaller = false;
+    _hasLoggedCall = false;
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
       Get.snackbar('Permission Required', 'Microphone permission is required.');
@@ -367,6 +388,11 @@ class CallController extends GetxController {
   Future<void> endCall({bool notifyPeer = true}) async {
     _stopRingtone();
     _ringingTimeoutTimer?.cancel();
+    if (callDuration.value > 0) {
+      _logCallToChat(status: 'completed', duration: callDuration.value);
+    } else if (isCaller && !_hasLoggedCall) {
+      _logCallToChat(status: 'cancelled');
+    }
     if (notifyPeer && peerUserId.isNotEmpty) {
       _socket?.emit('end_call', {'targetUserId': peerUserId});
     }
@@ -549,5 +575,39 @@ class CallController extends GetxController {
       _engine?.release();
     } catch (_) {}
     _engine = null;
+  }
+
+  void _logCallToChat({required String status, int duration = 0}) {
+    if (_hasLoggedCall || peerUserId.isEmpty) return;
+    _hasLoggedCall = true;
+
+    final isVideo = isVideoCall.value;
+    final callType = isVideo ? 'video' : 'audio';
+    final dur = duration > 0 ? duration : callDuration.value;
+    final logText = '[CALL_LOG:$callType:$status:$dur]';
+
+    final targetUid = peerUserId;
+    final targetName = peerUserName;
+    final targetPhoto = peerUserPhoto;
+
+    try {
+      if (Get.isRegistered<ChatController>()) {
+        final chatCtrl = Get.find<ChatController>();
+        chatCtrl.createOrGetChatRoom(targetUid, targetName, targetPhoto).then((chatId) {
+          chatCtrl.sendMessage(chatId, logText, targetUid);
+        }).catchError((e) {
+          AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
+        });
+      } else {
+        final chatCtrl = Get.put(ChatController());
+        chatCtrl.createOrGetChatRoom(targetUid, targetName, targetPhoto).then((chatId) {
+          chatCtrl.sendMessage(chatId, logText, targetUid);
+        }).catchError((e) {
+          AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
+        });
+      }
+    } catch (e) {
+      AppLogger.w('Log call to chat error: $e', tag: 'CALL_CTRL');
+    }
   }
 }

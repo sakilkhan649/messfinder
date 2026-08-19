@@ -28,14 +28,30 @@ exports.getMessages = async (req, res) => {
   try {
     const { chatId } = req.params;
     const { limit, offset } = req.query;
+    const currentUid = req.user.uid;
     
     // Check if user is part of the chat
     const chatCheck = await pool.query(
       'SELECT * FROM chats WHERE chat_id = $1 AND (user1_uid = $2 OR user2_uid = $2)',
-      [chatId, req.user.uid]
+      [chatId, currentUid]
     );
+    
     if (chatCheck.rows.length === 0) {
-      return res.status(403).json({ error: 'Not authorized to view this chat' });
+      // If chat row doesn't exist yet but user is part of chatId (uid1_uid2), create it
+      const uids = chatId.split('_');
+      if (uids.length === 2 && uids.includes(currentUid)) {
+        const otherUid = uids[0] === currentUid ? uids[1] : uids[0];
+        try {
+          await pool.query(
+            'INSERT INTO chats (chat_id, user1_uid, user2_uid) VALUES ($1, $2, $3) ON CONFLICT (chat_id) DO NOTHING',
+            [chatId, currentUid, otherUid]
+          );
+        } catch (e) {
+          console.warn('Notice creating chat row on getMessages:', e.message);
+        }
+      } else {
+        return res.status(403).json({ error: 'Not authorized to view this chat' });
+      }
     }
 
     let query = 'SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC';
@@ -49,7 +65,7 @@ exports.getMessages = async (req, res) => {
     }
 
     const result = await pool.query(query, params);
-    res.status(200).json(result.rows);
+    res.status(200).json(result.rows || []);
   } catch (error) {
     console.error('Error fetching messages:', error);
     res.status(500).json({ error: 'Server error' });
