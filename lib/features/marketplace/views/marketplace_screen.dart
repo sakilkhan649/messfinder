@@ -453,6 +453,24 @@ class ProductCard extends StatelessWidget {
                             padding: EdgeInsets.only(left: 8.w, top: 8.h),
                             child: Icon(Icons.more_horiz, size: 20.r, color: Colors.grey.shade700),
                           ),
+                        )
+                      else
+                        InkWell(
+                          onTap: () {
+                            Get.to(() => ProductDetailsScreen(product: product));
+                          },
+                          borderRadius: BorderRadius.circular(4.r),
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                            child: Text(
+                              'Details',
+                              style: GoogleFonts.poppins(
+                                fontSize: 11.sp,
+                                color: AppTheme.primaryColor,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                     ],
                   ),
