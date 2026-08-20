@@ -13,19 +13,14 @@ import 'room_detail_screen.dart';
 import 'widgets/facebook_image_grid.dart';
 import '../../../core/services/location_service.dart';
 import '../../profile/views/public_profile_screen.dart';
-import '../../profile/views/profile_screen.dart';
 import '../../chat/views/widgets/video_player_widget.dart';
+import '../../../core/widgets/profile_avatar_leading.dart';
 
-class BachelorHomeScreen extends StatefulWidget {
+class BachelorHomeScreen extends StatelessWidget {
   final UserModel user;
 
   const BachelorHomeScreen({super.key, required this.user});
 
-  @override
-  State<BachelorHomeScreen> createState() => _BachelorHomeScreenState();
-}
-
-class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
   @override
   Widget build(BuildContext context) {
     final postController = Get.find<PostController>();
@@ -44,7 +39,6 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
           controller: postController.feedScrollController,
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── AppBar & Filters Section ───────────────────────────────────────────
             SliverAppBar(
               floating: true,
               snap: true,
@@ -52,23 +46,7 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
               elevation: 0,
               surfaceTintColor: primaryColor,
               automaticallyImplyLeading: false,
-              leading: GestureDetector(
-                onTap: () {
-                  Get.to(() => ProfileScreen(user: widget.user));
-                },
-                child: Padding(
-                  padding: EdgeInsets.only(left: 16.w),
-                  child: CircleAvatar(
-                    backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    backgroundImage: widget.user.photoUrl != null && widget.user.photoUrl!.isNotEmpty
-                        ? NetworkImage(widget.user.photoUrl!)
-                        : null,
-                    child: widget.user.photoUrl == null || widget.user.photoUrl!.isEmpty
-                        ? Icon(Icons.person, color: Colors.white, size: 20.r)
-                        : null,
-                  ),
-                ),
-              ),
+              leading: const ProfileAvatarLeading(),
               titleSpacing: 16.w,
               title: Text(
                 'Welcome to MessFinder',
@@ -80,203 +58,198 @@ class _BachelorHomeScreenState extends State<BachelorHomeScreen> {
               ),
               actions: const [NotificationBellAction()],
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(132.h),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(50.r),
-                        ),
-                        child: TextField(
-                          textAlignVertical: TextAlignVertical.center,
-                          onChanged: (val) =>
-                              postController.updateSearchQuery(val),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            color: Colors.white,
-                          ),
-                          cursorColor: Colors.white,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hintText: 'Search rooms, areas...',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 13.sp,
-                              color: Colors.white70,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search_rounded,
-                              color: Colors.white70,
-                              size: 20.r,
-                            ),
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 12.h,
-                            ),
-                          ),
-                        ),
-                      ),
+                preferredSize: Size.fromHeight(56.h),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(50.r),
                     ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16.w,
-                        vertical: 12.h,
-                      ),
-                      decoration: BoxDecoration(
+                    child: TextField(
+                      textAlignVertical: TextAlignVertical.center,
+                      onChanged: (val) => postController.updateSearchQuery(val),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.sp,
                         color: Colors.white,
-                        border: Border(
-                          bottom: BorderSide(
-                            color: Colors.grey.shade200,
-                            width: 1,
-                          ),
-                        ),
                       ),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        physics: const BouncingScrollPhysics(),
-                        child: Row(
-                          children: [
-                            _buildBudgetFilterButton(
-                              context,
-                              postController,
-                              primaryColor,
-                              accentColor,
-                            ),
-                            SizedBox(width: 8.w),
-                            _buildLocationFilterButton(
-                              context,
-                              postController,
-                              primaryColor,
-                              accentColor,
-                            ),
-                            SizedBox(width: 8.w),
-                            _buildFilterChip(
-                              postController,
-                              'all',
-                              'All',
-                              primaryColor,
-                              accentColor,
-                            ),
-                            SizedBox(width: 8.w),
-                            _buildFilterChip(
-                              postController,
-                              'male',
-                              'Male Only',
-                              primaryColor,
-                              accentColor,
-                            ),
-                            SizedBox(width: 8.w),
-                            _buildFilterChip(
-                              postController,
-                              'female',
-                              'Female Only',
-                              primaryColor,
-                              accentColor,
-                            ),
-                            SizedBox(width: 8.w),
-                            _buildFilterChip(
-                              postController,
-                              'both',
-                              'Any',
-                              primaryColor,
-                              accentColor,
-                            ),
-                          ],
+                      cursorColor: Colors.white,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        hintText: 'Search rooms, areas...',
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
+                        ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: Colors.white70,
+                          size: 20.r,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
                         ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-
-            // ── Posts List ───────────────────────────────────────────────────────
-            Obx(() {
-              if (postController.isLoading.value) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: CircularProgressIndicator(color: primaryColor),
-                  ),
-                );
-              }
-
-              final posts = postController.filteredPosts;
-
-              if (posts.isEmpty) {
-                return SliverFillRemaining(
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.search_off_rounded,
-                          size: 64.r,
-                          color: Colors.grey.shade300,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'No rooms found',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          'Try adjusting your search or filters.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            color: AppTheme.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }
-
-              return SliverList(
-                delegate: SliverChildBuilderDelegate((context, index) {
-                  return BachelorPostCard(post: posts[index]);
-                }, childCount: posts.length),
-              );
-            }),
-
             SliverToBoxAdapter(
-              child: Obx(() {
-                if (postController.isFetchingMore.value) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    child: Center(
-                      child: CircularProgressIndicator(color: primaryColor),
-                    ),
-                  );
-                } else if (!postController.hasMorePosts.value && postController.allPosts.isNotEmpty) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    child: Center(
-                      child: Text(
-                        'No more rooms to show',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12.sp,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                return SizedBox(height: 24.h);
-              }),
+              child: Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 12.h,
             ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                bottom: BorderSide(
+                  color: Colors.grey.shade200,
+                  width: 1,
+                ),
+              ),
+            ),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                children: [
+                  _buildBudgetFilterButton(
+                    context,
+                    postController,
+                    primaryColor,
+                    accentColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildLocationFilterButton(
+                    context,
+                    postController,
+                    primaryColor,
+                    accentColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildFilterChip(
+                    postController,
+                    'all',
+                    'All',
+                    primaryColor,
+                    accentColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildFilterChip(
+                    postController,
+                    'male',
+                    'Male',
+                    primaryColor,
+                    accentColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildFilterChip(
+                    postController,
+                    'female',
+                    'Female',
+                    primaryColor,
+                    accentColor,
+                  ),
+                  SizedBox(width: 8.w),
+                  _buildFilterChip(
+                    postController,
+                    'family',
+                    'Family',
+                    primaryColor,
+                    accentColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          ),
+                  // ── Posts List ───────────────────────────────────────────────────────
+                  Obx(() {
+                    if (postController.isLoading.value) {
+                      return SliverFillRemaining(
+                        child: Center(
+                          child: CircularProgressIndicator(color: primaryColor),
+                        ),
+                      );
+                    }
+
+                    final posts = postController.filteredPosts;
+
+                    if (posts.isEmpty) {
+                      return SliverFillRemaining(
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.search_off_rounded,
+                                size: 64.r,
+                                color: Colors.grey.shade300,
+                              ),
+                              SizedBox(height: 16.h),
+                              Text(
+                                'No rooms found',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Try adjusting your search or filters.',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        return BachelorPostCard(post: posts[index]);
+                      }, childCount: posts.length),
+                    );
+                  }),
+                  SliverToBoxAdapter(
+                    child: Obx(() {
+                      if (postController.isFetchingMore.value) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.h),
+                          child: Center(
+                            child: CircularProgressIndicator(color: primaryColor),
+                          ),
+                        );
+                      } else if (!postController.hasMorePosts.value &&
+                          postController.allPosts.isNotEmpty) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24.h),
+                          child: Center(
+                            child: Text(
+                              'No more rooms to show',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                  ),
           ],
         ),
       ),

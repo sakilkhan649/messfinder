@@ -10,31 +10,24 @@ import '../../landlord/controllers/post_controller.dart';
 import '../../landlord/models/post_model.dart';
 import 'room_detail_screen.dart';
 import '../../../core/services/location_service.dart';
+import '../../../core/widgets/profile_avatar_leading.dart';
 
-class MessMapScreen extends StatefulWidget {
+class MessMapController extends GetxController {
+  GoogleMapController? mapController;
+
+  @override
+  void onClose() {
+    mapController?.dispose();
+    super.onClose();
+  }
+}
+
+class MessMapScreen extends StatelessWidget {
   const MessMapScreen({super.key});
 
   @override
-  State<MessMapScreen> createState() => _MessMapScreenState();
-}
-
-class _MessMapScreenState extends State<MessMapScreen> {
-  GoogleMapController? _mapController;
-
-  @override
-  void dispose() {
-    _mapController?.dispose();
-    _mapController = null;
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final MessMapController mapCtrl = Get.put(MessMapController());
     final PostController postController = Get.find<PostController>();
     const emeraldTheme = Color(0xFF059669);
     final Color primaryColor = const Color(0xFF059669);
@@ -44,6 +37,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
+        leading: const ProfileAvatarLeading(),
         titleSpacing: 16.w,
         title: Text(
           'Map View',
@@ -61,9 +55,9 @@ class _MessMapScreenState extends State<MessMapScreen> {
           const NotificationBellAction(),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(64.h),
+          preferredSize: Size.fromHeight(56.h),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),
@@ -105,8 +99,8 @@ class _MessMapScreenState extends State<MessMapScreen> {
             .toList();
             
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted && _mapController != null) {
-            _fitMapToMarkers(activePosts);
+          if (mapCtrl.mapController != null) {
+            _fitMapToMarkers(activePosts, mapCtrl.mapController);
           }
         });
 
@@ -114,10 +108,8 @@ class _MessMapScreenState extends State<MessMapScreen> {
           children: [
             GoogleMap(
               onMapCreated: (GoogleMapController controller) {
-                if (mounted) {
-                  _mapController = controller;
-                  _fitMapToMarkers(activePosts);
-                }
+                mapCtrl.mapController = controller;
+                _fitMapToMarkers(activePosts, mapCtrl.mapController);
               },
               initialCameraPosition: const CameraPosition(
                 target: LatLng(23.8103, 90.4125),
@@ -148,7 +140,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      _mapController?.animateCamera(CameraUpdate.zoomIn());
+                      mapCtrl.mapController?.animateCamera(CameraUpdate.zoomIn());
                     },
                     child: Icon(Icons.add_rounded, color: primaryColor),
                   ),
@@ -158,7 +150,7 @@ class _MessMapScreenState extends State<MessMapScreen> {
                     mini: true,
                     backgroundColor: Colors.white,
                     onPressed: () {
-                      _mapController?.animateCamera(CameraUpdate.zoomOut());
+                      mapCtrl.mapController?.animateCamera(CameraUpdate.zoomOut());
                     },
                     child: Icon(Icons.remove_rounded, color: primaryColor),
                   ),
@@ -296,15 +288,15 @@ class _MessMapScreenState extends State<MessMapScreen> {
     );
   }
 
-  void _fitMapToMarkers(List<PostModel> posts) {
-    if (!mounted || _mapController == null) return;
+  void _fitMapToMarkers(List<PostModel> posts, GoogleMapController? mapController) {
+    if (mapController == null) return;
 
     try {
       if (posts.isEmpty) {
         final postCtrl = Get.find<PostController>();
         final pos = postCtrl.userLocation.value;
-        if (pos != null && mounted && _mapController != null) {
-          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
+        if (pos != null) {
+          mapController.animateCamera(CameraUpdate.newLatLngZoom(
             LatLng(pos.latitude, pos.longitude),
             14.0,
           ));
@@ -314,12 +306,10 @@ class _MessMapScreenState extends State<MessMapScreen> {
 
       if (posts.length == 1) {
         // If only one post, just center it
-        if (mounted && _mapController != null) {
-          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-            LatLng(posts.first.latitude, posts.first.longitude),
-            14.0,
-          ));
-        }
+        mapController.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(posts.first.latitude, posts.first.longitude),
+          14.0,
+        ));
         return;
       }
 
@@ -341,24 +331,20 @@ class _MessMapScreenState extends State<MessMapScreen> {
 
       // If all posts are at the exact same location, bounds padding will crash the map
       if (maxLat - minLat < 0.0001 && maxLng - minLng < 0.0001) {
-        if (mounted && _mapController != null) {
-          _mapController!.animateCamera(CameraUpdate.newLatLngZoom(
-            LatLng(minLat, minLng),
-            14.0,
-          ));
-        }
+        mapController.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(minLat, minLng),
+          14.0,
+        ));
         return;
       }
 
-      if (mounted && _mapController != null) {
-        _mapController!.animateCamera(CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          50.0, // Padding
-        ));
-      }
+      mapController.animateCamera(CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        50.0, // Padding
+      ));
     } catch (e) {
       debugPrint("Map bounds/animation error ignored: $e");
     }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -75,7 +74,7 @@ class AddProductScreen extends StatelessWidget {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryColor.withOpacity(0.1) : Colors.transparent,
+                        color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.1) : Colors.transparent,
                         border: Border(
                           bottom: BorderSide(color: Colors.grey.shade100),
                         ),
@@ -283,9 +282,9 @@ class AddProductScreen extends StatelessWidget {
                   height: 100.h,
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: emeraldTheme.withOpacity(0.1),
+                    color: emeraldTheme.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12.r),
-                    border: Border.all(color: emeraldTheme.withOpacity(0.5)),
+                    border: Border.all(color: emeraldTheme.withValues(alpha: 0.5)),
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,

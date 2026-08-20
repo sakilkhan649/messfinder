@@ -4,13 +4,13 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:timeago/timeago.dart' as timeago;
-
 import '../../../core/theme/app_theme.dart';
 import '../controllers/marketplace_controller.dart';
 import '../models/product_model.dart';
 import 'add_product_screen.dart';
 import 'product_details_screen.dart';
 import '../../auth/controllers/auth_controller.dart';
+import '../../../core/widgets/profile_avatar_leading.dart';
 
 class MarketplaceScreen extends StatelessWidget {
   const MarketplaceScreen({super.key});
@@ -35,6 +35,7 @@ class MarketplaceScreen extends StatelessWidget {
               elevation: 0,
               surfaceTintColor: AppTheme.primaryColor,
               automaticallyImplyLeading: false,
+              leading: const ProfileAvatarLeading(),
               title: Text(
                 'Marketplace',
                 style: GoogleFonts.poppins(
@@ -52,53 +53,51 @@ class MarketplaceScreen extends StatelessWidget {
                 ),
               ],
               bottom: PreferredSize(
-                preferredSize: Size.fromHeight(132.h),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Search Bar
-                    Padding(
-                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 12.h),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(50.r),
+                preferredSize: Size.fromHeight(56.h),
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(50.r),
+                    ),
+                    child: TextField(
+                      textAlignVertical: TextAlignVertical.center,
+                      onChanged: (value) => controller.searchProducts(value),
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.sp,
+                        color: Colors.white,
+                      ),
+                      cursorColor: Colors.white,
+                      decoration: InputDecoration(
+                        isDense: true,
+                        filled: true,
+                        fillColor: Colors.transparent,
+                        hintText: 'Search products...',
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 13.sp,
+                          color: Colors.white70,
                         ),
-                        child: TextField(
-                          textAlignVertical: TextAlignVertical.center,
-                          onChanged: (value) => controller.searchProducts(value),
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            color: Colors.white,
-                          ),
-                          cursorColor: Colors.white,
-                          decoration: InputDecoration(
-                            isDense: true,
-                            filled: true,
-                            fillColor: Colors.transparent,
-                            hintText: 'Search products...',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 13.sp,
-                              color: Colors.white70,
-                            ),
-                            prefixIcon: Icon(
-                              Icons.search_rounded,
-                              color: Colors.white70,
-                              size: 20.r,
-                            ),
-                            border: InputBorder.none,
-                            enabledBorder: InputBorder.none,
-                            focusedBorder: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 12.w,
-                              vertical: 12.h,
-                            ),
-                          ),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: Colors.white70,
+                          size: 20.r,
+                        ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12.w,
+                          vertical: 12.h,
                         ),
                       ),
                     ),
-                    // Categories Horizontal List
-                    Container(
+                  ),
+                ),
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: Container(
                       height: 58.h,
                       padding: EdgeInsets.symmetric(
                         vertical: 12.h,
@@ -165,11 +164,7 @@ class MarketplaceScreen extends StatelessWidget {
                         );
                       }),
                     ),
-                  ],
-                ),
-              ),
             ),
-            
             // Products Grid
             Obx(() {
               if (controller.isLoading.value && controller.products.isEmpty) {
@@ -445,6 +440,8 @@ class ProductCard extends StatelessWidget {
                                 ),
                               ],
                             );
+
+                            if (!context.mounted) return;
 
                             if (value == 'edit') {
                               Get.to(() => AddProductScreen(product: product));

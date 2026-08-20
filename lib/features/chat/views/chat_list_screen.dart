@@ -3,39 +3,19 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-
 import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import 'package:mess_finder/features/notifications/views/widgets/notification_bell_action.dart';
+import 'package:mess_finder/core/widgets/profile_avatar_leading.dart';
 
-class ChatListScreen extends StatefulWidget {
+class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
 
   @override
-  State<ChatListScreen> createState() => _ChatListScreenState();
-}
-
-class _ChatListScreenState extends State<ChatListScreen> {
-  final ChatController _chatController = Get.find<ChatController>();
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
-
-  @override
-  void initState() {
-    super.initState();
-    _chatController.fetchChatRooms();
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final ChatController chatController = Get.find<ChatController>();
     const Color primaryColor = Color(0xFF059669);
 
     return Scaffold(
@@ -44,8 +24,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
       appBar: AppBar(
         backgroundColor: primaryColor,
         elevation: 0,
-        centerTitle: false,
+        centerTitle: true,
         automaticallyImplyLeading: false,
+        leading: const ProfileAvatarLeading(),
         titleSpacing: 16.w,
         title: Text(
           'Messages',
@@ -59,94 +40,86 @@ class _ChatListScreenState extends State<ChatListScreen> {
           NotificationBellAction(color: Colors.white),
           SizedBox(width: 8),
         ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(56.h),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(50.r),
+              ),
+              child: Obx(() => TextField(
+                controller: chatController.searchController,
+                onChanged: (val) {
+                  chatController.searchQuery.value = val.trim();
+                },
+                style: GoogleFonts.poppins(
+                  fontSize: 13.sp,
+                  color: Colors.white,
+                ),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  isDense: true,
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: Colors.white70,
+                    size: 20.r,
+                  ),
+                  hintText: 'Search conversations...',
+                  hintStyle: GoogleFonts.poppins(
+                    color: Colors.white70,
+                    fontSize: 13.sp,
+                  ),
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: 12.w,
+                    vertical: 12.h,
+                  ),
+                  suffixIcon: chatController.searchQuery.value.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.close_rounded, size: 18.r, color: Colors.white70),
+                          onPressed: () {
+                            chatController.clearSearch();
+                          },
+                        )
+                      : null,
+                ),
+              )),
+            ),
+          ),
+        ),
       ),
       body: Obx(() {
-        if (_chatController.isLoadingRooms.value) {
+        if (chatController.isLoadingRooms.value) {
           return const Center(
             child: CircularProgressIndicator(color: primaryColor),
           );
         }
 
-        final allChats = _chatController.chatRooms;
+        final allChats = chatController.chatRooms;
         final filteredChats = allChats.where((chat) {
-          if (_searchQuery.isEmpty) return true;
+          if (chatController.searchQuery.value.isEmpty) return true;
           return chat.otherUserName
                   .toLowerCase()
-                  .contains(_searchQuery.toLowerCase()) ||
+                  .contains(chatController.searchQuery.value.toLowerCase()) ||
               chat.lastMessage
                   .toLowerCase()
-                  .contains(_searchQuery.toLowerCase());
+                  .contains(chatController.searchQuery.value.toLowerCase());
         }).toList();
 
         return RefreshIndicator(
           color: primaryColor,
           onRefresh: () async {
-            await _chatController.fetchChatRooms();
+            await chatController.fetchChatRooms(isRefresh: true);
           },
           child: Column(
             children: [
-              // ── Clean Search Bar (No Green Outline / No Border on Focus) ──
-              Padding(
-                padding: EdgeInsets.fromLTRB(16.w, 14.h, 16.w, 10.h),
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 14.w),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(14.r),
-                    border: Border.all(
-                        color: const Color(0xFFE2E8F0), width: 1),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 6.r,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val.trim();
-                      });
-                    },
-                    style: GoogleFonts.poppins(
-                      fontSize: 14.sp,
-                      color: AppTheme.textPrimary,
-                    ),
-                    decoration: InputDecoration(
-                      filled: false,
-                      fillColor: Colors.transparent,
-                      icon: const Icon(Icons.search_rounded,
-                          color: Color(0xFF94A3B8), size: 20),
-                      hintText: 'Search conversations...',
-                      hintStyle: GoogleFonts.poppins(
-                        color: const Color(0xFF94A3B8),
-                        fontSize: 13.5.sp,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12.h),
-                      suffixIcon: _searchQuery.isNotEmpty
-                          ? IconButton(
-                              icon: const Icon(Icons.close_rounded,
-                                  size: 18, color: Color(0xFF94A3B8)),
-                              onPressed: () {
-                                _searchController.clear();
-                                setState(() {
-                                  _searchQuery = '';
-                                });
-                              },
-                            )
-                          : null,
-                    ),
-                  ),
-                ),
-              ),
+              // ── Search bar moved to AppBar ──
 
               // ── Chat List ───────────────────────────────────────────
               Expanded(
@@ -169,7 +142,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             ),
                             SizedBox(height: 14.h),
                             Text(
-                              _searchQuery.isNotEmpty
+                              chatController.searchQuery.value.isNotEmpty
                                   ? 'No conversations found'
                                   : 'No conversations yet',
                               style: GoogleFonts.poppins(
@@ -180,7 +153,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              _searchQuery.isNotEmpty
+                              chatController.searchQuery.value.isNotEmpty
                                   ? 'Try searching with another keyword.'
                                   : 'Connect with landlords from listings to start chatting.',
                               style: GoogleFonts.poppins(
@@ -193,14 +166,23 @@ class _ChatListScreenState extends State<ChatListScreen> {
                         ),
                       )
                     : ListView.builder(
+                        controller: chatController.chatListScrollController,
                         physics: const AlwaysScrollableScrollPhysics(
                             parent: BouncingScrollPhysics()),
                         padding: EdgeInsets.symmetric(
                             horizontal: 16.w, vertical: 4.h),
-                        itemCount: filteredChats.length,
+                        itemCount: filteredChats.length + (chatController.isFetchingMoreRooms.value ? 1 : 0),
                         itemBuilder: (context, index) {
+                          if (index == filteredChats.length) {
+                            return Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.h),
+                              child: const Center(
+                                child: CircularProgressIndicator(color: primaryColor),
+                              ),
+                            );
+                          }
                           final chat = filteredChats[index];
-                          return _buildChatCard(context, chat);
+                          return _buildChatCard(context, chatController, chat);
                         },
                       ),
               ),
@@ -211,9 +193,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
-  Widget _buildChatCard(BuildContext context, ChatRoomModel chat) {
+  Widget _buildChatCard(BuildContext context, ChatController chatController, ChatRoomModel chat) {
     final unreadCount =
-        chat.unreadCounts[_chatController.currentUserId] ?? 0;
+        chat.unreadCounts[chatController.currentUserId] ?? 0;
     final isUnread = unreadCount > 0;
     final lastMsg = _formatLastMessage(chat.lastMessage);
 

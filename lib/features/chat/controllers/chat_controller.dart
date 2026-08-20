@@ -33,6 +33,16 @@ class ChatController extends GetxController {
   final RxBool isLoadingMessages = false.obs;
   final RxBool isSending = false.obs;
 
+  // Pagination & Search for Chat Rooms
+  int _roomPage = 1;
+  final int _roomLimit = 20;
+  final RxBool hasMoreRooms = true.obs;
+  final RxBool isFetchingMoreRooms = false.obs;
+
+  final TextEditingController searchController = TextEditingController();
+  final RxString searchQuery = ''.obs;
+  final ScrollController chatListScrollController = ScrollController();
+
   String? _currentActiveChatId;
   String? get currentActiveChatId => _currentActiveChatId;
 
@@ -41,13 +51,29 @@ class ChatController extends GetxController {
     super.onInit();
     _initSocket();
     fetchChatRooms();
+    chatListScrollController.addListener(_onChatListScroll);
   }
 
   @override
   void onClose() {
     _socket?.disconnect();
     _socket?.dispose();
+    searchController.dispose();
+    chatListScrollController.dispose();
     super.onClose();
+  }
+
+  void _onChatListScroll() {
+    if (chatListScrollController.position.pixels >= chatListScrollController.position.maxScrollExtent - 200 &&
+        !isFetchingMoreRooms.value &&
+        hasMoreRooms.value) {
+      fetchChatRooms(isLoadMore: true);
+    }
+  }
+
+  void clearSearch() {
+    searchController.clear();
+    searchQuery.value = '';
   }
 
   void _initSocket() {
@@ -127,17 +153,45 @@ class ChatController extends GetxController {
     _currentActiveChatId = null;
   }
 
-  Future<void> fetchChatRooms() async {
+  Future<void> fetchChatRooms({bool isRefresh = false, bool isLoadMore = false}) async {
+    if (isRefresh) {
+      _roomPage = 1;
+      hasMoreRooms.value = true;
+    }
+
+    if (isLoadMore) {
+      isFetchingMoreRooms.value = true;
+    } else {
+      if (!isRefresh) isLoadingRooms.value = true;
+    }
+
     try {
-      final response = await _apiService.dio.get('/chats');
+      final response = await _apiService.dio.get('/chats', queryParameters: {
+        'page': _roomPage,
+        'limit': _roomLimit,
+      });
+
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
-        chatRooms.assignAll(data.map((e) => ChatRoomModel.fromMap(e)).toList());
+        final newRooms = data.map((e) => ChatRoomModel.fromMap(e)).toList();
+
+        if (isRefresh || (!isLoadMore && _roomPage == 1)) {
+          chatRooms.assignAll(newRooms);
+        } else {
+          chatRooms.addAll(newRooms);
+        }
+
+        if (newRooms.length < _roomLimit) {
+          hasMoreRooms.value = false;
+        } else {
+          _roomPage++;
+        }
       }
     } catch (e) {
       AppLogger.e('Failed to fetch chat rooms: $e', e, null, 'CHAT_CTRL');
     } finally {
       isLoadingRooms.value = false;
+      isFetchingMoreRooms.value = false;
     }
   }
 
