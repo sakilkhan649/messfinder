@@ -11,6 +11,12 @@ import '../../features/admin/controllers/admin_controller.dart';
 import '../../features/landlord/controllers/tenant_leads_controller.dart';
 import '../../features/notifications/controllers/notification_controller.dart';
 
+import '../../features/marketplace/controllers/marketplace_controller.dart';
+import '../../features/home/controllers/user_home_controller.dart';
+import '../../features/bachelor/controllers/bachelor_main_controller.dart';
+import '../../features/bachelor/views/mess_map_screen.dart'; // Contains MessMapController
+import '../../features/onboarding/controllers/onboarding_controller.dart';
+
 class AppBindings extends Bindings {
   @override
   void dependencies() {
@@ -26,5 +32,12 @@ class AppBindings extends Bindings {
     Get.lazyPut(() => PaymentController(), fenix: true);
     Get.lazyPut(() => AdminController(), fenix: true);
     Get.lazyPut(() => TenantLeadsController(), fenix: true);
+    
+    // Newly Added Controllers for Global Binding
+    Get.lazyPut(() => MarketplaceController(), fenix: true);
+    Get.lazyPut(() => UserHomeController(), fenix: true);
+    Get.lazyPut(() => BachelorMainController(), fenix: true);
+    Get.lazyPut(() => MessMapController(), fenix: true);
+    Get.lazyPut(() => OnboardingController(), fenix: true);
   }
 }

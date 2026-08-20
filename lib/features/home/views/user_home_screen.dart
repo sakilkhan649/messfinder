@@ -15,7 +15,7 @@ class UserHomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final UserHomeController controller = Get.put(UserHomeController());
+    final UserHomeController controller = Get.find<UserHomeController>();
     controller.initScreensIfNeeded(user);
 
     return Scaffold(

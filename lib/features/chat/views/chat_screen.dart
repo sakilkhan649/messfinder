@@ -35,13 +35,12 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(
-      ChatScreenController(chatRoomId, initialMessage: initialMessage),
+    return GetBuilder<ChatScreenController>(
       tag: chatRoomId,
-    );
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      init: ChatScreenController(chatRoomId, initialMessage: initialMessage),
+      builder: (_) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
       // ── Clean Emerald AppBar matching App Branding ──────────────────
       appBar: AppBar(
         backgroundColor: const Color(0xFF059669),
@@ -229,6 +228,8 @@ class ChatScreen extends StatelessWidget {
           _buildBottomInputBar(context),
         ],
       ),
+    );
+      },
     );
   }
 

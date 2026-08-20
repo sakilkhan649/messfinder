@@ -19,9 +19,12 @@ class AdminEditProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Get.put(AdminEditProfileController(user), tag: 'admin_edit_profile');
     final authController = Get.find<AuthController>();
-    return Scaffold(
+    return GetBuilder<AdminEditProfileController>(
+      tag: 'admin_edit_profile',
+      init: AdminEditProfileController(user),
+      builder: (_) {
+        return Scaffold(
       backgroundColor: AdminColors.pageBg,
       appBar: AppBar(
         backgroundColor: AdminColors.accentDark,
@@ -248,6 +251,8 @@ class AdminEditProfileScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

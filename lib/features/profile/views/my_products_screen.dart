@@ -23,9 +23,7 @@ class MyProductsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<MarketplaceController>()
-        ? Get.find<MarketplaceController>()
-        : Get.put(MarketplaceController());
+    final controller = Get.find<MarketplaceController>();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchMyProducts(user.uid);

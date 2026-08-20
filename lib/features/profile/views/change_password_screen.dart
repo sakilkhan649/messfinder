@@ -10,11 +10,13 @@ class ChangePasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ChangePasswordController());
     final Color primaryColor = AppTheme.primaryColor;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+    return GetBuilder<ChangePasswordController>(
+      init: ChangePasswordController(),
+      builder: (controller) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Text(
           'Change Password',
@@ -192,6 +194,8 @@ class ChangePasswordScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+    },
     );
   }
 

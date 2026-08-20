@@ -1,0 +1,8 @@
+Analyzing mess_finder...
+
+   info - lib\features\bachelor\views\room_detail_screen.dart:124:57 - 'RegExp' is deprecated and shouldn't be used. This class will become 'final' in a future release. 'Pattern' may be a more appropriate interface to implement. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\chat\views\chat_screen.dart:1265:47 - 'RegExp' is deprecated and shouldn't be used. This class will become 'final' in a future release. 'Pattern' may be a more appropriate interface to implement. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\chat\views\chat_screen.dart:1268:13 - 'RegExp' is deprecated and shouldn't be used. This class will become 'final' in a future release. 'Pattern' may be a more appropriate interface to implement. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+   info - lib\features\landlord\models\post_model.dart:67:42 - 'RegExp' is deprecated and shouldn't be used. This class will become 'final' in a future release. 'Pattern' may be a more appropriate interface to implement. Try replacing the use of the deprecated member with the replacement. - deprecated_member_use
+
+4 issues found.

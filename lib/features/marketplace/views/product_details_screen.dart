@@ -192,9 +192,6 @@ class ProductDetailsScreen extends StatelessWidget {
           padding: EdgeInsets.all(16.w),
           child: ElevatedButton.icon(
             onPressed: () async {
-              if (!Get.isRegistered<ChatController>()) {
-                Get.put(ChatController());
-              }
               final chatCtrl = Get.find<ChatController>();
               final chatId = await chatCtrl.createOrGetChatRoom(
                   product.sellerUid, product.sellerName ?? 'Seller', product.sellerImage);

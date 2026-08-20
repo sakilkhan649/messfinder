@@ -66,12 +66,14 @@ class _PremiumPaymentSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenController = Get.put(PremiumPaymentController());
     final paymentController = Get.find<PaymentController>();
     final int fee =
         isLandlord ? AppConstants.landlordFee : AppConstants.bachelorFee;
 
-    return Container(
+    return GetBuilder<PremiumPaymentController>(
+      init: PremiumPaymentController(),
+      builder: (screenController) {
+        return Container(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
@@ -433,6 +435,8 @@ class _PremiumPaymentSheet extends StatelessWidget {
           ),
         ),
       ),
+    );
+    },
     );
   }
 

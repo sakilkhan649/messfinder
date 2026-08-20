@@ -25,9 +25,7 @@ class MyPostsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final postController = Get.isRegistered<PostController>()
-        ? Get.find<PostController>()
-        : Get.put(PostController());
+    final postController = Get.find<PostController>();
 
     // Fetch the latest user posts immediately upon entering the screen
     WidgetsBinding.instance.addPostFrameCallback((_) {

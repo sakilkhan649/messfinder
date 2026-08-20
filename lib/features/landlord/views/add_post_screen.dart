@@ -74,14 +74,14 @@ class AddPostScreen extends StatelessWidget {
         (existingPost != null
             ? 'edit_${existingPost!.postId}'
             : (showBackButton ? 'new_standalone' : 'new_home'));
-    final controller = Get.put(
-      AddPostController(existingPost: existingPost, onPostAdded: onPostAdded),
-      tag: tag,
-    );
     const emeraldTheme = Color(0xFF059669);
     const darkEmerald = Color(0xFF064E3B);
 
-    return Scaffold(
+    return GetBuilder<AddPostController>(
+      tag: tag,
+      init: AddPostController(existingPost: existingPost, onPostAdded: onPostAdded),
+      builder: (controller) {
+        return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: darkEmerald,
@@ -806,6 +806,8 @@ class AddPostScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

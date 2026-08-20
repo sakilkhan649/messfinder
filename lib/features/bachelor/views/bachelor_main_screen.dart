@@ -18,7 +18,7 @@ class BachelorMainScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(BachelorMainController());
+    final controller = Get.find<BachelorMainController>();
     const primaryColor = Color(0xFF059669);
 
     final List<Widget> screens = [

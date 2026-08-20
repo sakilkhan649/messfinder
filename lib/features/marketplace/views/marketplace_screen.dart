@@ -17,7 +17,7 @@ class MarketplaceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MarketplaceController controller = Get.put(MarketplaceController());
+    final MarketplaceController controller = Get.find<MarketplaceController>();
 
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,

@@ -11,11 +11,13 @@ class ForgotPasswordScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(ForgotPasswordController());
     final Color primaryColor = AppTheme.primaryColor;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+    return GetBuilder<ForgotPasswordController>(
+      init: ForgotPasswordController(),
+      builder: (controller) {
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
         title: Obx(() {
           switch (controller.currentStep.value) {
@@ -113,6 +115,8 @@ class ForgotPasswordScreen extends StatelessWidget {
           }),
         ),
       ),
+    );
+      },
     );
   }
 

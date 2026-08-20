@@ -10,9 +10,7 @@ class OnboardingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<OnboardingController>()
-        ? Get.find<OnboardingController>()
-        : Get.put(OnboardingController());
+    final controller = Get.find<OnboardingController>();
     final Color primaryColor = const Color(0xFF059669);
 
     return Scaffold(

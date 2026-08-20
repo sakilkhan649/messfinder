@@ -27,7 +27,7 @@ class MessMapScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MessMapController mapCtrl = Get.put(MessMapController());
+    final MessMapController mapCtrl = Get.find<MessMapController>();
     final PostController postController = Get.find<PostController>();
     const emeraldTheme = Color(0xFF059669);
     final Color primaryColor = const Color(0xFF059669);

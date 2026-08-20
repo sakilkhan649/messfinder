@@ -173,15 +173,17 @@ class LoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(LoginController());
-    final authController = controller.authController;
+    return GetBuilder<LoginController>(
+      init: LoginController(),
+      builder: (controller) {
+        final authController = controller.authController;
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: AppTheme.backgroundColor,
+            resizeToAvoidBottomInset: true,
+            body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -507,6 +509,8 @@ class LoginScreen extends StatelessWidget {
         ),
       ),
     ),
+  );
+  },
   );
 }
 

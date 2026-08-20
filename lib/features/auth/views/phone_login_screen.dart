@@ -10,10 +10,12 @@ class PhoneLoginScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(PhoneLoginController());
-    final authController = controller.authController;
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+    return GetBuilder<PhoneLoginController>(
+      init: PhoneLoginController(),
+      builder: (controller) {
+        final authController = controller.authController;
+        return Scaffold(
+          backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -118,6 +120,8 @@ class PhoneLoginScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

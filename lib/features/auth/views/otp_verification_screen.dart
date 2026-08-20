@@ -11,10 +11,12 @@ class OtpVerificationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(OtpVerificationController(phone: phone));
-    final authController = controller.authController;
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+    return GetBuilder<OtpVerificationController>(
+      init: OtpVerificationController(phone: phone),
+      builder: (controller) {
+        final authController = controller.authController;
+        return Scaffold(
+          backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -153,6 +155,8 @@ class OtpVerificationScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 }

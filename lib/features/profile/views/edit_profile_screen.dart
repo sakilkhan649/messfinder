@@ -15,11 +15,13 @@ class EditProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(EditProfileController(user: user));
     final Color primaryColor = const Color(0xFF059669);
 
-    return Scaffold(
-      backgroundColor: Colors.white,
+    return GetBuilder<EditProfileController>(
+      init: EditProfileController(user: user),
+      builder: (controller) {
+        return Scaffold(
+          backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'Edit Profile',
@@ -180,6 +182,8 @@ class EditProfileScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+      },
     );
   }
 

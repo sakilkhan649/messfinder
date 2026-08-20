@@ -143,13 +143,12 @@ class AddProductScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Initialize controller and set initial data
-    final AddProductController controller = Get.put(AddProductController());
-    controller.initForProduct(product);
-    
     const emeraldTheme = Color(0xFF059669);
     
-    return Container(
+    return GetBuilder<AddProductController>(
+      init: AddProductController()..initForProduct(product),
+      builder: (controller) {
+        return Container(
       height: MediaQuery.of(context).size.height * 0.92,
       decoration: BoxDecoration(
         color: AppTheme.backgroundColor,
@@ -407,6 +406,8 @@ class AddProductScreen extends StatelessWidget {
       ),
       ),
       ),
+    );
+      },
     );
   }
 }

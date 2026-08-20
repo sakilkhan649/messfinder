@@ -11,15 +11,17 @@ class SignupScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.put(SignupController());
-    final authController = controller.authController;
+    return GetBuilder<SignupController>(
+      init: SignupController(),
+      builder: (controller) {
+        final authController = controller.authController;
 
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
-        backgroundColor: AppTheme.backgroundColor,
-        resizeToAvoidBottomInset: true,
-        body: SafeArea(
+        return GestureDetector(
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Scaffold(
+            backgroundColor: AppTheme.backgroundColor,
+            resizeToAvoidBottomInset: true,
+            body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
             return SingleChildScrollView(
@@ -376,6 +378,8 @@ class SignupScreen extends StatelessWidget {
         ),
       ),
     ),
+  );
+  },
   );
 }
 
