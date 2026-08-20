@@ -570,3 +570,4 @@ D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flu
 D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
 D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
 D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+Lost connection to device.

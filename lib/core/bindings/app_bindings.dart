@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-
 import '../network/network_controller.dart';
 import '../../features/auth/controllers/auth_controller.dart';
 import '../../features/splash/controllers/splash_controller.dart';
@@ -10,7 +9,6 @@ import '../../features/payment/controllers/payment_controller.dart';
 import '../../features/admin/controllers/admin_controller.dart';
 import '../../features/landlord/controllers/tenant_leads_controller.dart';
 import '../../features/notifications/controllers/notification_controller.dart';
-
 import '../../features/marketplace/controllers/marketplace_controller.dart';
 import '../../features/home/controllers/user_home_controller.dart';
 import '../../features/bachelor/controllers/bachelor_main_controller.dart';

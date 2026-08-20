@@ -70,7 +70,8 @@ class AddPostScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tag = customTag ??
+    final tag =
+        customTag ??
         (existingPost != null
             ? 'edit_${existingPost!.postId}'
             : (showBackButton ? 'new_standalone' : 'new_home'));
@@ -79,523 +80,727 @@ class AddPostScreen extends StatelessWidget {
 
     return GetBuilder<AddPostController>(
       tag: tag,
-      init: AddPostController(existingPost: existingPost, onPostAdded: onPostAdded),
+      init: AddPostController(
+        existingPost: existingPost,
+        onPostAdded: onPostAdded,
+      ),
       builder: (controller) {
         return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: darkEmerald,
-        elevation: 0,
-        title: Text(
-          controller.isEditing ? 'Edit Room Listing' : 'Add New Room',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            fontSize: 18.sp,
-          ),
-        ),
-        automaticallyImplyLeading: false,
-        leading: showBackButton
-            ? IconButton(
-                onPressed: () => Get.back(),
-                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              )
-            : null,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(),
-          padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
-          child: Form(
-            key: controller.formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Clean Info banner
-                Container(
-                  padding: EdgeInsets.all(16.r),
-                  decoration: BoxDecoration(
-                    color: emeraldTheme.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16.r),
-                    border: Border.all(
-                      color: emeraldTheme.withValues(alpha: 0.35),
+          backgroundColor: AppTheme.backgroundColor,
+          appBar: AppBar(
+            backgroundColor: darkEmerald,
+            elevation: 0,
+            title: Text(
+              controller.isEditing ? 'Edit Room Listing' : 'Add New Room',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 18.sp,
+              ),
+            ),
+            automaticallyImplyLeading: false,
+            leading: showBackButton
+                ? IconButton(
+                    onPressed: () => Get.back(),
+                    icon: const Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
                     ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(8.r),
-                        decoration: BoxDecoration(
-                          color: emeraldTheme.withValues(alpha: 0.15),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.verified_user_rounded,
-                          color: emeraldTheme,
-                          size: 20.r,
-                        ),
-                      ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: Text(
-                          controller.isEditing
-                              ? 'Update your room listing details below.'
-                              : 'Fill in accurate room details & upload real photos to attract verified bachelors.',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.5.sp,
-                            color: AppTheme.textPrimary,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 24.h),
-
-                // Section 1: Basic Information
-                _buildSectionHeader(
-                  Icons.home_work_rounded,
-                  'Basic Information',
-                ),
-                SizedBox(height: 12.h),
-
-                Text(
-                  'Room Title',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                TextFormField(
-                  controller: controller.titleController,
-                  keyboardType: TextInputType.text,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: _buildInputDecoration(
-                    hintText: 'e.g. Spacious Single Room in Mirpur 10',
-                    prefixIcon: Icons.title_rounded,
-                  ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Enter room title' : null,
-                ),
-                SizedBox(height: 18.h),
-
-                // Rent & Seats Row
-                Row(
+                  )
+                : null,
+          ),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+              child: Form(
+                key: controller.formKey,
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    // Clean Info banner
+                    Container(
+                      padding: EdgeInsets.all(16.r),
+                      decoration: BoxDecoration(
+                        color: emeraldTheme.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16.r),
+                        border: Border.all(
+                          color: emeraldTheme.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
                         children: [
-                          Text(
-                            'Monthly Rent',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13.5.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
+                          Container(
+                            padding: EdgeInsets.all(8.r),
+                            decoration: BoxDecoration(
+                              color: emeraldTheme.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.verified_user_rounded,
+                              color: emeraldTheme,
+                              size: 20.r,
                             ),
                           ),
-                          SizedBox(height: 8.h),
-                          TextFormField(
-                            controller: controller.rentController,
-                            keyboardType: TextInputType.number,
-                            decoration: _buildInputDecoration(
-                              hintText: '4500',
-                              prefixText: 'Tk. ',
+                          SizedBox(width: 12.w),
+                          Expanded(
+                            child: Text(
+                              controller.isEditing
+                                  ? 'Update your room listing details below.'
+                                  : 'Fill in accurate room details & upload real photos to attract verified bachelors.',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.5.sp,
+                                color: AppTheme.textPrimary,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
-                            validator: (v) => v == null || v.trim().isEmpty
-                                ? 'Enter rent'
-                                : null,
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(width: 16.w),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Available Seats',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13.5.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                          SizedBox(height: 8.h),
-                          Obx(() => Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                    SizedBox(height: 24.h),
+
+                    // Section 1: Basic Information
+                    _buildSectionHeader(
+                      Icons.home_work_rounded,
+                      'Basic Information',
+                    ),
+                    SizedBox(height: 12.h),
+
+                    Text(
+                      'Room Title',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextFormField(
+                      controller: controller.titleController,
+                      keyboardType: TextInputType.text,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: _buildInputDecoration(
+                        hintText: 'e.g. Spacious Single Room in Mirpur 10',
+                        prefixIcon: Icons.title_rounded,
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter room title'
+                          : null,
+                    ),
+                    SizedBox(height: 18.h),
+
+                    // Rent & Seats Row
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Monthly Rent',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
                                 ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    InkWell(
-                                      onTap: () {
-                                        if (controller.availableSeats.value > 1) {
-                                          controller.availableSeats.value--;
-                                        }
-                                      },
-                                      child: Icon(Icons.remove_circle_outline_rounded,
-                                          color: controller.availableSeats.value > 1
+                              ),
+                              SizedBox(height: 8.h),
+                              TextFormField(
+                                controller: controller.rentController,
+                                keyboardType: TextInputType.number,
+                                decoration: _buildInputDecoration(
+                                  hintText: '4500',
+                                  prefixText: 'Tk. ',
+                                ),
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Enter rent'
+                                    : null,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(width: 16.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Available Seats',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Obx(
+                                () => Container(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 11.h,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      InkWell(
+                                        onTap: () {
+                                          if (controller.availableSeats.value >
+                                              1) {
+                                            controller.availableSeats.value--;
+                                          }
+                                        },
+                                        child: Icon(
+                                          Icons.remove_circle_outline_rounded,
+                                          color:
+                                              controller.availableSeats.value >
+                                                  1
                                               ? const Color(0xFF059669)
                                               : Colors.grey,
-                                          size: 28.r),
-                                    ),
-                                    Text(
-                                      '${controller.availableSeats.value}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16.sp,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppTheme.textPrimary,
+                                          size: 28.r,
+                                        ),
                                       ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        if (controller.availableSeats.value < 20) {
-                                          controller.availableSeats.value++;
-                                        }
-                                      },
-                                      child: Icon(Icons.add_circle_outline_rounded,
-                                          color: const Color(0xFF059669), size: 28.r),
-                                    ),
-                                  ],
+                                      Text(
+                                        '${controller.availableSeats.value}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16.sp,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppTheme.textPrimary,
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () {
+                                          if (controller.availableSeats.value <
+                                              20) {
+                                            controller.availableSeats.value++;
+                                          }
+                                        },
+                                        child: Icon(
+                                          Icons.add_circle_outline_rounded,
+                                          color: const Color(0xFF059669),
+                                          size: 28.r,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              )),
-                        ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24.h),
+
+                    // Section 2: Preferences & Location
+                    _buildSectionHeader(
+                      Icons.people_alt_rounded,
+                      'Preferences & Location',
+                    ),
+                    SizedBox(height: 12.h),
+
+                    Text(
+                      'Preferred Tenant Gender',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
-                  ],
-                ),
-                SizedBox(height: 24.h),
-
-                // Section 2: Preferences & Location
-                _buildSectionHeader(
-                  Icons.people_alt_rounded,
-                  'Preferences & Location',
-                ),
-                SizedBox(height: 12.h),
-
-                Text(
-                  'Preferred Tenant Gender',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    _buildGenderRadio('male', 'Male Only', controller),
-                    SizedBox(width: 10.w),
-                    _buildGenderRadio('female', 'Female Only', controller),
-                    SizedBox(width: 10.w),
-                    _buildGenderRadio('both', 'Any Bachelor', controller),
-                  ],
-                ),
-                SizedBox(height: 18.h),
-
-                Text(
-                  'Preferred Tenant Type',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Row(
-                  children: [
-                    _buildTenantRadio('Student', 'Student', controller),
-                    SizedBox(width: 8.w),
-                    _buildTenantRadio('Job', 'Job', controller),
-                    SizedBox(width: 8.w),
-                    _buildTenantRadio(
-                      'Student / Job holder',
-                      'Student / Job holder',
-                      controller,
+                    SizedBox(height: 8.h),
+                    Row(
+                      children: [
+                        _buildGenderRadio('male', 'Male Only', controller),
+                        SizedBox(width: 10.w),
+                        _buildGenderRadio('female', 'Female Only', controller),
+                        SizedBox(width: 10.w),
+                        _buildGenderRadio('both', 'Any Bachelor', controller),
+                      ],
                     ),
-                  ],
-                ),
-                SizedBox(height: 18.h),
+                    SizedBox(height: 18.h),
 
-                Text(
-                  'Division',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Obx(
-                  () => _buildPremiumSelector(
-                    context: context,
-                    hintText: 'Select Division',
-                    icon: Icons.map_rounded,
-                    value: controller.selectedDivision.value,
-                    items: LocationData.divisions,
-                    onSelect: (newValue) {
-                      controller.selectedDivision.value = newValue;
-                      controller.selectedDistrict.value =
-                          LocationData.getDistricts(newValue).first;
-                    },
-                  ),
-                ),
-                SizedBox(height: 18.h),
-
-                Text(
-                  'District',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                Obx(
-                  () => _buildPremiumSelector(
-                    context: context,
-                    hintText: 'Select District',
-                    icon: Icons.location_city_rounded,
-                    value: controller.selectedDistrict.value,
-                    items: LocationData.getDistricts(
-                      controller.selectedDivision.value,
+                    Text(
+                      'Preferred Tenant Type',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
-                    onSelect: (newValue) {
-                      controller.selectedDistrict.value = newValue;
-                    },
-                  ),
-                ),
-                SizedBox(height: 18.h),
-
-                Text(
-                  'Full Address (Area/Road)',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                TextFormField(
-                  controller: controller.addressController,
-                  keyboardType: TextInputType.streetAddress,
-                  textCapitalization: TextCapitalization.words,
-                  maxLines: 2,
-                  decoration: _buildInputDecoration(
-                    hintText:
-                        'e.g. House 12, Road 4, Section 10, Mirpur, Dhaka',
-                    prefixIcon: Icons.location_on_rounded,
-                  ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Enter address' : null,
-                ),
-                SizedBox(height: 12.h),
-                ElevatedButton.icon(
-                  onPressed: () async {
-                    final LatLng? initial = controller.isEditing
-                        ? controller.selectedLocation.value
-                        : null;
-                    final LatLng? picked = await Get.to(
-                      () => MapLocationPickerScreen(initialLocation: initial),
-                    );
-                    if (picked != null) {
-                      controller.selectedLocation.value = picked;
-                      Get.snackbar(
-                        'Location Selected',
-                        'Map location has been updated successfully.',
-                        snackPosition: SnackPosition.BOTTOM,
-                        backgroundColor: const Color(0xFF059669),
-                        colorText: Colors.white,
-                      );
-                    }
-                  },
-                  icon: Icon(
-                    Icons.map_outlined,
-                    color: const Color(0xFF059669),
-                    size: 20.r,
-                  ),
-                  label: Text(
-                    'Select Location on Map',
-                    style: GoogleFonts.poppins(color: const Color(0xFF059669)),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    elevation: 0,
-                    side: const BorderSide(color: Color(0xFF059669)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: 12.h,
-                      horizontal: 16.w,
-                    ),
-                  ),
-                ),
-                SizedBox(height: 18.h),
-
-                Text(
-                  'Contact Phone Number',
-                  style: GoogleFonts.poppins(
-                    fontSize: 13.5.sp,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textPrimary,
-                  ),
-                ),
-                SizedBox(height: 8.h),
-                TextFormField(
-                  controller: controller.phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: _buildInputDecoration(
-                    hintText: 'e.g. 01712345678',
-                    prefixIcon: Icons.phone_rounded,
-                  ),
-                  validator: (v) => v == null || v.trim().isEmpty
-                      ? 'Enter phone number'
-                      : null,
-                ),
-                SizedBox(height: 24.h),
-
-                // Section 3: Facilities
-                _buildSectionHeader(
-                  Icons.check_circle_outline_rounded,
-                  'Included Facilities',
-                ),
-                SizedBox(height: 12.h),
-
-                Obx(
-                  () => Wrap(
-                    spacing: 8.w,
-                    runSpacing: 8.h,
-                    children: controller.allFacilities.map((facility) {
-                      final isSelected = controller.selectedFacilities.contains(
-                        facility,
-                      );
-                      return FilterChip(
-                        label: Text(
-                          facility,
-                          style: GoogleFonts.poppins(
-                            fontSize: 12.sp,
-                            color: isSelected
-                                ? Colors.white
-                                : AppTheme.textPrimary,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.w500,
-                          ),
+                    SizedBox(height: 8.h),
+                    Row(
+                      children: [
+                        _buildTenantRadio('Student', 'Student', controller),
+                        SizedBox(width: 8.w),
+                        _buildTenantRadio('Job', 'Job', controller),
+                        SizedBox(width: 8.w),
+                        _buildTenantRadio(
+                          'Student / Job holder',
+                          'Student / Job holder',
+                          controller,
                         ),
-                        selected: isSelected,
-                        selectedColor: emeraldTheme,
-                        backgroundColor: const Color(0xFFF1F5F9),
-                        checkmarkColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20.r),
-                          side: BorderSide(
-                            color: isSelected
-                                ? emeraldTheme
-                                : const Color(0xFFE2E8F0),
-                          ),
-                        ),
-                        onSelected: (selected) {
-                          if (selected) {
-                            controller.selectedFacilities.add(facility);
-                          } else {
-                            controller.selectedFacilities.remove(facility);
-                          }
+                      ],
+                    ),
+                    SizedBox(height: 18.h),
+
+                    Text(
+                      'Division',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Obx(
+                      () => _buildPremiumSelector(
+                        context: context,
+                        hintText: 'Select Division',
+                        icon: Icons.map_rounded,
+                        value: controller.selectedDivision.value,
+                        items: LocationData.divisions,
+                        onSelect: (newValue) {
+                          controller.selectedDivision.value = newValue;
+                          controller.selectedDistrict.value =
+                              LocationData.getDistricts(newValue).first;
                         },
-                      );
-                    }).toList(),
-                  ),
-                ),
-                SizedBox(height: 24.h),
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
 
-                // Section 4: Room Media (Photos & Video)
-                Text('Room Media (Photos & Video)', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
-                SizedBox(height: 8.h),
-                GestureDetector(
-                  onTap: () {
-                    Get.bottomSheet(
-                      Material(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
-                        child: Container(
-                          padding: EdgeInsets.all(20.w),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                            Text('Select Media Type', style: GoogleFonts.poppins(fontSize: 18.sp, fontWeight: FontWeight.bold)),
-                            SizedBox(height: 20.h),
-                            ListTile(
-                              leading: Icon(Icons.photo_library, color: emeraldTheme),
-                              title: Text('Upload Photos', style: GoogleFonts.poppins()),
-                              onTap: () {
-                                Get.back();
-                                controller.pickImagesFromGallery();
-                              },
+                    Text(
+                      'District',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    Obx(
+                      () => _buildPremiumSelector(
+                        context: context,
+                        hintText: 'Select District',
+                        icon: Icons.location_city_rounded,
+                        value: controller.selectedDistrict.value,
+                        items: LocationData.getDistricts(
+                          controller.selectedDivision.value,
+                        ),
+                        onSelect: (newValue) {
+                          controller.selectedDistrict.value = newValue;
+                        },
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
+
+                    Text(
+                      'Full Address (Area/Road)',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextFormField(
+                      controller: controller.addressController,
+                      keyboardType: TextInputType.streetAddress,
+                      textCapitalization: TextCapitalization.words,
+                      maxLines: 2,
+                      decoration: _buildInputDecoration(
+                        hintText:
+                            'e.g. House 12, Road 4, Section 10, Mirpur, Dhaka',
+                        prefixIcon: Icons.location_on_rounded,
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter address'
+                          : null,
+                    ),
+                    SizedBox(height: 12.h),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final LatLng? initial = controller.isEditing
+                            ? controller.selectedLocation.value
+                            : null;
+                        final LatLng? picked = await Get.to(
+                          () =>
+                              MapLocationPickerScreen(initialLocation: initial),
+                        );
+                        if (picked != null) {
+                          controller.selectedLocation.value = picked;
+                          Get.snackbar(
+                            'Location Selected',
+                            'Map location has been updated successfully.',
+                            snackPosition: SnackPosition.BOTTOM,
+                            backgroundColor: const Color(0xFF059669),
+                            colorText: Colors.white,
+                          );
+                        }
+                      },
+                      icon: Icon(
+                        Icons.map_outlined,
+                        color: const Color(0xFF059669),
+                        size: 20.r,
+                      ),
+                      label: Text(
+                        'Select Location on Map',
+                        style: GoogleFonts.poppins(
+                          color: const Color(0xFF059669),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        elevation: 0,
+                        side: const BorderSide(color: Color(0xFF059669)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.r),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          vertical: 12.h,
+                          horizontal: 16.w,
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 18.h),
+
+                    Text(
+                      'Contact Phone Number',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
+                    SizedBox(height: 8.h),
+                    TextFormField(
+                      controller: controller.phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: _buildInputDecoration(
+                        hintText: 'e.g. 01712345678',
+                        prefixIcon: Icons.phone_rounded,
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter phone number'
+                          : null,
+                    ),
+                    SizedBox(height: 24.h),
+
+                    // Section 3: Facilities
+                    _buildSectionHeader(
+                      Icons.check_circle_outline_rounded,
+                      'Included Facilities',
+                    ),
+                    SizedBox(height: 12.h),
+
+                    Obx(
+                      () => Wrap(
+                        spacing: 8.w,
+                        runSpacing: 8.h,
+                        children: controller.allFacilities.map((facility) {
+                          final isSelected = controller.selectedFacilities
+                              .contains(facility);
+                          return FilterChip(
+                            label: Text(
+                              facility,
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.w500,
+                              ),
                             ),
-                            ListTile(
-                              leading: Icon(Icons.video_collection, color: emeraldTheme),
-                              title: Text('Upload Video', style: GoogleFonts.poppins()),
-                              onTap: () {
-                                Get.back();
-                                controller.pickVideoFromGallery();
-                              },
+                            selected: isSelected,
+                            selectedColor: emeraldTheme,
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            checkmarkColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20.r),
+                              side: BorderSide(
+                                color: isSelected
+                                    ? emeraldTheme
+                                    : const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            onSelected: (selected) {
+                              if (selected) {
+                                controller.selectedFacilities.add(facility);
+                              } else {
+                                controller.selectedFacilities.remove(facility);
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    SizedBox(height: 24.h),
+
+                    // Section 4: Room Media (Photos & Video)
+                    Text(
+                      'Room Media (Photos & Video)',
+                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(height: 8.h),
+                    GestureDetector(
+                      onTap: () {
+                        Get.bottomSheet(
+                          Material(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.vertical(
+                              top: Radius.circular(20.r),
+                            ),
+                            child: Container(
+                              padding: EdgeInsets.all(20.w),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Select Media Type',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 18.sp,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 20.h),
+                                  ListTile(
+                                    leading: Icon(
+                                      Icons.photo_library,
+                                      color: emeraldTheme,
+                                    ),
+                                    title: Text(
+                                      'Upload Photos',
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                    onTap: () {
+                                      Get.back();
+                                      controller.pickImagesFromGallery();
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: Icon(
+                                      Icons.video_collection,
+                                      color: emeraldTheme,
+                                    ),
+                                    title: Text(
+                                      'Upload Video',
+                                      style: GoogleFonts.poppins(),
+                                    ),
+                                    onTap: () {
+                                      Get.back();
+                                      controller.pickVideoFromGallery();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      child: Container(
+                        height: 100.h,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: emeraldTheme.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12.r),
+                          border: Border.all(
+                            color: emeraldTheme.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.add_photo_alternate,
+                              color: emeraldTheme,
+                              size: 32.r,
+                            ),
+                            Text(
+                              'Tap to add photos/videos',
+                              style: GoogleFonts.poppins(color: emeraldTheme),
                             ),
                           ],
                         ),
                       ),
                     ),
-                  );
-                },
-                  child: Container(
-                    height: 100.h,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: emeraldTheme.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12.r),
-                      border: Border.all(color: emeraldTheme.withValues(alpha: 0.5)),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add_photo_alternate, color: emeraldTheme, size: 32.r),
-                        Text('Tap to add photos/videos', style: GoogleFonts.poppins(color: emeraldTheme)),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(height: 14.h),
+                    SizedBox(height: 14.h),
 
-                // Display selected local images or existing images
-                Obx(() {
-                  if (controller.pickedLocalImages.isNotEmpty) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Display selected local images or existing images
+                    Obx(() {
+                      if (controller.pickedLocalImages.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Selected Photos (${controller.pickedLocalImages.length})',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () =>
+                                      controller.pickedLocalImages.clear(),
+                                  child: Text(
+                                    'Clear All',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.errorColor,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 10.h),
+                            SizedBox(
+                              height: 105.h,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: controller.pickedLocalImages.length,
+                                itemBuilder: (context, index) {
+                                  final file =
+                                      controller.pickedLocalImages[index];
+                                  return Stack(
+                                    children: [
+                                      Container(
+                                        width: 120.w,
+                                        margin: EdgeInsets.only(right: 12.w),
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            12.r,
+                                          ),
+                                          border: Border.all(
+                                            color: emeraldTheme,
+                                            width: 1.5,
+                                          ),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(
+                                            10.r,
+                                          ),
+                                          child: AppImageHelper.buildImage(
+                                            file.path,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 6.h,
+                                        right: 18.w,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            controller.pickedLocalImages
+                                                .removeAt(index);
+                                          },
+                                          child: Container(
+                                            padding: EdgeInsets.all(5.r),
+                                            decoration: const BoxDecoration(
+                                              color: AppTheme.errorColor,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: Icon(
+                                              Icons.close_rounded,
+                                              size: 14.r,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      } else if (controller.isEditing &&
+                          existingPost!.images.isNotEmpty) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Selected Photos (${controller.pickedLocalImages.length})',
+                              'Existing Room Photos',
                               style: GoogleFonts.poppins(
                                 fontSize: 13.sp,
                                 fontWeight: FontWeight.w600,
                                 color: AppTheme.textPrimary,
                               ),
                             ),
+                            SizedBox(height: 10.h),
+                            SizedBox(
+                              height: 105.h,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: existingPost!.images.length,
+                                itemBuilder: (context, index) {
+                                  final img = existingPost!.images[index];
+                                  return Container(
+                                    width: 120.w,
+                                    margin: EdgeInsets.only(right: 12.w),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12.r),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(10.r),
+                                      child: AppImageHelper.buildImage(img),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+
+                    // Display selected local video or existing video
+                    Obx(() {
+                      if (controller.pickedLocalVideo.value.isNotEmpty) {
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.video_file,
+                                  color: emeraldTheme,
+                                  size: 24.r,
+                                ),
+                                SizedBox(width: 8.w),
+                                Text(
+                                  'Video Selected',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13.sp,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
                             GestureDetector(
-                              onTap: () => controller.pickedLocalImages.clear(),
+                              onTap: () =>
+                                  controller.pickedLocalVideo.value = '',
                               child: Text(
-                                'Clear All',
+                                'Remove',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.sp,
                                   fontWeight: FontWeight.w600,
@@ -604,209 +809,78 @@ class AddPostScreen extends StatelessWidget {
                               ),
                             ),
                           ],
-                        ),
-                        SizedBox(height: 10.h),
-                        SizedBox(
-                          height: 105.h,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: controller.pickedLocalImages.length,
-                            itemBuilder: (context, index) {
-                              final file = controller.pickedLocalImages[index];
-                              return Stack(
-                                children: [
-                                  Container(
-                                    width: 120.w,
-                                    margin: EdgeInsets.only(right: 12.w),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12.r),
-                                      border: Border.all(
-                                        color: emeraldTheme,
-                                        width: 1.5,
-                                      ),
-                                    ),
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(10.r),
-                                      child: AppImageHelper.buildImage(
-                                        file.path,
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    top: 6.h,
-                                    right: 18.w,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        controller.pickedLocalImages.removeAt(
-                                          index,
-                                        );
-                                      },
-                                      child: Container(
-                                        padding: EdgeInsets.all(5.r),
-                                        decoration: const BoxDecoration(
-                                          color: AppTheme.errorColor,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.close_rounded,
-                                          size: 14.r,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  } else if (controller.isEditing &&
-                      existingPost!.images.isNotEmpty) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Existing Room Photos',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        SizedBox(height: 10.h),
-                        SizedBox(
-                          height: 105.h,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: existingPost!.images.length,
-                            itemBuilder: (context, index) {
-                              final img = existingPost!.images[index];
-                              return Container(
-                                width: 120.w,
-                                margin: EdgeInsets.only(right: 12.w),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(12.r),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10.r),
-                                  child: AppImageHelper.buildImage(img),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-
-
-                // Display selected local video or existing video
-                Obx(() {
-                  if (controller.pickedLocalVideo.value.isNotEmpty) {
-                    return Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
+                        );
+                      } else if (controller.isEditing &&
+                          existingPost!.videoUrl != null) {
+                        return Row(
                           children: [
-                            Icon(Icons.video_file, color: emeraldTheme, size: 24.r),
+                            Icon(
+                              Icons.check_circle,
+                              color: emeraldTheme,
+                              size: 20.r,
+                            ),
                             SizedBox(width: 8.w),
                             Text(
-                              'Video Selected',
+                              'Existing video attached',
                               style: GoogleFonts.poppins(
                                 fontSize: 13.sp,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.w500,
                                 color: AppTheme.textPrimary,
                               ),
                             ),
                           ],
-                        ),
-                        GestureDetector(
-                          onTap: () => controller.pickedLocalVideo.value = '',
-                          child: Text(
-                            'Remove',
-                            style: GoogleFonts.poppins(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.errorColor,
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  } else if (controller.isEditing && existingPost!.videoUrl != null) {
-                    return Row(
-                      children: [
-                        Icon(Icons.check_circle, color: emeraldTheme, size: 20.r),
-                        SizedBox(width: 8.w),
-                        Text(
-                          'Existing video attached',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w500,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                      ],
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-                SizedBox(height: 32.h),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    }),
+                    SizedBox(height: 20.h),
 
-                // Submit Button
-                Obx(() {
-                  final postController = Get.find<PostController>();
-                  return SizedBox(
-                    width: double.infinity,
-                    height: 52.h,
-                    child: ElevatedButton(
-                      onPressed: postController.isLoading.value
-                          ? null
-                          : controller.submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: emeraldTheme,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16.r),
-                        ),
-                        elevation: 4,
-                      ),
-                      child: postController.isLoading.value
-                          ? SizedBox(
-                              height: 24.h,
-                              width: 24.h,
-                              child: const CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
-                              ),
-                            )
-                          : Text(
-                              controller.isEditing
-                                  ? 'Update Room Listing'
-                                  : 'Publish Room Listing',
-                              style: GoogleFonts.poppins(
-                                fontSize: 15.5.sp,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
+                    // Submit Button
+                    Obx(() {
+                      final postController = Get.find<PostController>();
+                      return SizedBox(
+                        width: double.infinity,
+                        height: 52.h,
+                        child: ElevatedButton(
+                          onPressed: postController.isLoading.value
+                              ? null
+                              : controller.submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: emeraldTheme,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16.r),
                             ),
-                    ),
-                  );
-                }),
-                SizedBox(height: 30.h),
-              ],
+                            elevation: 4,
+                          ),
+                          child: postController.isLoading.value
+                              ? SizedBox(
+                                  height: 24.h,
+                                  width: 24.h,
+                                  child: const CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : Text(
+                                  controller.isEditing
+                                      ? 'Update Room Listing'
+                                      : 'Publish Room Listing',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 15.5.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                        ),
+                      );
+                    }),
+                    SizedBox(height: 80.h),
+                  ],
+                ),
+              ),
             ),
           ),
-        ),
-      ),
-    );
+        );
       },
     );
   }
