@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import 'bottom_nav_painter.dart';
@@ -66,6 +67,7 @@ class UserHomeScreen extends StatelessWidget {
                                     index: 0,
                                     icon: Icons.home_outlined,
                                     activeIcon: Icons.home_rounded,
+                                    label: 'Home',
                                     activeColor: _primaryEmerald,
                                   ),
                                   _buildNavItem(
@@ -73,6 +75,7 @@ class UserHomeScreen extends StatelessWidget {
                                     index: 1,
                                     icon: Icons.location_on_outlined,
                                     activeIcon: Icons.location_on_rounded,
+                                    label: 'Locations',
                                     activeColor: _primaryEmerald,
                                   ),
                                 ],
@@ -88,6 +91,7 @@ class UserHomeScreen extends StatelessWidget {
                                     index: 3,
                                     icon: Icons.storefront_outlined,
                                     activeIcon: Icons.storefront_rounded,
+                                    label: 'Markets',
                                     activeColor: _primaryEmerald,
                                   ),
                                   _buildNavItem(
@@ -95,6 +99,7 @@ class UserHomeScreen extends StatelessWidget {
                                     index: 4,
                                     icon: Icons.chat_bubble_outline_rounded,
                                     activeIcon: Icons.chat_bubble_rounded,
+                                    label: 'Chats',
                                     activeColor: _primaryEmerald,
                                   ),
                                 ],
@@ -138,36 +143,38 @@ class UserHomeScreen extends StatelessWidget {
     required int index,
     required IconData icon,
     required IconData activeIcon,
+    required String label,
     required Color activeColor,
   }) {
-    return GestureDetector(
+    return InkWell(
       onTap: () => controller.onTabSelected(index),
-      behavior: HitTestBehavior.opaque,
+      borderRadius: BorderRadius.circular(12),
+      splashColor: activeColor.withValues(alpha: 0.1),
+      highlightColor: activeColor.withValues(alpha: 0.05),
       child: Obx(() {
         final isSelected = controller.currentIndex.value == index;
-        return SizedBox(
-          width: 55,
+        return Container(
+          width: 65,
+          color: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 isSelected ? activeIcon : icon,
-                size: 28,
-                color: isSelected ? activeColor : Colors.black87,
+                size: 28, // Increased icon size
+                color: isSelected ? activeColor : Colors.black54,
               ),
-              const SizedBox(height: 6),
-              AnimatedOpacity(
-                duration: const Duration(milliseconds: 250),
-                opacity: isSelected ? 1.0 : 0.0,
-                child: Container(
-                  height: 3,
-                  width: 16,
-                  decoration: BoxDecoration(
-                    color: activeColor,
-                    borderRadius: BorderRadius.circular(1.5),
-                  ),
+              const SizedBox(height: 4),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: GoogleFonts.poppins(
+                  fontSize: 12, // Increased text size
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  color: isSelected ? activeColor : Colors.black54,
                 ),
+                child: Text(label),
               ),
             ],
           ),
