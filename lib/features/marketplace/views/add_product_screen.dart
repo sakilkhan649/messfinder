@@ -149,16 +149,28 @@ class AddProductScreen extends StatelessWidget {
     
     const emeraldTheme = Color(0xFF059669);
     
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(controller.isEditMode ? 'Edit Product' : 'Sell an Item', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: AppTheme.primaryColor,
-        foregroundColor: Colors.white,
-        elevation: 0,
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.92,
+      decoration: BoxDecoration(
+        color: AppTheme.backgroundColor,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
       ),
-      backgroundColor: AppTheme.backgroundColor,
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.w),
+      child: ClipRRect(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(controller.isEditMode ? 'Edit Product' : 'Sell an Item', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(Icons.close_rounded,color: Colors.white,size: 25.r),
+              onPressed: () => Get.back(),
+            ),
+          ),
+          backgroundColor: AppTheme.backgroundColor,
+          body: SingleChildScrollView(
+            padding: EdgeInsets.all(20.w),
         child: Form(
           key: controller.formKey,
           child: Column(
@@ -392,6 +404,8 @@ class AddProductScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+      ),
       ),
     );
   }

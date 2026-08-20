@@ -11,6 +11,7 @@ class MarketplaceController extends GetxController {
   final ApiService _apiService = ApiService();
 
   var products = <ProductModel>[].obs;
+  var myProducts = <ProductModel>[].obs;
   var isLoading = false.obs;
   var hasError = false.obs;
   var errorMessage = ''.obs;
@@ -115,6 +116,26 @@ class MarketplaceController extends GetxController {
     fetchProducts(isRefresh: true);
   }
 
+  Future<void> fetchMyProducts(String uid) async {
+    try {
+      isLoading.value = true;
+      hasError.value = false;
+
+      final response = await _apiService.dio.get(ApiConstants.userProducts(uid));
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        myProducts.value = data.map((e) => ProductModel.fromJson(e)).toList();
+      }
+    } on DioException catch (e) {
+      hasError.value = true;
+      errorMessage.value = e.message ?? 'Failed to load your products';
+      debugPrint('Error fetching user products: ${e.message}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<bool> addProduct({
     required String title,
     required String description,
@@ -156,6 +177,7 @@ class MarketplaceController extends GetxController {
       if (response.statusCode == 201) {
         final newProduct = ProductModel.fromJson(response.data);
         products.insert(0, newProduct);
+        myProducts.insert(0, newProduct);
         return true;
       }
       return false;
@@ -218,6 +240,10 @@ class MarketplaceController extends GetxController {
         if (index != -1) {
           products[index] = updatedProduct;
         }
+        final myIndex = myProducts.indexWhere((p) => p.productId == productId);
+        if (myIndex != -1) {
+          myProducts[myIndex] = updatedProduct;
+        }
         return true;
       }
       return false;
@@ -236,6 +262,7 @@ class MarketplaceController extends GetxController {
       final response = await _apiService.dio.delete(ApiConstants.productById(productId));
       if (response.statusCode == 200) {
         products.removeWhere((p) => p.productId == productId);
+        myProducts.removeWhere((p) => p.productId == productId);
         return true;
       }
       return false;

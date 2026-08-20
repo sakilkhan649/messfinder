@@ -15,6 +15,7 @@ import '../../admin/views/admin_dashboard_screen.dart';
 import '../../bachelor/views/my_bookings_screen.dart';
 import '../../bachelor/views/saved_posts_screen.dart';
 import 'my_posts_screen.dart';
+import 'my_products_screen.dart';
 import '../../landlord/views/tenant_leads_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -172,6 +173,12 @@ class ProfileScreen extends StatelessWidget {
                       title: 'My Posts',
                       onTap: () => Get.to(() => MyPostsScreen(user: activeUser)),
                       index: 2,
+                    ),
+                    _buildMenuItem(
+                      icon: Icons.inventory_2_rounded,
+                      title: 'My Products',
+                      onTap: () => Get.to(() => MyProductsScreen(user: activeUser)),
+                      index: 3,
                     ),
                     _buildMenuItem(
                       icon: Icons.favorite_rounded,

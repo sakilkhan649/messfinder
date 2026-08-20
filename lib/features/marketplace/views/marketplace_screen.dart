@@ -47,7 +47,7 @@ class MarketplaceScreen extends StatelessWidget {
               actions: [
                 IconButton(
                   onPressed: () {
-                    Get.to(() => const AddProductScreen());
+                    Get.bottomSheet(const AddProductScreen(), isScrollControlled: true);
                   },
                   icon: Icon(Icons.add_circle_outline, color: Colors.white, size: 26.r),
                 ),
