@@ -336,13 +336,33 @@ class ProductCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Tk ${product.price.toStringAsFixed(0)}',
-                    style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                      color: AppTheme.primaryColor,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Tk ${product.price.toStringAsFixed(0)}',
+                        style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                        decoration: BoxDecoration(
+                          color: product.condition.toLowerCase() == 'new' ? Colors.green.shade50 : Colors.orange.shade50,
+                          borderRadius: BorderRadius.circular(4.r),
+                        ),
+                        child: Text(
+                          product.condition.toUpperCase(),
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w600,
+                            color: product.condition.toLowerCase() == 'new' ? Colors.green : Colors.orange.shade800,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   SizedBox(height: 4.h),
                   SizedBox(
@@ -390,39 +410,52 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                       if (isMyProduct)
-                        PopupMenuButton<String>(
-                          child: Icon(Icons.more_horiz, size: 20.r, color: Colors.grey.shade700),
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-                          onSelected: (value) {
+                        GestureDetector(
+                          onTapDown: (TapDownDetails details) async {
+                            final value = await showMenu<String>(
+                              context: context,
+                              position: RelativeRect.fromLTRB(
+                                details.globalPosition.dx - 120, // Forces left boundary
+                                details.globalPosition.dy - 100, // Forces top boundary (opens upwards)
+                                MediaQuery.of(context).size.width - details.globalPosition.dx, // Anchors right edge to the touch point
+                                MediaQuery.of(context).size.height - details.globalPosition.dy, // Anchors bottom edge
+                              ),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                              constraints: const BoxConstraints(maxWidth: 120),
+                              items: [
+                                PopupMenuItem(
+                                  value: 'edit',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.edit, color: Colors.blue, size: 20),
+                                      SizedBox(width: 8.w),
+                                      Text('Edit', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
+                                    ],
+                                  ),
+                                ),
+                                PopupMenuItem(
+                                  value: 'delete',
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.delete, color: Colors.red, size: 20),
+                                      SizedBox(width: 8.w),
+                                      Text('Delete', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+
                             if (value == 'edit') {
                               Get.to(() => AddProductScreen(product: product));
                             } else if (value == 'delete') {
                               _confirmDelete(context, product.productId!);
                             }
                           },
-                          itemBuilder: (context) => [
-                            PopupMenuItem(
-                              value: 'edit',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.edit, color: Colors.blue, size: 20),
-                                  SizedBox(width: 8.w),
-                                  Text('Edit', style: GoogleFonts.poppins(fontWeight: FontWeight.w500)),
-                                ],
-                              ),
-                            ),
-                            PopupMenuItem(
-                              value: 'delete',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.delete, color: Colors.red, size: 20),
-                                  SizedBox(width: 8.w),
-                                  Text('Delete', style: GoogleFonts.poppins(fontWeight: FontWeight.w500, color: Colors.red)),
-                                ],
-                              ),
-                            ),
-                          ],
+                          child: Padding(
+                            padding: EdgeInsets.only(left: 8.w, top: 8.h),
+                            child: Icon(Icons.more_horiz, size: 20.r, color: Colors.grey.shade700),
+                          ),
                         ),
                     ],
                   ),
