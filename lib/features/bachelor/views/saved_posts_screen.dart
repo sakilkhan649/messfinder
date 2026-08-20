@@ -122,7 +122,8 @@ class SavedPostsScreen extends StatelessWidget {
                       children: [
                         Container(
                           padding: EdgeInsets.all(12.r),
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
+                             borderRadius: BorderRadius.all(Radius.circular(20.r)),
                             color: Colors.white,
                           ),
                       child: Column(
@@ -385,7 +386,7 @@ class SavedPostsScreen extends StatelessWidget {
                         ],
                       ),
                     ), // Close Container
-                    Divider(height: 1, thickness: 1, color: Colors.grey.shade300),
+                    SizedBox(height: 10.h),
                   ],
                 ), // Close Column
               ), // Close GestureDetector
