@@ -88,6 +88,14 @@ class ApiConstants {
   static String adminBookingReject(String bookingId) => '/admin/bookings/$bookingId/reject';
   static String adminBookingDelete(String bookingId) => '/admin/bookings/$bookingId';
 
+  // ─── Custom Bookings Endpoints (/api/bookings) ───────────────────────────
+  static const String bookings = '/bookings';
+  static String landlordLeads(String uid) => '/bookings/landlord/$uid';
+  static String postLeads(String postId) => '/bookings/post/$postId';
+  static String bookingApprove(String bookingId) => '/bookings/$bookingId/approve';
+  static String bookingReject(String bookingId) => '/bookings/$bookingId/reject';
+  static String bookingDelete(String bookingId) => '/bookings/$bookingId';
+
   // ─── Push Notification Endpoints (Vercel Backend) ─────────────────────────
   static const String sendPushNotification = '/api/send';
   static const String sendPushNotificationUrl = '$vercelBackendUrl/api/send';

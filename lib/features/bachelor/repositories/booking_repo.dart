@@ -4,9 +4,11 @@ import '../../../core/utils/api_constants.dart';
 import '../../../core/utils/app_logger.dart';
 import '../../notifications/models/app_notification_model.dart';
 import '../models/booking_model.dart';
+import '../../../core/services/api_service.dart';
 
 class BookingRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final ApiService _apiService = ApiService();
 
   // Create a new booking request and update post availability
   Future<String> createBooking(BookingModel booking) async {
@@ -258,6 +260,69 @@ class BookingRepository {
       AppLogger.s('Booking deleted: $bookingId', tag: 'BOOKING_REPO');
     } catch (e) {
       throw 'Failed to delete booking: $e';
+    }
+  }
+
+  // ─── Custom API Integration for Leads ──────────────────────────────────
+
+  Future<List<BookingModel>> getLandlordLeadsFromApi(String landlordUid) async {
+    try {
+      final response = await _apiService.dio.get(ApiConstants.landlordLeads(landlordUid));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) {
+          // Since the API returns camelCase/snake_case mix depending on how we structured it,
+          // BookingModel.fromMap should handle it. Wait, the API returns camelCase json keys based on our map
+          return BookingModel.fromMap(json, json['bookingId']?.toString() ?? json['booking_id']?.toString() ?? '');
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      AppLogger.e('Failed to fetch landlord leads from API: $e', e, null, 'BOOKING_REPO');
+      throw 'Failed to fetch leads: $e';
+    }
+  }
+
+  Future<List<BookingModel>> getPostLeadsFromApi(String postId) async {
+    try {
+      final response = await _apiService.dio.get(ApiConstants.postLeads(postId));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) {
+          return BookingModel.fromMap(json, json['bookingId']?.toString() ?? json['booking_id']?.toString() ?? '');
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      AppLogger.e('Failed to fetch post leads from API: $e', e, null, 'BOOKING_REPO');
+      throw 'Failed to fetch leads: $e';
+    }
+  }
+
+  Future<void> approveBookingApi(String bookingId) async {
+    try {
+      await _apiService.dio.put(ApiConstants.bookingApprove(bookingId));
+      AppLogger.s('Booking approved via API: $bookingId', tag: 'BOOKING_REPO');
+    } catch (e) {
+      throw 'Failed to approve booking via API: $e';
+    }
+  }
+
+  Future<void> rejectBookingApi(String bookingId) async {
+    try {
+      await _apiService.dio.put(ApiConstants.bookingReject(bookingId));
+      AppLogger.s('Booking rejected via API: $bookingId', tag: 'BOOKING_REPO');
+    } catch (e) {
+      throw 'Failed to reject booking via API: $e';
+    }
+  }
+
+  Future<void> deleteBookingApi(String bookingId) async {
+    try {
+      await _apiService.dio.delete(ApiConstants.bookingDelete(bookingId));
+      AppLogger.s('Booking deleted via API: $bookingId', tag: 'BOOKING_REPO');
+    } catch (e) {
+      throw 'Failed to delete booking via API: $e';
     }
   }
 }

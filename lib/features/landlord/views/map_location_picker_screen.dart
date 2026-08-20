@@ -140,7 +140,7 @@ class _MapLocationPickerScreenState extends State<MapLocationPickerScreen> {
                     ),
                     child: IconButton(
                       padding: EdgeInsets.zero,
-                      icon: Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20.r),
+                     icon: const Icon(Icons.arrow_back_rounded, color: Colors.black),
                       onPressed: () => Get.back(),
                     ),
                   ),

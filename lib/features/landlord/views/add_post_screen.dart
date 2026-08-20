@@ -98,10 +98,7 @@ class AddPostScreen extends StatelessWidget {
         leading: showBackButton
             ? IconButton(
                 onPressed: () => Get.back(),
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  color: Colors.white,
-                ),
+                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
               )
             : null,
       ),
@@ -522,116 +519,59 @@ class AddPostScreen extends StatelessWidget {
                 SizedBox(height: 24.h),
 
                 // Section 4: Room Media (Photos & Video)
-                _buildSectionHeader(
-                  Icons.perm_media_rounded,
-                  'Room Media (Photos & Video)',
-                ),
-                SizedBox(height: 12.h),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: controller.pickImagesFromGallery,
+                Text('Room Media (Photos & Video)', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+                SizedBox(height: 8.h),
+                GestureDetector(
+                  onTap: () {
+                    Get.bottomSheet(
+                      Material(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
                         child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 20.h),
-                          decoration: BoxDecoration(
-                            color: emeraldTheme.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: emeraldTheme.withValues(alpha: 0.4),
-                              width: 1.5,
-                            ),
-                          ),
+                          padding: EdgeInsets.all(20.w),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                padding: EdgeInsets.all(10.r),
-                                decoration: BoxDecoration(
-                                  color: emeraldTheme.withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.add_photo_alternate_rounded,
-                                  color: emeraldTheme,
-                                  size: 28.r,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              Text(
-                                'Upload Photos',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: emeraldTheme,
-                                ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Required',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11.sp,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
+                            Text('Select Media Type', style: GoogleFonts.poppins(fontSize: 18.sp, fontWeight: FontWeight.bold)),
+                            SizedBox(height: 20.h),
+                            ListTile(
+                              leading: Icon(Icons.photo_library, color: emeraldTheme),
+                              title: Text('Upload Photos', style: GoogleFonts.poppins()),
+                              onTap: () {
+                                Get.back();
+                                controller.pickImagesFromGallery();
+                              },
+                            ),
+                            ListTile(
+                              leading: Icon(Icons.video_collection, color: emeraldTheme),
+                              title: Text('Upload Video', style: GoogleFonts.poppins()),
+                              onTap: () {
+                                Get.back();
+                                controller.pickVideoFromGallery();
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    SizedBox(width: 16.w),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: controller.pickVideoFromGallery,
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 20.h),
-                          decoration: BoxDecoration(
-                            color: emeraldTheme.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(16.r),
-                            border: Border.all(
-                              color: emeraldTheme.withValues(alpha: 0.4),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(10.r),
-                                decoration: BoxDecoration(
-                                  color: emeraldTheme.withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  Icons.video_collection_rounded,
-                                  color: emeraldTheme,
-                                  size: 28.r,
-                                ),
-                              ),
-                              SizedBox(height: 8.h),
-                              Text(
-                                'Upload Video',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13.sp,
-                                  fontWeight: FontWeight.bold,
-                                  color: emeraldTheme,
-                                ),
-                              ),
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Optional',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11.sp,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
+                  );
+                },
+                  child: Container(
+                    height: 100.h,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: emeraldTheme.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(color: emeraldTheme.withValues(alpha: 0.5)),
                     ),
-                  ],
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate, color: emeraldTheme, size: 32.r),
+                        Text('Tap to add photos/videos', style: GoogleFonts.poppins(color: emeraldTheme)),
+                      ],
+                    ),
+                  ),
                 ),
                 SizedBox(height: 14.h),
 

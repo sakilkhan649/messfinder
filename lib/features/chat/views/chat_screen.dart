@@ -48,8 +48,7 @@ class ChatScreen extends StatelessWidget {
         elevation: 0,
         surfaceTintColor: const Color(0xFF059669),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              color: Colors.white, size: 20),
+         icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Get.back(),
         ),
         titleSpacing: 0,
@@ -127,7 +126,7 @@ class ChatScreen extends StatelessWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.phone_rounded, color: Colors.white, size: 21),
+            icon: Icon(Icons.phone_rounded, color: Colors.white, size:24.sp),
             tooltip: 'Audio Call',
             onPressed: () {
               CallController.to.makeCall(
@@ -138,8 +137,9 @@ class ChatScreen extends StatelessWidget {
               );
             },
           ),
+          SizedBox(width: 30.w),
           IconButton(
-            icon: const Icon(Icons.videocam_rounded, color: Colors.white, size: 24),
+            icon: Icon(Icons.videocam_rounded, color: Colors.white, size:24.sp),
             tooltip: 'Video Call',
             onPressed: () {
               CallController.to.makeCall(
@@ -150,7 +150,7 @@ class ChatScreen extends StatelessWidget {
               );
             },
           ),
-          SizedBox(width: 4.w),
+          SizedBox(width: 8.w),
         ],
       ),
 
