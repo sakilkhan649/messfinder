@@ -67,7 +67,7 @@ class SplashScreen extends GetView<SplashController> {
               Text(
                 'FIND YOUR PERFECT MESS',
                 style: GoogleFonts.poppins(
-                  fontSize: 13.sp,
+                  fontSize: 8.sp,
                   color: Colors.white.withValues(alpha: 0.95),
                   fontWeight: FontWeight.w600,
                   letterSpacing: 2.5,

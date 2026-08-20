@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
 import '../../marketplace/controllers/marketplace_controller.dart';
 import '../../marketplace/views/add_product_screen.dart';
-import '../../marketplace/views/marketplace_screen.dart' show ProductCard;
+import '../../marketplace/views/marketplace_screen.dart';
 
 class MyProductsScreen extends StatelessWidget {
   final UserModel user;
@@ -69,7 +68,11 @@ class MyProductsScreen extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.inventory_2_outlined, size: 80.r, color: Colors.grey.shade400),
+                Icon(
+                  Icons.inventory_2_outlined,
+                  size: 80.r,
+                  color: Colors.grey.shade400,
+                ),
                 SizedBox(height: 16.h),
                 Text(
                   'No products found',
@@ -89,7 +92,9 @@ class MyProductsScreen extends StatelessWidget {
             await controller.fetchMyProducts(user.uid);
           },
           child: CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             slivers: [
               SliverPadding(
                 padding: EdgeInsets.all(16.r),
@@ -100,12 +105,9 @@ class MyProductsScreen extends StatelessWidget {
                     crossAxisSpacing: 16.w,
                     childAspectRatio: 0.72,
                   ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      return ProductCard(product: controller.myProducts[index]);
-                    },
-                    childCount: controller.myProducts.length,
-                  ),
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    return ProductCard(product: controller.myProducts[index]);
+                  }, childCount: controller.myProducts.length),
                 ),
               ),
             ],

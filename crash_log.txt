@@ -1,0 +1,572 @@
+Launching lib\main.dart on sdk gphone64 x86 64 in debug mode...
+Running Gradle task 'assembleDebug'...                          
+Warning: Flutter support for your project's Gradle version (8.10.2) will soon be dropped. Please upgrade your Gradle version to a version of at least 8.14.0 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's gradle version is typically defined in the gradle wrapper file. By default, this can be found at D:\sakil\mess_finder\android/gradle/wrapper/gradle-wrapper.properties. 
+For more information, see https://docs.gradle.org/current/userguide/gradle_wrapper.html.
+
+Warning: Flutter support for your project's Android Gradle Plugin version (Android Gradle Plugin version 8.7.3) will soon be dropped. Please upgrade your Android Gradle Plugin version to a version of at least Android Gradle Plugin version 8.11.1 soon.
+Alternatively, use the flag "--android-skip-build-dependency-validation" to bypass this check.
+
+Potential fix: Your project's AGP version is typically defined in the plugins block of the `settings.gradle` file (D:\sakil\mess_finder\android/settings.gradle), by a plugin with the id of com.android.application. 
+If you don't see a plugins block, your project was likely created with an older template version. In this case it is most likely defined in the top-level build.gradle file (D:\sakil\mess_finder\android/build.gradle) by the following line in the dependencies block of the buildscript: "classpath 'com.android.tools.build:gradle:<version>'".
+
+Running Gradle task 'assembleDebug'...                             25.8s
+ΓêÜ Built build\app\outputs\flutter-apk\app-debug.apk
+Installing build\app\outputs\flutter-apk\app-debug.apk...          13.2s
+I/FlutterActivityAndFragmentDelegate( 9335): If you are attempting to set --enable-dart-profiling via Intent extras to launch a Flutter component outside of using the Flutter CLI, note that support for setting engine flags on Android via Intent will soon be dropped; see https://github.com/flutter/flutter/issues/180686 for more information on this breaking change. To migrate, set --enable-dart-profiling or any other flags specified via Intent extras on the command line instead or see https://github.com/flutter/flutter/blob/main/docs/engine/Flutter-Android-Engine-Flags.md for alternative methods.
+D/FlutterJNI( 9335): Beginning load of flutter...
+D/FlutterJNI( 9335): flutter (null) was loaded normally!
+I/flutter ( 9335): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+D/FLTFireContextHolder( 9335): received application context.
+D/FlutterGeolocator( 9335): Attaching Geolocator to activity
+D/nativeloader( 9335): Load /data/app/~~HtSUhRIJOuIx5zDLTuphwg==/com.messfinder.app-Mzfht9TuFwnG_woPdYMfhA==/base.apk!/lib/x86_64/libdartjni.so using class loader ns clns-9 (caller=/data/app/~~HtSUhRIJOuIx5zDLTuphwg==/com.messfinder.app-Mzfht9TuFwnG_woPdYMfhA==/base.apk!classes11.dex): ok
+I/.messfinder.app( 9335): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported,test-api) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
+I/.messfinder.app( 9335): hiddenapi: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
+I/.messfinder.app( 9335): hiddenapi: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
+I/.messfinder.app( 9335): hiddenapi: Accessing hidden method Landroid/util/LongArray;->get(I)J (runtime_flags=0, domain=platform, api=unsupported) from Lio/flutter/view/AccessibilityViewEmbedder$ReflectionAccessors; (domain=app, TargetSdkVersion=36) using reflection: allowed
+D/FlutterRenderer( 9335): Width is zero. 0,0
+D/CompatChangeReporter( 9335): Compat change id reported: 377864165; UID 10235; state: ENABLED
+W/HWUI    ( 9335): Unknown dataspace 0
+W/libc    ( 9335): Access denied finding property "vendor.mesa.virtgpu.kumquat"
+D/ProfileInstaller( 9335): Installing profile for com.messfinder.app
+D/FlutterGeolocator( 9335): Creating service.
+D/FlutterGeolocator( 9335): Binding to location service.
+I/Choreographer( 9335): Skipped 50 frames!  The application may be doing too much work on its main thread.
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+I/WindowExtensionsImpl( 9335): Initializing Window Extensions, vendor API level=10, activity embedding enabled=true
+W/UiContextUtils( 9335): Requested context is a non-UI Context. Creating a UI-Context with display: 0. Context: Context=android.app.Application@e899c96, of which baseContext=android.app.ContextImpl@4e7bebe
+D/VRI[MainActivity]( 9335): WindowInsets changed: 1344x2992 statusBars:[0,159,0,0] navigationBars:[0,0,0,72] mandatorySystemGestures:[0,195,0,96] 
+D/FlutterRenderer( 9335): Width is zero. 0,0
+Syncing files to device sdk gphone64 x86 64...                  
+I/Surface ( 9335): Creating surface for consumer unnamed-9335-0 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer VRI[MainActivity]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/Surface ( 9335): Creating surface for consumer unnamed-9335-1 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer ea23558 SurfaceView[com.messfinder.app/com.messfinder.app.MainActivity]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
+I/.messfinder.app( 9335): Compiler allocated 5247KB to compile void android.view.ViewRootImpl.performTraversals(long)
+D/FlutterGeolocator( 9335): Geolocator foreground service connected
+D/FlutterGeolocator( 9335): Initializing Geolocator services
+D/FlutterGeolocator( 9335): Flutter engine connected. Connected engine count 1
+I/HWUI    ( 9335): Using FreeType backend (prop=Auto)
+Syncing files to device sdk gphone64 x86 64...                   1,001ms
+I/Choreographer( 9335): Skipped 78 frames!  The application may be doing too much work on its main thread.
+D/WindowLayoutComponentImpl( 9335): Register WindowLayoutInfoListener on Context=com.messfinder.app.MainActivity@a2ae796, of which baseContext=android.app.ContextImpl@6015c07
+
+Flutter run key commands.
+r Hot reload. 
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on sdk gphone64 x86 64 is available at: http://127.0.0.1:64103/bMeDXwBVBes=/
+The Flutter DevTools debugger and profiler on sdk gphone64 x86 64 is available at: http://127.0.0.1:64103/bMeDXwBVBes=/devtools/?uri=ws://127.0.0.1:64103/bMeDXwBVBes=/ws
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/Choreographer( 9335): Skipped 232 frames!  The application may be doing too much work on its main thread.
+I/Choreographer( 9335): Skipped 38 frames!  The application may be doing too much work on its main thread.
+I/FLTFireBGExecutor( 9335): Creating background FlutterEngine instance, with args: [--enable-dart-profiling]
+W/libc    ( 9335): Access denied finding property "vendor.mesa.virtgpu.kumquat"
+D/FLTFireContextHolder( 9335): received application context.
+I/flutter ( 9335): [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+W/libc    ( 9335): Access denied finding property "vendor.mesa.virtgpu.kumquat"
+D/FlutterGeolocator( 9335): Geolocator foreground service connected
+D/FlutterGeolocator( 9335): Initializing Geolocator services
+D/FlutterGeolocator( 9335): Flutter engine connected. Connected engine count 2
+I/FLTFireMsgService( 9335): FlutterFirebaseMessagingBackgroundService started!
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+D/InsetsController( 9335): hide(ime())
+I/ImeTracker( 9335): com.messfinder.app:5b5d6359: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+I/flutter ( 9335): Γ£à [FCM] NotificationService initialized
+D/DesktopExperienceFlags( 9335): Toggle override initialized to: false
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+I/ImeTracker( 9335): com.messfinder.app:fa6e9587: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false userId 0 displayId 0
+D/InsetsController( 9335): show(ime())
+D/InsetsController( 9335): Setting requestedVisibleTypes to 511 (was 503)
+I/AssistStructure( 9335): Flattened final assist data: 496 bytes, containing 1 windows, 3 views
+D/InputConnectionAdaptor( 9335): The input method toggled cursor monitoring on
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.view.ImeBackAnimationController@dd6e6c1
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+W/InteractionJankMonitor( 9335): Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.messfinder.app
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/ImeTracker( 9335): com.messfinder.app:fa6e9587: onShown
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/ImeTracker( 9335): com.messfinder.app:d7cf2313: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT fromUser false userId 0 displayId 0
+D/InsetsController( 9335): show(ime())
+I/ImeTracker( 9335): com.messfinder.app:d7cf2313: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+D/InputConnectionAdaptor( 9335): The input method toggled cursor monitoring on
+I/AssistStructure( 9335): Flattened final assist data: 480 bytes, containing 1 windows, 3 views
+I/flutter ( 9335): Γä╣∩╕Å [AUTH_REPO] Attempting login -> Email: mdsakilkhan649@gmail.com
+I/flutter ( 9335): [38;5;12mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): [38;5;12mΓöé 17:01:41.982 (+0:00:00.015457)[0m
+I/flutter ( 9335): [38;5;12mΓö£ΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöä[0m
+I/flutter ( 9335): [38;5;12mΓöé ≡ƒÆí [AUTH_REPO] Attempting login -> Email: mdsakilkhan649@gmail.com[0m
+I/flutter ( 9335): [38;5;12mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): Γ£à [AUTH_REPO] Login successful
+I/flutter ( 9335): [38;5;12mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): [38;5;12mΓöé 17:01:42.846 (+0:00:00.879616)[0m
+I/flutter ( 9335): [38;5;12mΓö£ΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöä[0m
+I/flutter ( 9335): [38;5;12mΓöé ≡ƒÆí [AUTH_REPO] Γ£à Login successful[0m
+I/flutter ( 9335): [38;5;12mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): Γä╣∩╕Å [CHAT_CTRL] Connecting Socket.io to: http://10.0.2.2:5000
+I/flutter ( 9335): [38;5;12mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): [38;5;12mΓöé 17:01:43.376 (+0:00:01.409421)[0m
+I/flutter ( 9335): [38;5;12mΓö£ΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöä[0m
+I/flutter ( 9335): [38;5;12mΓöé ≡ƒÆí [CHAT_CTRL] Connecting Socket.io to: http://10.0.2.2:5000[0m
+I/flutter ( 9335): [38;5;12mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): ≡ƒöæ [FCM] Token: cDG0TkHtQHiKdk2fi1ShuK:APA91bHmTN2Z__TEVp7PtFAJ_dH4G03N36EdN70ts90LUnJr3rHcHexjpixhhZCqULSPZKlWce9GxqHFYDKVFlf99kT-fnQTcjTTD4UxltK-O6UbbEHeFgI
+I/flutter ( 9335): Γ£à [CHAT_CTRL] Socket.IO connected
+I/flutter ( 9335): [38;5;12mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): [38;5;12mΓöé 17:01:44.149 (+0:00:02.181888)[0m
+I/flutter ( 9335): [38;5;12mΓö£ΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöä[0m
+I/flutter ( 9335): [38;5;12mΓöé ≡ƒÆí [CHAT_CTRL] Γ£à Socket.IO connected[0m
+I/flutter ( 9335): [38;5;12mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): Γä╣∩╕Å [INFO] DEBUG: _updateSavedPostsList called. allPosts=4, savedIds=0, result=0
+I/flutter ( 9335): [38;5;12mΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+I/flutter ( 9335): [38;5;12mΓöé 17:01:44.264 (+0:00:02.296969)[0m
+I/flutter ( 9335): [38;5;12mΓö£ΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöäΓöä[0m
+I/flutter ( 9335): [38;5;12mΓöé ≡ƒÆí [INFO] DEBUG: _updateSavedPostsList called. allPosts=4, savedIds=0, result=0[0m
+I/flutter ( 9335): [38;5;12mΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ[0m
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+I/ImeTracker( 9335): com.messfinder.app:3ad6e219: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT fromUser false userId 0 displayId 0
+D/InsetsController( 9335): hide(ime())
+D/InsetsController( 9335): Setting requestedVisibleTypes to 503 (was 511)
+D/CompatChangeReporter( 9335): Compat change id reported: 395521150; UID 10235; state: ENABLED
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+I/PlatformViewsChannel( 9335): Using legacy platform view rendering strategy.
+D/MapsInitializer( 9335): preferredRenderer: null
+D/zzcc    ( 9335): preferredRenderer: null
+I/zzcc    ( 9335): Making Creator dynamically
+I/DynamiteModule( 9335): Considering local module com.google.android.gms.maps_core_dynamite:0 and remote module com.google.android.gms.maps_core_dynamite:260830204
+I/DynamiteModule( 9335): Selected remote version of com.google.android.gms.maps_core_dynamite, version >= 260830204
+V/DynamiteModule( 9335): Dynamite loader version >= 2, using loadModule2NoCrashUtils
+W/System  ( 9335): ClassLoader referenced unknown path: 
+D/nativeloader( 9335): Configuring clns-10 for other apk . target_sdk_version=37, uses_libraries=, library_path=/data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/lib/x86_64:/data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+W/DynamiteModule( 9335): Local module descriptor class for com.google.android.gms.providerinstaller.dynamite not found.
+I/DynamiteModule( 9335): Considering local module com.google.android.gms.providerinstaller.dynamite:0 and remote module com.google.android.gms.providerinstaller.dynamite:0
+W/ProviderInstaller( 9335): Failed to load providerinstaller module: No acceptable module com.google.android.gms.providerinstaller.dynamite found. Local version is 0 and remote version is 0.
+D/ApplicationLoaders( 9335): Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+D/ApplicationLoaders( 9335): Returning zygote-cached class loader: /system/framework/com.android.location.provider.jar
+D/ApplicationLoaders( 9335): Returning zygote-cached class loader: /system/framework/com.android.media.remotedisplay.jar
+D/ApplicationLoaders( 9335): Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+D/ApplicationLoaders( 9335): Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+W/.messfinder.app( 9335): Loading /data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/oat/x86_64/base.odex non-executable as it requires an image which we failed to load
+D/nativeloader( 9335): Configuring clns-11 for other apk /data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/base.apk. target_sdk_version=37, uses_libraries=, library_path=/data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/lib/x86_64:/data/app/~~fbdNiCx9hDD8eCLsq44byw==/com.google.android.gms-ruQXqO36BnMYqfHbB8aZ2g==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+I/.messfinder.app( 9335): hiddenapi: Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (runtime_flags=0, domain=core-platform, api=unsupported) from Lhpqi; (domain=app, TargetSdkVersion=36) using reflection: allowed
+E/GoogleApiManager( 9335): Failed to get service from broker. 
+E/GoogleApiManager( 9335): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3392)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createException(Parcel.java:3376)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3359)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3301)
+E/GoogleApiManager( 9335): 	at blva.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):36)
+E/GoogleApiManager( 9335): 	at blst.y(:com.google.android.gms@263032038@26.30.32 (260800-956658866):144)
+E/GoogleApiManager( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):42)
+E/GoogleApiManager( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+E/GoogleApiManager( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+E/GoogleApiManager( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loop(Looper.java:397)
+E/GoogleApiManager( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+W/GoogleApiManager( 9335): Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+I/guhx    ( 9335): Unable to retrieve flag snapshot for com.google.android.gms.providerinstaller#com.messfinder.app, using defaults.
+E/GoogleApiManager( 9335): Failed to get service from broker. 
+E/GoogleApiManager( 9335): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3392)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createException(Parcel.java:3376)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3359)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3301)
+E/GoogleApiManager( 9335): 	at blva.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):36)
+E/GoogleApiManager( 9335): 	at blst.y(:com.google.android.gms@263032038@26.30.32 (260800-956658866):144)
+E/GoogleApiManager( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):42)
+E/GoogleApiManager( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+E/GoogleApiManager( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+E/GoogleApiManager( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loop(Looper.java:397)
+E/GoogleApiManager( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+W/FlagRegistrar( 9335): Failed to register com.google.android.gms.providerinstaller#com.messfinder.app
+W/FlagRegistrar( 9335): guij: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagRegistrar( 9335): 	at guil.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):13)
+W/FlagRegistrar( 9335): 	at hvgo.d(:com.google.android.gms@263032038@26.30.32 (260800-956658866):3)
+W/FlagRegistrar( 9335): 	at hvgq.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):139)
+W/FlagRegistrar( 9335): 	at hvjb.execute(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagRegistrar( 9335): 	at hvgy.f(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagRegistrar( 9335): 	at hvgy.m(:com.google.android.gms@263032038@26.30.32 (260800-956658866):101)
+W/FlagRegistrar( 9335): 	at hvgy.q(:com.google.android.gms@263032038@26.30.32 (260800-956658866):16)
+W/FlagRegistrar( 9335): 	at gnpu.hl(:com.google.android.gms@263032038@26.30.32 (260800-956658866):35)
+W/FlagRegistrar( 9335): 	at fzpj.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):12)
+W/FlagRegistrar( 9335): 	at hvjb.execute(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagRegistrar( 9335): 	at fzpk.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):18)
+W/FlagRegistrar( 9335): 	at fzpz.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):34)
+W/FlagRegistrar( 9335): 	at fzqb.c(:com.google.android.gms@263032038@26.30.32 (260800-956658866):23)
+W/FlagRegistrar( 9335): 	at bkvx.e(:com.google.android.gms@263032038@26.30.32 (260800-956658866):9)
+W/FlagRegistrar( 9335): 	at bkyn.r(:com.google.android.gms@263032038@26.30.32 (260800-956658866):48)
+W/FlagRegistrar( 9335): 	at bkyn.d(:com.google.android.gms@263032038@26.30.32 (260800-956658866):10)
+W/FlagRegistrar( 9335): 	at bkyn.g(:com.google.android.gms@263032038@26.30.32 (260800-956658866):191)
+W/FlagRegistrar( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):74)
+W/FlagRegistrar( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+W/FlagRegistrar( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+W/FlagRegistrar( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+W/FlagRegistrar( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagRegistrar( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+W/FlagRegistrar( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+W/FlagRegistrar( 9335): 	at android.os.Looper.loop(Looper.java:397)
+W/FlagRegistrar( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+W/FlagRegistrar( 9335): Caused by: bkuc: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagRegistrar( 9335): 	at blsf.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):15)
+W/FlagRegistrar( 9335): 	at bkwa.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagRegistrar( 9335): 	at bkvx.e(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+W/FlagRegistrar( 9335): 	... 12 more
+E/GoogleApiManager( 9335): Failed to get service from broker. 
+E/GoogleApiManager( 9335): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3392)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createException(Parcel.java:3376)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3359)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3301)
+E/GoogleApiManager( 9335): 	at blva.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):36)
+E/GoogleApiManager( 9335): 	at blst.y(:com.google.android.gms@263032038@26.30.32 (260800-956658866):144)
+E/GoogleApiManager( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):42)
+E/GoogleApiManager( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+E/GoogleApiManager( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+E/GoogleApiManager( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loop(Looper.java:397)
+E/GoogleApiManager( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+W/GoogleApiManager( 9335): Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagStore( 9335): Unable to update local snapshot for com.google.android.gms.providerinstaller#com.messfinder.app, may result in stale flags.
+W/FlagStore( 9335): java.util.concurrent.ExecutionException: guij: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagStore( 9335): 	at hvgy.j(:com.google.android.gms@263032038@26.30.32 (260800-956658866):21)
+W/FlagStore( 9335): 	at hvhh.t(:com.google.android.gms@263032038@26.30.32 (260800-956658866):24)
+W/FlagStore( 9335): 	at hvgy.get(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at hvlq.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):2)
+W/FlagStore( 9335): 	at hvkg.s(:com.google.android.gms@263032038@26.30.32 (260800-956658866):10)
+W/FlagStore( 9335): 	at gunr.d(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at gumv.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+W/FlagStore( 9335): 	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:520)
+W/FlagStore( 9335): 	at java.util.concurrent.FutureTask.run(FutureTask.java:328)
+W/FlagStore( 9335): 	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:323)
+W/FlagStore( 9335): 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1100)
+W/FlagStore( 9335): 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+W/FlagStore( 9335): 	at java.lang.Thread.run(Thread.java:1572)
+W/FlagStore( 9335): Caused by: guij: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagStore( 9335): 	at guil.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):13)
+W/FlagStore( 9335): 	at hvgo.d(:com.google.android.gms@263032038@26.30.32 (260800-956658866):3)
+W/FlagStore( 9335): 	at hvgq.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):139)
+W/FlagStore( 9335): 	at hvjb.execute(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at hvgy.f(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at hvgy.m(:com.google.android.gms@263032038@26.30.32 (260800-956658866):101)
+W/FlagStore( 9335): 	at hvgy.q(:com.google.android.gms@263032038@26.30.32 (260800-956658866):16)
+W/FlagStore( 9335): 	at gnpu.hl(:com.google.android.gms@263032038@26.30.32 (260800-956658866):35)
+W/FlagStore( 9335): 	at fzpj.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):12)
+W/FlagStore( 9335): 	at hvjb.execute(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at fzpk.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):18)
+W/FlagStore( 9335): 	at fzpz.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):34)
+W/FlagStore( 9335): 	at fzqg.B(:com.google.android.gms@263032038@26.30.32 (260800-956658866):17)
+W/FlagStore( 9335): 	at fzpb.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):60)
+W/FlagStore( 9335): 	at hvjb.execute(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at fzpc.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):8)
+W/FlagStore( 9335): 	at fzpz.b(:com.google.android.gms@263032038@26.30.32 (260800-956658866):34)
+W/FlagStore( 9335): 	at fzqb.c(:com.google.android.gms@263032038@26.30.32 (260800-956658866):23)
+W/FlagStore( 9335): 	at bkvx.e(:com.google.android.gms@263032038@26.30.32 (260800-956658866):9)
+W/FlagStore( 9335): 	at bkyn.r(:com.google.android.gms@263032038@26.30.32 (260800-956658866):48)
+W/FlagStore( 9335): 	at bkyn.d(:com.google.android.gms@263032038@26.30.32 (260800-956658866):10)
+W/FlagStore( 9335): 	at bkyn.g(:com.google.android.gms@263032038@26.30.32 (260800-956658866):191)
+W/FlagStore( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):74)
+W/FlagStore( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+W/FlagStore( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+W/FlagStore( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+W/FlagStore( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+W/FlagStore( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+W/FlagStore( 9335): 	at android.os.Looper.loop(Looper.java:397)
+W/FlagStore( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+I/ProviderInstaller( 9335): Installed default security provider AndroidOpenSSL (via CompatProvider)
+W/FlagStore( 9335): Caused by: bkuc: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+W/FlagStore( 9335): 	at blsf.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):15)
+W/FlagStore( 9335): 	at bkwa.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+W/FlagStore( 9335): 	at bkvx.e(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+W/FlagStore( 9335): 	... 12 more
+D/zzcc    ( 9335): early loading native code
+W/NativeHelper( 9335): Loading native library 'gmm-jni' on thread main
+D/nativeloader( 9335): Configuring clns-12 for other apk . target_sdk_version=36, uses_libraries=ALL, library_path=/data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-MapsCoreDynamite.integ_260830204100800.apk!/lib/x86_64:/data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-MapsCoreDynamite.integ_260830204100800.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand
+D/nativeloader( 9335): Load /data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-MapsCoreDynamite.integ_260830204100800.apk!/lib/x86_64/libgmm-jni.so using isolated ns clns-12 (caller=/data/user_de/0/com.google.android.gms/app_chimera/m/00000018/dl-MapsCoreDynamite.integ_260830204100800.apk!classes2.dex): ok
+I/native  ( 9335): I0000 00:00:1787223706.737883    9335 jni_init.cc:36] Initializing JNI...
+I/NativeHelper( 9335): JNI initialized.
+I/Google Android Maps SDK( 9335): Google Play services client version: 20000000
+D/bo      ( 9335): SDK type: 1, version: 260830204
+D/ho      ( 9335): maps_core_dynamite module version in use (0 represents standalone library): 260830204
+D/ho      ( 9335): Added event: 109
+D/ho      ( 9335): Added event: 112
+I/m140.fwg.a( 9335): Unable to retrieve flag snapshot for com.google.android.gms.maps#com.messfinder.app, using defaults.
+D/MapsInitializer( 9335): loadedRenderer: LATEST
+D/zzcc    ( 9335): preferredRenderer: null
+D/bo      ( 9335): SDK type: 1, version: 260830204
+I/Google Android Maps SDK( 9335): Google Play services package version: 263032038
+I/Google Android Maps SDK( 9335): Google Play services maps renderer version(maps_core): 260830204
+D/bo      ( 9335): SDK type: 1, version: 260830204
+D/de      ( 9335): about to start loading native library asynchronously
+W/y       ( 9335): Suppressed StrictMode policy violation: StrictModeDiskReadViolation
+I/o       ( 9335): Using GMM server: https://clients4.google.com/glm/mmap
+W/y       ( 9335): Suppressed StrictMode policy violation: StrictModeDiskReadViolation
+W/y       ( 9335): Suppressed StrictMode policy violation: StrictModeDiskWriteViolation
+D/o       ( 9335): Using Non-null serverVersionMetadataManager to load previous metadata.
+W/y       ( 9335): Suppressed StrictMode policy violation: StrictModeDiskReadViolation
+I/m140.bps( 9335): getExecutor  CREATED  bpi@2e72232[main]
+I/m140.bps( 9335): getExecutor  CREATED  ScheduledThreadPoolExecutor@3f60d39[Scheduler]
+I/m140.bps( 9335): getExecutor  CREATED  bpl@7a143f5[Lite]
+I/m140.bps( 9335): getExecutor  CREATED  bpl@68f2a71[Background]
+I/m140.bps( 9335): getExecutor  CREATED  bpl@869abcf[Blocking]
+I/m140.bps( 9335): getExecutor  CREATED  bpl@85a7763[TilePrep]
+I/m140.cbe( 9335): marker files=[]
+I/m140.bnv( 9335): No cached client parameters found
+I/ClientParamsBlocking( 9335): ClientParametersBlockingReference.blockedOnMainThread: ENABLE_FEATURES for 29 ms.
+I/ClientParamsBlocking( 9335): java.lang.Throwable
+I/ClientParamsBlocking( 9335): 	at m140.bho.m(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:164)
+I/ClientParamsBlocking( 9335): 	at m140.bho.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:1)
+I/ClientParamsBlocking( 9335): 	at m140.bfi.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:3)
+I/ClientParamsBlocking( 9335): 	at m140.bjb.b(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:9)
+I/ClientParamsBlocking( 9335): 	at m140.ecx.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:148)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:7)
+I/ClientParamsBlocking( 9335): 	at m140.eaq.<init>(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:47)
+I/ClientParamsBlocking( 9335): 	at m140.ear.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:78)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:7)
+I/ClientParamsBlocking( 9335): 	at com.google.maps.api.android.lib6.phoenix.bg.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:5)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:7)
+I/ClientParamsBlocking( 9335): 	at com.google.maps.api.android.lib6.phoenix.be.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:3)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:7)
+I/ClientParamsBlocking( 9335): 	at com.google.maps.api.android.lib6.phoenix.bj.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:3)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at m140.jqe.a(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:7)
+I/ClientParamsBlocking( 9335): 	at com.google.maps.api.android.lib6.impl.cg.aY(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:67)
+I/ClientParamsBlocking( 9335): 	at com.google.maps.api.android.lib6.impl.el.d(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:12)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.internal.r.br(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:158)
+I/ClientParamsBlocking( 9335): 	at m140.azc.onTransact(:com.google.android.gms.policy_maps_core_dynamite@260830213@260830204032.951593635.951593635:21)
+I/ClientParamsBlocking( 9335): 	at android.os.Binder.transact(Binder.java:1230)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.internal.maps.zza.zzc(com.google.android.gms:play-services-maps@@20.0.0:2)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.internal.zzl.onCreate(com.google.android.gms:play-services-maps@@20.0.0:3)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.zzah.onCreate(com.google.android.gms:play-services-maps@@20.0.0:3)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.dynamic.zac.zab(com.google.android.gms:play-services-base@@18.4.0:1)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.dynamic.zaa.onDelegateCreated(com.google.android.gms:play-services-base@@18.4.0:3)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.zzai.zzb(com.google.android.gms:play-services-maps@@20.0.0:5)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.zzai.createDelegate(com.google.android.gms:play-services-maps@@20.0.0:1)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.dynamic.DeferredLifecycleHelper.zaf(com.google.android.gms:play-services-base@@18.4.0:6)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.dynamic.DeferredLifecycleHelper.onCreate(com.google.android.gms:play-services-base@@18.4.0:1)
+I/ClientParamsBlocking( 9335): 	at com.google.android.gms.maps.MapView.onCreate(com.google.android.gms:play-services-maps@@20.0.0:4)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugins.googlemaps.GoogleMapController.onCreate(GoogleMapController.java:481)
+I/ClientParamsBlocking( 9335): 	at androidx.lifecycle.DefaultLifecycleObserverAdapter.onStateChanged(DefaultLifecycleObserverAdapter.kt:24)
+I/ClientParamsBlocking( 9335): 	at androidx.lifecycle.LifecycleRegistry$ObserverWithState.dispatchEvent(LifecycleRegistry.kt:322)
+I/ClientParamsBlocking( 9335): 	at androidx.lifecycle.LifecycleRegistry.addObserver(LifecycleRegistry.kt:199)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugins.googlemaps.GoogleMapController.init(GoogleMapController.java:198)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugins.googlemaps.GoogleMapBuilder.build(GoogleMapBuilder.java:45)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugins.googlemaps.GoogleMapFactory.create(GoogleMapFactory.java:56)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugin.platform.PlatformViewsController.createPlatformView(PlatformViewsController.java:535)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugin.platform.PlatformViewsController$1.createForTextureLayer(PlatformViewsController.java:214)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugin.platform.PlatformViewsControllerDelegator.createForTextureLayer(PlatformViewsControllerDelegator.java:134)
+I/ClientParamsBlocking( 9335): 	at io.flutter.embedding.engine.systemchannels.PlatformViewsChannel$1.create(PlatformViewsChannel.java:132)
+I/ClientParamsBlocking( 9335): 	at io.flutter.embedding.engine.systemchannels.PlatformViewsChannel$1.onMethodCall(PlatformViewsChannel.java:55)
+I/ClientParamsBlocking( 9335): 	at io.flutter.plugin.common.MethodChannel$IncomingMethodCallHandler.onMessage(MethodChannel.java:267)
+I/ClientParamsBlocking( 9335): 	at io.flutter.embedding.engine.dart.DartMessenger.invokeHandler(DartMessenger.java:286)
+I/ClientParamsBlocking( 9335): 	at io.flutter.embedding.engine.dart.DartMessenger.lambda$dispatchMessageToQueue$0$io-flutter-embedding-engine-dart-DartMessenger(DartMessenger.java:313)
+I/ClientParamsBlocking( 9335): 	at io.flutter.embedding.engine.dart.DartMessenger$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+I/ClientParamsBlocking( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+I/ClientParamsBlocking( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+I/ClientParamsBlocking( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+I/ClientParamsBlocking( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+I/ClientParamsBlocking( 9335): 	at android.os.Looper.loop(Looper.java:397)
+I/ClientParamsBlocking( 9335): 	at android.app.ActivityThread.main(ActivityThread.java:9523)
+I/ClientParamsBlocking( 9335): 	at java.lang.reflect.Method.invoke(Native Method)
+I/ClientParamsBlocking( 9335): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+I/ClientParamsBlocking( 9335): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+I/m140.boi( 9335): finishInitialization ClientParametersManager.
+I/m140.bng( 9335): start()  account=Account {name=signedout@, type=com.google.android.apps.maps}  locale=en_US
+I/m140.bng( 9335): P/H: Scheduling next update in 0.000000 seconds: initial refresh (forced by: NOT FORCED)
+I/m140.bng( 9335): P/H: Running update task for account Account {name=signedout@, type=com.google.android.apps.maps} , locale en_US
+I/m140.bng( 9335): P/H: Running update task via GWS.
+I/m140.cfg( 9335): FpsProfiler MAIN created on main
+I/m140.bps( 9335): getExecutor  CREATED  bpl@9c32ed3[Picker]
+I/m140.est( 9335): Found 0 zoom mappings
+I/m140.est( 9335): Zoom tables loaded
+W/Settings( 9335): Setting device_provisioned has moved from android.provider.Settings.System to android.provider.Settings.Global, returning read-only value.
+I/.messfinder.app( 9335): Background concurrent mark compact GC freed 875KB AllocSpace bytes, 4(208KB) LOS objects, 49% free, 7417KB/14MB, paused 4.397ms,2.787ms total 142.297ms
+I/m140.bzq( 9335): Requested experimentIds= []
+I/m140.bmn( 9335): Fetching new client parameters: Account {name=signedout@, type=com.google.android.apps.maps}  en_US
+I/m140.bps( 9335): getExecutor  CREATED  bpl@e20773b[Network]
+I/m140.bps( 9335): getExecutor  CREATED  bpl@b75efe9[LocFresh]
+W/m140.fim( 9335): No current context - attempting to create off-screen context
+W/libc    ( 9335): Access denied finding property "vendor.mesa.virtgpu.kumquat"
+W/JavaCronetEngine( 9335): using the fallback Cronet Engine implementation. Performance will suffer and many HTTP client features, including caching, will not work.
+I/m140.bzp( 9335): Using Paint server URL: https://www.google.com/maps/vt
+I/m140.bzc( 9335): PaintParametersListeningServerChannelManager got a client parameters update event.
+I/m140.bup( 9335): Updating the server URL. Old URL: https://www.google.com/maps/vt New URL: https://www.google.com/maps/vt
+I/m140.bup( 9335): Creating a new server channel with URL: https://www.google.com/maps/vt, server channel factory class: class m140.bum
+I/m140.fim( 9335): Created GlConstants: fil{gpuVendor=Google (Intel), glVersion=OpenGL ES 3.0 (4.5.0 - Build 32.0.101.6129), glRenderer=Android Emulator OpenGL ES Translator (Intel(R) UHD Graphics 730), maxTextureSize=16384, maxVertexTextureImageUnits=32, maxVertexUniformVectors=1024, maxSupportedLineWidth=2047, maxVertexAttribs=16, nonPowerOfTwoTextureSupport=FULL}
+W/GMM-SatelliteConnectivity( 9335): WIFI  isActiveNetworkSatellite: false  isServerEnabled: ignored  isNetworkDisabledByOfflineModeController: false  activeNetworkInfoIsNull: false
+I/m140.dvd( 9335): Map using legacy labeler
+I/m140.fag( 9335): Create or open database: /storage/emulated/0/Android/data/com.messfinder.app/cache/diskcache; secure file path: /data/user/0/com.messfinder.app/app_/testdata
+I/m140.dtv( 9335): Network fetching: false
+I/m140.fak( 9335): Database cache size: 53248 bytes
+I/m140.fak( 9335): Deleted 0 entries from the disk cache in 1 ms
+I/m140.fmx( 9335): Model SDK_GPHONE64_X86_64, Product name SDK_GPHONE64_X86_64, Board name GOLDFISH_X86_64, Manufacturer GOOGLE
+W/m140.fmx( 9335): Model is not recognized, and therefore using default settings.
+I/m140.fak( 9335): Deleting expired tiles and resources took 1 ms
+W/m140.eys( 9335): urls for epoch -1 not available.
+I/m140.dtv( 9335): Network fetching: true
+I/m140.est( 9335): Found 0 zoom mappings
+I/m140.est( 9335): Zoom tables loaded
+I/m140.dtv( 9335): requestDrawingConfig for epoch -1 legend ROADMAP
+W/m140.eys( 9335): urls for epoch -1 not available.
+I/m140.dtv( 9335): requestLegend unsuccessful for epoch -1 legend ROADMAP
+I/m140.dtv( 9335): requestDrawingConfig for epoch -1 legend ROADMAP
+W/m140.eys( 9335): urls for epoch -1 not available.
+I/m140.dtv( 9335): requestLegend unsuccessful for epoch -1 legend ROADMAP
+I/PlatformViewsController( 9335): Hosting view in view hierarchy for platform view: 0
+I/PlatformViewsController( 9335): PlatformView is using SurfaceProducer backend
+I/Surface ( 9335): Creating surface for consumer unnamed-9335-2 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer ImageReader-1x1f22m7-9335-0 with slotExpansion=1 for 64 slots
+I/Choreographer( 9335): Skipped 146 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/Surface ( 9335): Creating surface for consumer unnamed-9335-3 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer ImageReader-1344x2459f22m7-9335-1 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer unnamed-9335-4 with slotExpansion=1 for 64 slots
+I/Surface ( 9335): Creating surface for consumer SurfaceTexture-0-9335-0 with slotExpansion=0 for 64 slots
+W/libc    ( 9335): Access denied finding property "vendor.mesa.virtgpu.kumquat"
+I/Surface ( 9335): Creating surface for consumer SurfaceTexture-0-9335-0 with slotExpansion=0 for 64 slots
+I/HWUI    ( 9335): Davey! duration=2638ms; Flags=0, FrameTimelineVsyncId=997690, IntendedVsync=26182135201112, Vsync=26184568534348, InputEventId=853361026, HandleInputStart=26184581939378, AnimationStart=26184581941059, PerformTraversalsStart=26184583103092, DrawStart=26184596899992, FrameDeadline=26182151867778, FrameStartTime=26184575803156, FrameInterval=16666666, WorkloadTarget=16666666, AnimationTime=26184568534348, SyncQueued=26184708928912, SyncStart=26184870930803, IssueDrawCommandsStart=26184871943855, SwapBuffers=26184890622610, FrameCompleted=26184935625939, DequeueBufferDuration=9258, QueueBufferDuration=1078964, GpuCompleted=26184935625939, SwapBuffersCompleted=26184921862528, DisplayPresentTime=131941754222049, CommandSubmissionCompleted=26184890622610, 
+I/ImeTracker( 9335): system_server:aba45e3b: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+I/m140.dtv( 9335): requestDrawingConfig for epoch -1 legend ROADMAP
+W/m140.eys( 9335): urls for epoch -1 not available.
+I/m140.dtv( 9335): requestLegend unsuccessful for epoch -1 legend ROADMAP
+I/GoogleMapController( 9335): Installing custom TextureView driven invalidator.
+E/GoogleMapController( 9335): Cannot enable MyLocation layer as location permissions are not granted
+D/InteractionJankMonitor( 9335): Build configuration failed!
+D/InteractionJankMonitor( 9335): java.lang.IllegalArgumentException: Must pass in a valid surface control if only instrument surface; 
+D/InteractionJankMonitor( 9335): 	at com.android.internal.jank.InteractionJankMonitor$Configuration.validate(InteractionJankMonitor.java:946)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.jank.InteractionJankMonitor$Configuration.<init>(InteractionJankMonitor.java:882)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.jank.InteractionJankMonitor$Configuration.<init>(InteractionJankMonitor.java:0)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.jank.InteractionJankMonitor$Configuration$Builder.build(InteractionJankMonitor.java:852)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.jank.InteractionJankMonitor.begin(InteractionJankMonitor.java:400)
+D/InteractionJankMonitor( 9335): 	at android.view.inputmethod.ImeTracker$ImeJankTracker.lambda$onRequestAnimation$0(ImeTracker.java:970)
+D/InteractionJankMonitor( 9335): 	at android.view.inputmethod.ImeTracker$ImeJankTracker$$ExternalSyntheticLambda0.run(D8$$SyntheticClass:0)
+D/InteractionJankMonitor( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+D/InteractionJankMonitor( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+D/InteractionJankMonitor( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+D/InteractionJankMonitor( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+D/InteractionJankMonitor( 9335): 	at android.os.Looper.loop(Looper.java:397)
+D/InteractionJankMonitor( 9335): 	at android.app.ActivityThread.main(ActivityThread.java:9523)
+D/InteractionJankMonitor( 9335): 	at java.lang.reflect.Method.invoke(Native Method)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+D/InteractionJankMonitor( 9335): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+I/Choreographer( 9335): Skipped 43 frames!  The application may be doing too much work on its main thread.
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+W/DynamiteModule( 9335): Local module descriptor class for com.google.android.gms.googlecertificates not found.
+I/flutter ( 9335): Γ£à [FCM] Token saved for user: cbeabf68-4761-4251-8fa7-4c16d40fc8a1
+I/DynamiteModule( 9335): Considering local module com.google.android.gms.googlecertificates:0 and remote module com.google.android.gms.googlecertificates:7
+I/DynamiteModule( 9335): Selected remote version of com.google.android.gms.googlecertificates, version >= 7
+I/HWUI    ( 9335): Davey! duration=826ms; Flags=0, FrameTimelineVsyncId=997751, IntendedVsync=26184601867680, Vsync=26185318534318, InputEventId=0, HandleInputStart=26185322252737, AnimationStart=26185322253592, PerformTraversalsStart=26185344501269, DrawStart=26185348175810, FrameDeadline=26184968534332, FrameStartTime=26185321585980, FrameInterval=16666666, WorkloadTarget=16666666, AnimationTime=26185318534318, SyncQueued=26185377358787, SyncStart=26185401852593, IssueDrawCommandsStart=26185401924226, SwapBuffers=26185435702290, FrameCompleted=26185452465225, DequeueBufferDuration=3271, QueueBufferDuration=9913700, GpuCompleted=26185448776841, SwapBuffersCompleted=26185452465225, DisplayPresentTime=131941754222192, CommandSubmissionCompleted=26185435702290, 
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+D/FlutterJNI( 9335): Sending viewport metrics to the engine.
+I/flutter ( 9335): Γ£à [FCM] Subscribed to topic: all_users
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 4263KB AllocSpace bytes, 15(780KB) LOS objects, 34% free, 9716KB/14MB, paused 1.144ms,3.082ms total 124.282ms
+I/m140.bmn( 9335): Fetch new client parameters: Success!
+I/m140.bng( 9335): Got a successful parameters response!
+I/m140.bng( 9335): P/H: Scheduling next update in 21600.000000 seconds: refresh (forced by: NOT FORCED)
+I/m140.est( 9335): Found 0 zoom mappings
+I/m140.est( 9335): Zoom tables loaded
+I/m140.boi( 9335): Scheduling save of client parameters.
+I/m140.bnv( 9335): Save client parameters to cache at SavedClientParameters.data for account null and Locale en_US
+I/Choreographer( 9335): Skipped 44 frames!  The application may be doing too much work on its main thread.
+I/m140.boi( 9335): Client parameters saved.
+I/HWUI    ( 9335): Davey! duration=774ms; Flags=0, FrameTimelineVsyncId=998752, IntendedVsync=26189385200822, Vsync=26190118534126, InputEventId=0, HandleInputStart=26190128605250, AnimationStart=26190128606291, PerformTraversalsStart=26190131239309, DrawStart=26190131298009, FrameDeadline=26189401867488, FrameStartTime=26190127573206, FrameInterval=16666666, WorkloadTarget=16666666, AnimationTime=26190118534126, SyncQueued=26190139691171, SyncStart=26190155625883, IssueDrawCommandsStart=26190158746942, SwapBuffers=26190161799439, FrameCompleted=26190175213484, DequeueBufferDuration=2094, QueueBufferDuration=164803, GpuCompleted=26190175213484, SwapBuffersCompleted=26190163474059, DisplayPresentTime=131941754223747, CommandSubmissionCompleted=26190161799439, 
+I/m140.est( 9335): Found 49 zoom mappings
+I/m140.est( 9335): Zoom tables loaded
+I/m140.eys( 9335): Current epoch is now 791
+I/m140.dtv( 9335): requestDrawingConfig for epoch 791 legend ROADMAP
+E/m140.fbb( 9335): referer is null for url=https://www.google.com/maps/vt/sxforms?v=b3797e58d72bb5fc8fbd3a22f7ec7d2a
+E/m140.fbb( 9335): referer is null for url=https://www.gstatic.com/maps/res/CompactLegend-Roadmap-EnhancedNavStyleHoldbackForGeoD-b3797e58d72bb5fc8fbd3a22f7ec7d2a
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/m140.exi( 9335): GMM_VECTOR_BASE - Network fetching should be not allowed.
+W/.messfinder.app( 9335): JNI critical lock held for 24.476ms on Thread[101,tid=9667,Runnable,Thread*=0x780216eeeba0,peer=0x26d6590,"androidmapsapi-Network_3"]
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 2277KB AllocSpace bytes, 23(1132KB) LOS objects, 15% free, 12MB/14MB, paused 250us,5.326ms total 260.385ms
+I/.messfinder.app( 9335): IncrementDisableThreadFlip blocked for 7.398ms
+I/.messfinder.app( 9335): Background concurrent mark compact GC freed 1207KB AllocSpace bytes, 5(984KB) LOS objects, 49% free, 13MB/26MB, paused 7.295ms,7.291ms total 204.137ms
+I/Choreographer( 9335): Skipped 71 frames!  The application may be doing too much work on its main thread.
+E/GoogleApiManager( 9335): Failed to get service from broker. 
+E/GoogleApiManager( 9335): java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3392)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.createException(Parcel.java:3376)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3359)
+E/GoogleApiManager( 9335): 	at android.os.Parcel.readException(Parcel.java:3301)
+E/GoogleApiManager( 9335): 	at blva.a(:com.google.android.gms@263032038@26.30.32 (260800-956658866):36)
+E/GoogleApiManager( 9335): 	at blst.y(:com.google.android.gms@263032038@26.30.32 (260800-956658866):144)
+E/GoogleApiManager( 9335): 	at bkyp.run(:com.google.android.gms@263032038@26.30.32 (260800-956658866):42)
+E/GoogleApiManager( 9335): 	at android.os.Handler.handleCallback(Handler.java:1095)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessageImpl(Handler.java:135)
+E/GoogleApiManager( 9335): 	at android.os.Handler.dispatchMessage(Handler.java:125)
+E/GoogleApiManager( 9335): 	at dgqz.lJ(:com.google.android.gms@263032038@26.30.32 (260800-956658866):1)
+E/GoogleApiManager( 9335): 	at dgqz.dispatchMessage(:com.google.android.gms@263032038@26.30.32 (260800-956658866):5)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loopOnce(Looper.java:296)
+E/GoogleApiManager( 9335): 	at android.os.Looper.loop(Looper.java:397)
+E/GoogleApiManager( 9335): 	at android.os.HandlerThread.run(HandlerThread.java:139)
+W/GoogleApiManager( 9335): Not showing notification since connectionResult is not user-facing: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null, clientMethodKey=null}
+I/m140.eyn( 9335): styleTableCache inserted: 791 ROADMAP https://www.gstatic.com/maps/res/CompactLegend-Roadmap-EnhancedNavStyleHoldbackForGeoD-b3797e58d72bb5fc8fbd3a22f7ec7d2a
+I/flutter ( 9335): Γ£à [FCM] Subscribed to topic: bachelor
+I/m140.dtv( 9335): Network fetching: true
+D/InsetsController( 9335): hide(ime())
+I/ImeTracker( 9335): com.messfinder.app:e95f4e0d: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+I/.messfinder.app( 9335): ThreadFlipBegin blocked for 9.438ms
+I/.messfinder.app( 9335): IncrementDisableThreadFlip blocked for 20.572ms
+I/Choreographer( 9335): Skipped 33 frames!  The application may be doing too much work on its main thread.
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 3220KB AllocSpace bytes, 54(2364KB) LOS objects, 15% free, 22MB/26MB, paused 2.376ms,20.384ms total 306.592ms
+E/m140.fbb( 9335): referer is null for url=https://www.gstatic.com/maps/res/CompactLegend-RoadmapDark-EnhancedNavStyleHoldbackForGeoD-b3797e58d72bb5fc8fbd3a22f7ec7d2a
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 2153KB AllocSpace bytes, 6(1332KB) LOS objects, 14% free, 22MB/26MB, paused 395us,19.904ms total 329.103ms
+I/Choreographer( 9335): Skipped 38 frames!  The application may be doing too much work on its main thread.
+I/Choreographer( 9335): Skipped 32 frames!  The application may be doing too much work on its main thread.
+W/.messfinder.app( 9335): Suspending all threads took: 45.272ms
+I/.messfinder.app( 9335): ThreadFlipBegin blocked for 25.916ms
+I/.messfinder.app( 9335): IncrementDisableThreadFlip blocked for 27.883ms
+I/.messfinder.app( 9335): IncrementDisableThreadFlip blocked for 35.894ms
+I/.messfinder.app( 9335): IncrementDisableThreadFlip blocked for 70.199ms
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 2947KB AllocSpace bytes, 7(1048KB) LOS objects, 0% free, 28MB/28MB, paused 56.233ms,18.319ms total 454.974ms
+W/.messfinder.app( 9335): Suspending all threads took: 31.919ms
+I/.messfinder.app( 9335): Background concurrent mark compact GC freed 3219KB AllocSpace bytes, 31(10228KB) LOS objects, 47% free, 26MB/50MB, paused 33.015ms,23.619ms total 784.425ms
+I/m140.cbt( 9335): Initial labeling completed.
+I/.messfinder.app( 9335): Compiler allocated 5127KB to compile void m140.eoa.W(m140.esq, m140.fmu, android.content.res.Resources, m140.eqg, m140.fbi, boolean, m140.dkj, java.util.Map, boolean, boolean, boolean, boolean, boolean)
+I/.messfinder.app( 9335): Compiler allocated 4796KB to compile void m140.ehs.c(m140.dky, m140.egk, m140.ejs, m140.eqr, boolean)
+W/.messfinder.app( 9335): Suspending all threads took: 11.298ms
+I/.messfinder.app( 9335): Background young concurrent mark compact GC freed 7736KB AllocSpace bytes, 99(9996KB) LOS objects, 46% free, 26MB/50MB, paused 13.843ms,8.961ms total 275.835ms
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+E/ConsumerBase( 9335): [ImageReader-1x1f22m7-9335-0] abandonLocked: ConsumerBase is abandoned!
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): io.flutter.embedding.android.FlutterActivity$1@9d36ede
+D/WindowOnBackDispatcher( 9335): setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@6528d6a
