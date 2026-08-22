@@ -88,8 +88,23 @@ app.post("/api/send", async (req, res) => {
 
         if (fcmToken) {
           message.token = fcmToken;
-          const response = await admin.messaging().send(message);
-          return res.status(200).json({ success: true, response });
+          try {
+            const response = await admin.messaging().send(message);
+            return res.status(200).json({ success: true, response });
+          } catch (sendError) {
+            if (
+              sendError.code === "messaging/registration-token-not-registered" ||
+              sendError.code === "messaging/invalid-registration-token"
+            ) {
+              console.log(`Removing invalid token for user ${receiverUid}`);
+              await admin
+                .firestore()
+                .collection("users")
+                .doc(receiverUid)
+                .update({ fcmToken: admin.firestore.FieldValue.delete() });
+            }
+            throw sendError;
+          }
         } else {
           return res
             .status(404)

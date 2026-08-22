@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
@@ -235,6 +236,22 @@ class PostController extends GetxController {
     hasMorePosts.value = true;
     currentPage = 1;
     lastDocument = null;
+    
+    // 1. Try to load from local cache first to show immediately
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cachedData = prefs.getString('cached_feed_posts');
+      if (cachedData != null && allPosts.isEmpty) {
+        final List<dynamic> decoded = jsonDecode(cachedData);
+        final List<PostModel> cachedPosts = decoded.map((e) => PostModel.fromMap(e, e['post_id']?.toString() ?? '')).toList();
+        allPosts.assignAll(cachedPosts);
+        _updateSavedPostsList();
+        isLoading.value = false; // Show UI immediately if we have cached data
+      }
+    } catch (e) {
+      AppLogger.e('Error loading cached posts: $e', e, null, 'POST_CTRL');
+    }
+
     final result = await _postRepo.getPaginatedPosts(
       limit: postLimit,
       page: 1,
@@ -252,7 +269,19 @@ class PostController extends GetxController {
       hasMorePosts.value = false;
     }
 
-    allPosts.assignAll(fetchedPosts);
+    if (fetchedPosts.isNotEmpty) {
+      allPosts.assignAll(fetchedPosts);
+      
+      // 2. Save fetched posts to local cache
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final encodedData = jsonEncode(fetchedPosts.map((e) => e.toMap()).toList());
+        await prefs.setString('cached_feed_posts', encodedData);
+      } catch (e) {
+        AppLogger.e('Error saving posts to cache: $e', e, null, 'POST_CTRL');
+      }
+    }
+    
     _updateSavedPostsList();
     isLoading.value = false;
   }

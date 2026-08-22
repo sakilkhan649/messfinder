@@ -204,12 +204,31 @@ class ChatScreen extends StatelessWidget {
               }
 
               return ListView.builder(
+                controller: _chatController.messageScrollController,
                 reverse: true,
                 physics: const BouncingScrollPhysics(),
                 padding:
                     EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
-                itemCount: messages.length + 1,
+                itemCount: messages.length + 2,
                 itemBuilder: (context, index) {
+                  if (index == messages.length + 1) {
+                    return Obx(() {
+                      if (_chatController.isFetchingMoreMessages.value) {
+                        return Padding(
+                          padding: EdgeInsets.symmetric(vertical: 16.h),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFF059669)),
+                            ),
+                          ),
+                        );
+                      }
+                      return const SizedBox.shrink();
+                    });
+                  }
+
                   if (index == messages.length) {
                     return _buildTopProfileHeader(context);
                   }

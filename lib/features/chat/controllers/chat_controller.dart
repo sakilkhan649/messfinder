@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
@@ -43,6 +45,13 @@ class ChatController extends GetxController {
   final RxString searchQuery = ''.obs;
   final ScrollController chatListScrollController = ScrollController();
 
+  // Pagination for Chat Messages
+  int _messageOffset = 0;
+  final int _messageLimit = 50;
+  final RxBool hasMoreMessages = true.obs;
+  final RxBool isFetchingMoreMessages = false.obs;
+  final ScrollController messageScrollController = ScrollController();
+
   String? _currentActiveChatId;
   String? get currentActiveChatId => _currentActiveChatId;
 
@@ -52,6 +61,7 @@ class ChatController extends GetxController {
     _initSocket();
     fetchChatRooms();
     chatListScrollController.addListener(_onChatListScroll);
+    messageScrollController.addListener(_onMessageScroll);
   }
 
   @override
@@ -60,6 +70,7 @@ class ChatController extends GetxController {
     _socket?.dispose();
     searchController.dispose();
     chatListScrollController.dispose();
+    messageScrollController.dispose();
     super.onClose();
   }
 
@@ -68,6 +79,15 @@ class ChatController extends GetxController {
         !isFetchingMoreRooms.value &&
         hasMoreRooms.value) {
       fetchChatRooms(isLoadMore: true);
+    }
+  }
+
+  void _onMessageScroll() {
+    if (messageScrollController.position.pixels >= messageScrollController.position.maxScrollExtent - 200 &&
+        !isFetchingMoreMessages.value &&
+        hasMoreMessages.value &&
+        _currentActiveChatId != null) {
+      loadMoreMessages(_currentActiveChatId!);
     }
   }
 
@@ -164,6 +184,20 @@ class ChatController extends GetxController {
     } else {
       if (!isRefresh) isLoadingRooms.value = true;
     }
+    
+    if (!isLoadMore && _roomPage == 1) {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final cached = prefs.getString('cached_chat_rooms');
+        if (cached != null && chatRooms.isEmpty) {
+          final List<dynamic> decoded = jsonDecode(cached);
+          chatRooms.assignAll(decoded.map((e) => ChatRoomModel.fromMap(e)).toList());
+          isLoadingRooms.value = false;
+        }
+      } catch (e) {
+        AppLogger.e('Cache error chat rooms: $e', e, null, 'CHAT_CTRL');
+      }
+    }
 
     try {
       final response = await _apiService.dio.get('/chats', queryParameters: {
@@ -177,6 +211,10 @@ class ChatController extends GetxController {
 
         if (isRefresh || (!isLoadMore && _roomPage == 1)) {
           chatRooms.assignAll(newRooms);
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString('cached_chat_rooms', jsonEncode(data));
+          } catch (_) {}
         } else {
           chatRooms.addAll(newRooms);
         }
@@ -197,19 +235,78 @@ class ChatController extends GetxController {
 
   Future<void> fetchMessages(String chatId) async {
     isLoadingMessages.value = true;
+    hasMoreMessages.value = true;
+    _messageOffset = 0;
     currentMessages.clear();
+    
+    // Load from cache first
     try {
-      final response = await _apiService.dio.get('/chats/$chatId/messages');
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString('cached_messages_$chatId');
+      if (cached != null) {
+        final List<dynamic> decoded = jsonDecode(cached);
+        final msgs = decoded.map((e) => MessageModel.fromMap(e)).toList();
+        currentMessages.assignAll(msgs.reversed.toList());
+        isLoadingMessages.value = false;
+      }
+    } catch (e) {
+      AppLogger.e('Cache error messages: $e', e, null, 'CHAT_CTRL');
+    }
+
+    try {
+      final response = await _apiService.dio.get('/chats/$chatId/messages', queryParameters: {
+        'limit': _messageLimit,
+        'offset': _messageOffset,
+      });
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
-        // Backend returns oldest first, but chat UI needs newest first
         currentMessages.assignAll(msgs.reversed.toList());
+        
+        if (msgs.length < _messageLimit) {
+          hasMoreMessages.value = false;
+        } else {
+          _messageOffset += _messageLimit;
+        }
+        
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('cached_messages_$chatId', jsonEncode(data));
+        } catch (_) {}
       }
     } catch (e) {
       AppLogger.e('Failed to fetch messages: $e', e, null, 'CHAT_CTRL');
     } finally {
       isLoadingMessages.value = false;
+    }
+  }
+
+  Future<void> loadMoreMessages(String chatId) async {
+    if (isFetchingMoreMessages.value || !hasMoreMessages.value) return;
+    isFetchingMoreMessages.value = true;
+    
+    try {
+      final response = await _apiService.dio.get('/chats/$chatId/messages', queryParameters: {
+        'limit': _messageLimit,
+        'offset': _messageOffset,
+      });
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
+        
+        if (msgs.length < _messageLimit) {
+          hasMoreMessages.value = false;
+        } else {
+          _messageOffset += _messageLimit;
+        }
+        
+        // Append to existing (since reversed, we add to the end of the currentMessages list)
+        currentMessages.addAll(msgs.reversed.toList());
+      }
+    } catch (e) {
+      AppLogger.e('Failed to load more messages: $e', e, null, 'CHAT_CTRL');
+    } finally {
+      isFetchingMoreMessages.value = false;
     }
   }
 
