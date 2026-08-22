@@ -47,6 +47,11 @@
             android:name="flutterEmbedding"
             android:value="2" />
         
+        <!-- Disable Impeller for Android Emulator Crash Fix -->
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
+        
         <!-- Google Maps API Key Placeholder -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
