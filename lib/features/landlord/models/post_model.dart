@@ -135,6 +135,8 @@ class PostModel {
   /// JSON-safe map for REST API (Dio/PostgreSQL)
   Map<String, dynamic> toMap() {
     return {
+      'post_id': postId,
+      'owner_uid': ownerUid,
       'title': title,
       'rent': rent,
       'address': address,
@@ -150,7 +152,7 @@ class PostModel {
       'preferredTenant': preferredTenant,
       'facilities': facilities,
       'isAvailable': isAvailable,
-      // NOTE: createdAt is omitted — backend sets it via CURRENT_TIMESTAMP
+      'created_at': createdAt?.toIso8601String(),
       'ownerPhone': ownerPhone,
       'paymentStatus': paymentStatus,
       'isPublished': isPublished,
