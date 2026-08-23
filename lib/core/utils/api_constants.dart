@@ -23,6 +23,7 @@ class ApiConstants {
   static const String authSendResetOtp = '/auth/send-reset-otp';
   static const String authVerifyResetOtp = '/auth/verify-reset-otp';
   static const String authResetPasswordWithOtp = '/auth/reset-password-with-otp';
+  static const String authUpdateFcmToken = '/auth/fcm-token';
   static const String authChangePassword = '/auth/change-password';
   static const String authDeleteAccount = '/auth/profile';
 
@@ -96,9 +97,9 @@ class ApiConstants {
   static String bookingReject(String bookingId) => '/bookings/$bookingId/reject';
   static String bookingDelete(String bookingId) => '/bookings/$bookingId';
 
-  // ─── Push Notification Endpoints (Vercel Backend) ─────────────────────────
+  // ─── Push Notification Endpoints (Main Backend) ─────────────────────────
   static const String sendPushNotification = '/notifications/send';
-  static const String sendPushNotificationUrl = '$vercelBackendUrl/api/notifications/send';
+  static const String sendPushNotificationUrl = '$apiBaseUrl/notifications/send';
 
   // ─── Socket.IO Events ────────────────────────────────────────────────────
   // Rooms & Connection

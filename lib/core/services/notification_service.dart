@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:mess_finder/core/services/api_service.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
@@ -188,15 +189,16 @@ class NotificationService {
     }
   }
 
-  Future<void> saveTokenToFirestore(String uid) async {
+  Future<void> saveTokenToBackend() async {
     try {
       final token = await getToken();
       if (token != null) {
-        await _firestore.collection('users').doc(uid).set({
-          'fcmToken': token,
-          'tokenUpdatedAt': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
-        debugPrint('✅ [FCM] Token saved for user: $uid');
+        final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+        await apiService.dio.put(
+          ApiConstants.authUpdateFcmToken,
+          data: {'fcmToken': token},
+        );
+        debugPrint('✅ [FCM] Token saved to backend successfully');
       }
     } catch (e) {
       debugPrint('❌ [FCM] Token save error: $e');
@@ -251,12 +253,12 @@ class NotificationService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('✅ [Vercel] Push sent successfully');
+        debugPrint('✅ [MainBackend] Push sent successfully');
       } else {
-        debugPrint('❌ [Vercel] Push failed: ${response.body}');
+        debugPrint('❌ [MainBackend] Push failed: ${response.body}');
       }
     } catch (e) {
-      debugPrint('❌ [Vercel] sendPush error: $e');
+      debugPrint('❌ [MainBackend] sendPush error: $e');
     }
   }
 

@@ -20,6 +20,7 @@ router.get('/user/:uid', authController.getUserById);
 // Protected routes
 router.get('/profile', authMiddleware, authController.getProfile);
 router.put('/profile', authMiddleware, authController.updateProfile);
+router.put('/fcm-token', authMiddleware, authController.updateFcmToken);
 router.put('/change-password', authMiddleware, authController.changePassword);
 router.delete('/profile', authMiddleware, authController.deleteAccount);
 

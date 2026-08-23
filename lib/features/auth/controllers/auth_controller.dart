@@ -189,8 +189,8 @@ class AuthController extends GetxController {
 
   Future<void> _setupNotificationsForUser(UserModel user) async {
     final notifService = NotificationService();
-    // Save FCM token to Firestore
-    await notifService.saveTokenToFirestore(user.uid);
+    // Save FCM token to backend
+    await notifService.saveTokenToBackend();
     // Subscribe to topic for broadcast notifications
     await notifService.subscribeToTopic('all_users');
     if (user.role.isNotEmpty) {

@@ -286,6 +286,24 @@ exports.updateProfile = async (req, res) => {
   }
 };
 
+// Update FCM Token
+exports.updateFcmToken = async (req, res) => {
+  const { fcmToken } = req.body;
+  if (!fcmToken) {
+    return res.status(400).json({ error: 'fcmToken is required' });
+  }
+  try {
+    await pool.query(
+      'UPDATE users SET fcm_token = $1, updated_at = CURRENT_TIMESTAMP WHERE uid = $2',
+      [fcmToken, req.user.uid]
+    );
+    res.status(200).json({ message: 'FCM Token updated successfully' });
+  } catch (error) {
+    console.error('Update FCM Token error:', error);
+    res.status(500).json({ error: 'Failed to update FCM Token' });
+  }
+};
+
 // ─── Password Reset with Email OTP ──────────────────────────────────────────
 
 // Step 1: Send Reset OTP to Email
