@@ -90,7 +90,7 @@ class PostController extends GetxController {
         final data = Map<String, dynamic>.from(res.data);
         final userObj = data['user'] ?? data['data'] ?? data; // Handle if wrapped in 'user' or 'data' object
         String? photo = userObj['profile_image'] ?? userObj['photoUrl'];
-        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost')) {
+        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost') && !photo.contains('10.0.2.2')) {
           photo = photo.replaceFirst('http://', 'https://');
         }
         final map = {
