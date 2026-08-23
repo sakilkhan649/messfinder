@@ -14,7 +14,7 @@ import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
-import 'package:mess_finder/features/chat/views/widgets/incoming_call_dialog.dart';
+import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
 
 enum CallState { idle, outgoing, incoming, connected, ended }
 
@@ -150,25 +150,26 @@ class CallController extends GetxController {
         payload: currentChannel,
       );
 
-      Get.dialog(
-        IncomingCallDialog(
+      Get.to(
+        () => IncomingCallScreen(
           callerName: peerUserName,
           callerPhoto: peerUserPhoto,
           isVideo: isVideoCall.value,
           onAccept: () {
             _stopRingtone();
             NotificationService().cancelCallNotification();
-            Get.back();
+            Get.back(); // close incoming call screen
             acceptCall();
           },
           onDecline: () {
             _stopRingtone();
             NotificationService().cancelCallNotification();
-            Get.back();
+            Get.back(); // close incoming call screen
             rejectCall();
           },
         ),
-        barrierDismissible: false,
+        transition: Transition.fadeIn,
+        routeName: '/IncomingCallScreen',
       );
     });
 
@@ -417,7 +418,7 @@ class CallController extends GetxController {
 
     _cleanupCall();
 
-    if (Get.currentRoute == '/CallScreen' || Get.isDialogOpen == true) {
+    if (Get.currentRoute == '/CallScreen' || Get.currentRoute == '/IncomingCallScreen' || Get.isDialogOpen == true) {
       Get.back();
     }
   }
@@ -428,7 +429,7 @@ class CallController extends GetxController {
       _engine = createAgoraRtcEngine();
       await _engine!.initialize(RtcEngineContext(
         appId: agoraAppId,
-        channelProfile: ChannelProfileType.channelProfileCommunication,
+        channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
       ));
 
       _engine!.registerEventHandler(
@@ -470,7 +471,7 @@ class CallController extends GetxController {
         uid: 0,
         options: ChannelMediaOptions(
           clientRoleType: ClientRoleType.clientRoleBroadcaster,
-          channelProfile: ChannelProfileType.channelProfileCommunication,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
           publishCameraTrack: isVideo,
           publishMicrophoneTrack: true,
           autoSubscribeAudio: true,
