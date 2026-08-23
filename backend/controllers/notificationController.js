@@ -11,8 +11,15 @@ function initFirebase() {
   
   try {
     const serviceAccountPath = path.join(__dirname, '..', 'config', 'firebase-service-account.json');
+    let serviceAccount;
+    
     if (fs.existsSync(serviceAccountPath)) {
-      const serviceAccount = require(serviceAccountPath);
+      serviceAccount = require(serviceAccountPath);
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    }
+
+    if (serviceAccount) {
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
@@ -20,7 +27,7 @@ function initFirebase() {
       console.log('Firebase Admin initialized successfully.');
       return true;
     } else {
-      console.error('Firebase Admin initialization failed: firebase-service-account.json not found in config/ directory.');
+      console.error('Firebase Admin initialization failed: firebase-service-account.json not found, and FIREBASE_SERVICE_ACCOUNT env var is missing.');
       return false;
     }
   } catch (error) {
