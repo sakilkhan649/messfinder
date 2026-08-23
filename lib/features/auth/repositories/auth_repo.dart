@@ -83,12 +83,17 @@ class AuthRepository {
         );
         AppLogger.s('Login successful', tag: 'AUTH_REPO');
         
+        String? photo = userJson['profile_image'] ?? userJson['photoUrl'];
+        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost')) {
+          photo = photo.replaceFirst('http://', 'https://');
+        }
+        
         return UserModel(
           uid: userJson['uid'],
           name: userJson['name'],
           phone: userJson['phone'] ?? '',
           role: userJson['role'] ?? 'bachelor',
-          photoUrl: userJson['profile_image'] ?? userJson['photoUrl'],
+          photoUrl: photo,
           isPaid: true, // 🆓 Free Launch
           createdAt: DateTime.parse(userJson['created_at']),
         );
@@ -281,7 +286,8 @@ class AuthRepository {
       // In our Node backend, the profile route fetches using the token
       final response = await _apiService.dio.get('/auth/profile');
       if (response.statusCode == 200 && response.data != null) {
-        final data = Map<String, dynamic>.from(response.data);
+        final rawData = Map<String, dynamic>.from(response.data);
+        final data = rawData['user'] ?? rawData['data'] ?? rawData;
         return UserModel.fromMap(data, data['uid']?.toString() ?? '');
       }
       return null;

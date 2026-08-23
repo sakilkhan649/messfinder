@@ -37,6 +37,14 @@ class UserModel {
       return null;
     }
 
+    String? fixUrl(String? url) {
+      if (url == null || url.isEmpty) return null;
+      if (url.startsWith('http://') && !url.contains('localhost')) {
+        return url.replaceFirst('http://', 'https://');
+      }
+      return url;
+    }
+
     return UserModel(
       uid: docId.isNotEmpty ? docId : (map['uid']?.toString() ?? ''),
       name: map['name'] ?? map['userName'] ?? map['displayName'] ?? '',
@@ -47,7 +55,7 @@ class UserModel {
       isPaid: true, // 🆓 Free Launch: always true. Note: restore → map['isPaid'] ?? (map['status'] == 'active')
       trxId: map['trxId'] ?? map['paymentTrxId'],
       createdAt: parseDate(map['created_at'] ?? map['createdAt']),
-      photoUrl: map['profile_image'] ?? map['photoUrl'],
+      photoUrl: fixUrl(map['profile_image'] ?? map['photoUrl']),
     );
   }
 

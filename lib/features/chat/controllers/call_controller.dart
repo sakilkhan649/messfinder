@@ -87,10 +87,17 @@ class CallController extends GetxController {
 
     _socket?.onConnect((_) {
       AppLogger.i('Call signaling socket connected for $currentUid', tag: 'CALL_CTRL');
+      // Ensure backend routes calls correctly by joining personal user room
+      _socket?.emit(ApiConstants.socketJoinUserRoom, currentUid);
     });
 
     // 1. Incoming Call Listener
     _socket?.on('incoming_call', (data) {
+      // Ignore if I am the caller (backend might be broadcasting)
+      if (data['callerId'] == currentUid) {
+        return;
+      }
+
       if (callState.value != CallState.idle) {
         // User is currently busy on another active call!
         _socket?.emit('reject_call', {

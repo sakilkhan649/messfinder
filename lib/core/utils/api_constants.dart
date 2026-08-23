@@ -10,8 +10,8 @@ class ApiConstants {
   static const String osmGeocodingUrl = 'https://nominatim.openstreetmap.org';
 
   // ─── Timeout Durations ───────────────────────────────────────────────────
-  static const int connectionTimeout = 30; // 30 seconds
-  static const int receiveTimeout = 30;
+  static const int connectionTimeout = 60; // 60 seconds
+  static const int receiveTimeout = 60;
 
   // ─── Authentication Endpoints (/api/auth) ────────────────────────────────
   static const String authSignup = '/auth/signup';

@@ -173,7 +173,11 @@ class ChatController extends GetxController {
     _currentActiveChatId = null;
   }
 
+  bool _isFetchingRooms = false;
+
   Future<void> fetchChatRooms({bool isRefresh = false, bool isLoadMore = false}) async {
+    if (_isFetchingRooms) return;
+    
     if (isRefresh) {
       _roomPage = 1;
       hasMoreRooms.value = true;
@@ -184,6 +188,8 @@ class ChatController extends GetxController {
     } else {
       if (!isRefresh) isLoadingRooms.value = true;
     }
+    
+    _isFetchingRooms = true;
     
     if (!isLoadMore && _roomPage == 1) {
       try {
@@ -216,7 +222,12 @@ class ChatController extends GetxController {
             await prefs.setString('cached_chat_rooms', jsonEncode(data));
           } catch (_) {}
         } else {
-          chatRooms.addAll(newRooms);
+          // Prevent duplicates when appending
+          for (var room in newRooms) {
+            if (!chatRooms.any((c) => c.id == room.id)) {
+              chatRooms.add(room);
+            }
+          }
         }
 
         if (newRooms.length < _roomLimit) {
@@ -230,6 +241,7 @@ class ChatController extends GetxController {
     } finally {
       isLoadingRooms.value = false;
       isFetchingMoreRooms.value = false;
+      _isFetchingRooms = false;
     }
   }
 

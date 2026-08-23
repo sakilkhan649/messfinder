@@ -37,7 +37,7 @@ class BachelorHomeScreen extends StatelessWidget {
         },
         child: CustomScrollView(
           controller: postController.feedScrollController,
-          physics: const BouncingScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             SliverAppBar(
               floating: true,
@@ -802,7 +802,17 @@ class BachelorPostCardState extends State<BachelorPostCard> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    final postCtrl = Get.find<PostController>();
+    final cachedData = postCtrl.getLandlordProfileSync(widget.post.ownerUid);
+    
+    if (cachedData != null) {
+      name = cachedData['name'] ?? 'Unknown User';
+      profilePic = cachedData['profile_image'] ?? cachedData['photoUrl'];
+      isPaid = true; // 🆓 Free Launch
+      isLoaded = true;
+    } else {
+      _loadProfile();
+    }
   }
 
   Future<void> _loadProfile() async {
@@ -812,7 +822,7 @@ class BachelorPostCardState extends State<BachelorPostCard> {
       setState(() {
         name = data['name'] ?? 'Unknown User';
         profilePic = data['profile_image'] ?? data['photoUrl'];
-        isPaid = true; // 🆓 Free Launch: always verified
+        isPaid = true;
         isLoaded = true;
       });
     } else if (mounted) {

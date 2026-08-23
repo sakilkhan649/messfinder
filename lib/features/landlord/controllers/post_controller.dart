@@ -40,6 +40,18 @@ class PostController extends GetxController {
   // Future cache to prevent concurrent identical requests
   final Map<String, Future<Map<String, dynamic>?>> _profileFetchFutures = {};
 
+  // Fetch profile synchronously if available in cache or if it is the current user
+  Map<String, dynamic>? getLandlordProfileSync(String uid) {
+    if (Get.isRegistered<AuthController>()) {
+      final auth = Get.find<AuthController>();
+      final user = auth.currentUser.value;
+      if (user != null && user.uid == uid) {
+        return user.toMap();
+      }
+    }
+    return landlordProfilesCache[uid];
+  }
+
   Future<Map<String, dynamic>?> getLandlordProfile(String uid) async {
     // If it's the current user, always return the latest local data
     if (Get.isRegistered<AuthController>()) {
@@ -76,15 +88,19 @@ class PostController extends GetxController {
       final res = await ApiService().dio.get('/auth/user/$uid');
       if (res.statusCode == 200 && res.data != null) {
         final data = Map<String, dynamic>.from(res.data);
-        final photo = data['profile_image'] ?? data['photoUrl'];
+        final userObj = data['user'] ?? data['data'] ?? data; // Handle if wrapped in 'user' or 'data' object
+        String? photo = userObj['profile_image'] ?? userObj['photoUrl'];
+        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost')) {
+          photo = photo.replaceFirst('http://', 'https://');
+        }
         final map = {
-          'uid': data['uid'],
-          'name': data['name'] ?? 'Landlord',
-          'phone': data['phone'] ?? '',
+          'uid': userObj['uid'] ?? uid,
+          'name': userObj['name'] ?? 'Landlord',
+          'phone': userObj['phone'] ?? '',
           'photoUrl': photo,
           'profile_image': photo,
-          'isPaid': data['status'] == 'active' || data['isPaid'] == true,
-          'role': data['role'] ?? 'landlord',
+          'isPaid': userObj['status'] == 'active' || userObj['isPaid'] == true,
+          'role': userObj['role'] ?? 'landlord',
         };
         landlordProfilesCache[uid] = map;
         return map;
@@ -279,6 +295,14 @@ class PostController extends GetxController {
         await prefs.setString('cached_feed_posts', encodedData);
       } catch (e) {
         AppLogger.e('Error saving posts to cache: $e', e, null, 'POST_CTRL');
+      }
+    } else {
+      allPosts.clear();
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.remove('cached_feed_posts');
+      } catch (e) {
+        AppLogger.e('Error clearing cache: $e', e, null, 'POST_CTRL');
       }
     }
     

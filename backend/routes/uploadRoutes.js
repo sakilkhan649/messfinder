@@ -33,7 +33,8 @@ router.post('/', upload.single('file'), (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
 
   const host = req.get('host');
-  const fileUrl = `http://${host}/uploads/${req.file.filename}`;
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
   return res.status(200).json({ url: fileUrl, filename: req.file.filename });
 });
 
@@ -43,8 +44,9 @@ router.post('/multiple', upload.array('files', 10), (req, res) => {
     return res.status(400).json({ error: 'No files uploaded' });
 
   const host = req.get('host');
+  const protocol = host.includes('localhost') ? 'http' : 'https';
   const urls = req.files.map(f => ({
-    url: `http://${host}/uploads/${f.filename}`,
+    url: `${protocol}://${host}/uploads/${f.filename}`,
     filename: f.filename,
   }));
   return res.status(200).json({ urls });
