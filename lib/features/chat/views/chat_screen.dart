@@ -31,7 +31,7 @@ class ChatScreen extends StatelessWidget {
 
   String get _sanitizedUserPhoto {
     String photoUrl = targetUserPhoto ?? '';
-    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost')) {
+    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost') && !photoUrl.contains('10.0.2.2')) {
       return photoUrl.replaceFirst('http://', 'https://');
     }
     return photoUrl;

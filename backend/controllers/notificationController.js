@@ -20,8 +20,9 @@ function initFirebase() {
     }
 
     if (serviceAccount) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
+      const { initializeApp, cert } = require('firebase-admin/app');
+      initializeApp({
+        credential: cert(serviceAccount)
       });
       isFirebaseInitialized = true;
       console.log('Firebase Admin initialized successfully.');
@@ -96,7 +97,8 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
     };
 
     // 3. Send the notification
-    const response = await admin.messaging().send(message);
+    const { getMessaging } = require('firebase-admin/messaging');
+    const response = await getMessaging().send(message);
     console.log('Successfully sent internal push message:', response);
     return { success: true, messageId: response };
   } catch (error) {

@@ -25,7 +25,7 @@ class ChatRoomModel {
         map['profile_image']?.toString() ?? 
         map['photoUrl']?.toString() ?? '';
         
-    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost')) {
+    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost') && !photoUrl.contains('10.0.2.2')) {
       photoUrl = photoUrl.replaceFirst('http://', 'https://');
     }
     
