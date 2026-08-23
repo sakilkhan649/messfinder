@@ -39,7 +39,7 @@ class UserModel {
 
     String? fixUrl(String? url) {
       if (url == null || url.isEmpty) return null;
-      if (url.startsWith('http://') && !url.contains('localhost')) {
+      if (url.startsWith('http://') && !url.contains('localhost') && !url.contains('10.0.2.2')) {
         return url.replaceFirst('http://', 'https://');
       }
       return url;

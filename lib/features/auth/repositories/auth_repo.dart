@@ -84,7 +84,7 @@ class AuthRepository {
         AppLogger.s('Login successful', tag: 'AUTH_REPO');
         
         String? photo = userJson['profile_image'] ?? userJson['photoUrl'];
-        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost')) {
+        if (photo != null && photo.startsWith('http://') && !photo.contains('localhost') && !photo.contains('10.0.2.2')) {
           photo = photo.replaceFirst('http://', 'https://');
         }
         

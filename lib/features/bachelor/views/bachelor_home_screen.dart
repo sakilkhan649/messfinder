@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
@@ -817,11 +818,14 @@ class BachelorPostCardState extends State<BachelorPostCard> {
 
   Future<void> _loadProfile() async {
     final postCtrl = Get.find<PostController>();
+    debugPrint('DEBUG [_loadProfile]: Fetching for ${widget.post.ownerUid}');
     final data = await postCtrl.getLandlordProfile(widget.post.ownerUid);
+    debugPrint('DEBUG [_loadProfile]: Result for ${widget.post.ownerUid} = $data');
     if (mounted && data != null) {
       setState(() {
         name = data['name'] ?? 'Unknown User';
         profilePic = data['profile_image'] ?? data['photoUrl'];
+        debugPrint('DEBUG [_loadProfile]: setState profilePic = $profilePic');
         isPaid = true;
         isLoaded = true;
       });
@@ -876,7 +880,7 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                         backgroundColor: primaryColor.withValues(alpha: 0.1),
                         backgroundImage:
                             profilePic != null && profilePic!.isNotEmpty
-                            ? NetworkImage(profilePic!)
+                            ? CachedNetworkImageProvider(profilePic!)
                             : null,
                         child: profilePic == null || profilePic!.isEmpty
                             ? Icon(Icons.person_rounded, color: primaryColor)
