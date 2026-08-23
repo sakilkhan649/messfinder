@@ -9,6 +9,7 @@ import 'package:mess_finder/features/chat/models/chat_room_model.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
 import 'package:mess_finder/features/notifications/views/widgets/notification_bell_action.dart';
 import 'package:mess_finder/core/widgets/profile_avatar_leading.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ChatListScreen extends StatelessWidget {
   const ChatListScreen({super.key});
@@ -244,7 +245,7 @@ class ChatListScreen extends StatelessWidget {
                       radius: 25.r,
                       backgroundColor: const Color(0xFFE2E8F0),
                       backgroundImage: chat.otherUserPhoto.isNotEmpty
-                          ? NetworkImage(chat.otherUserPhoto)
+                          ? CachedNetworkImageProvider(chat.otherUserPhoto)
                           : null,
                       child: chat.otherUserPhoto.isEmpty
                           ? const Icon(Icons.person,

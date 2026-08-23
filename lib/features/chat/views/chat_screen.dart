@@ -273,11 +273,10 @@ class ChatScreen extends StatelessWidget {
             child: CircleAvatar(
               radius: 36.r,
               backgroundColor: const Color(0xFFE2E8F0),
-              backgroundImage:
-                  (targetUserPhoto != null && targetUserPhoto!.isNotEmpty)
-                      ? NetworkImage(targetUserPhoto!)
+              backgroundImage: _sanitizedUserPhoto.isNotEmpty
+                      ? CachedNetworkImageProvider(_sanitizedUserPhoto)
                       : null,
-              child: (targetUserPhoto == null || targetUserPhoto!.isEmpty)
+              child: _sanitizedUserPhoto.isEmpty
                   ? Icon(Icons.person, size: 38.r, color: const Color(0xFF94A3B8))
                   : null,
             ),
@@ -360,11 +359,10 @@ class ChatScreen extends StatelessWidget {
             CircleAvatar(
               radius: 14.r,
               backgroundColor: const Color(0xFFE2E8F0),
-              backgroundImage: (targetUserPhoto != null &&
-                      targetUserPhoto!.isNotEmpty)
-                  ? NetworkImage(targetUserPhoto!)
+              backgroundImage: _sanitizedUserPhoto.isNotEmpty
+                  ? CachedNetworkImageProvider(_sanitizedUserPhoto)
                   : null,
-              child: (targetUserPhoto == null || targetUserPhoto!.isEmpty)
+              child: _sanitizedUserPhoto.isEmpty
                   ? const Icon(Icons.person, size: 16, color: Color(0xFF94A3B8))
                   : null,
             ),

@@ -8,7 +8,7 @@ app.use(express.json());
 
 // Firebase Admin initialization is moved inside the endpoint for better error handling
 
-app.post("/api/send", async (req, res) => {
+app.post("/api/notifications/send", async (req, res) => {
   const { receiverUid, title, body, type, relatedId } = req.body;
 
   if (!receiverUid) {

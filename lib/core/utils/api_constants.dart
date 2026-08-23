@@ -98,7 +98,7 @@ class ApiConstants {
 
   // ─── Push Notification Endpoints (Vercel Backend) ─────────────────────────
   static const String sendPushNotification = '/notifications/send';
-  static const String sendPushNotificationUrl = '$apiBaseUrl/notifications/send';
+  static const String sendPushNotificationUrl = '$vercelBackendUrl/api/notifications/send';
 
   // ─── Socket.IO Events ────────────────────────────────────────────────────
   // Rooms & Connection
