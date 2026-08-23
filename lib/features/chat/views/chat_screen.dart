@@ -29,6 +29,14 @@ class ChatScreen extends StatelessWidget {
     this.initialMessage,
   });
 
+  String get _sanitizedUserPhoto {
+    String photoUrl = targetUserPhoto ?? '';
+    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost')) {
+      return photoUrl.replaceFirst('http://', 'https://');
+    }
+    return photoUrl;
+  }
+
   ChatScreenController get _screenController =>
       Get.find<ChatScreenController>(tag: chatRoomId);
   ChatController get _chatController => Get.find<ChatController>();
@@ -64,12 +72,10 @@ class ChatScreen extends StatelessWidget {
                   CircleAvatar(
                     radius: 19.r,
                     backgroundColor: Colors.white.withValues(alpha: 0.2),
-                    backgroundImage: (targetUserPhoto != null &&
-                            targetUserPhoto!.isNotEmpty)
-                        ? NetworkImage(targetUserPhoto!)
+                    backgroundImage: _sanitizedUserPhoto.isNotEmpty
+                        ? CachedNetworkImageProvider(_sanitizedUserPhoto)
                         : null,
-                    child: (targetUserPhoto == null ||
-                            targetUserPhoto!.isEmpty)
+                    child: _sanitizedUserPhoto.isEmpty
                         ? const Icon(Icons.person,
                             size: 20, color: Colors.white)
                         : null,
@@ -131,7 +137,7 @@ class ChatScreen extends StatelessWidget {
               CallController.to.makeCall(
                 targetUserId: targetUserId,
                 targetUserName: targetUserName,
-                targetUserPhoto: targetUserPhoto,
+                targetUserPhoto: _sanitizedUserPhoto,
                 isVideo: false,
               );
             },
@@ -144,7 +150,7 @@ class ChatScreen extends StatelessWidget {
               CallController.to.makeCall(
                 targetUserId: targetUserId,
                 targetUserName: targetUserName,
-                targetUserPhoto: targetUserPhoto,
+                targetUserPhoto: _sanitizedUserPhoto,
                 isVideo: true,
               );
             },

@@ -1,0 +1,115 @@
+const admin = require('firebase-admin');
+const pool = require('../config/db');
+const path = require('path');
+const fs = require('fs');
+
+// Initialize Firebase Admin lazily to prevent crashing if the key is missing
+let isFirebaseInitialized = false;
+
+function initFirebase() {
+  if (isFirebaseInitialized) return true;
+  
+  try {
+    const serviceAccountPath = path.join(__dirname, '..', 'config', 'firebase-service-account.json');
+    if (fs.existsSync(serviceAccountPath)) {
+      const serviceAccount = require(serviceAccountPath);
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+      isFirebaseInitialized = true;
+      console.log('Firebase Admin initialized successfully.');
+      return true;
+    } else {
+      console.error('Firebase Admin initialization failed: firebase-service-account.json not found in config/ directory.');
+      return false;
+    }
+  } catch (error) {
+    console.error('Firebase Admin initialization error:', error);
+    return false;
+  }
+}
+
+// Ensure it tries to initialize on startup
+initFirebase();
+
+// Internal function to send push notification from other backend modules (e.g. sockets)
+exports.internalSendPushNotification = async ({ receiverUid, title, body, type, relatedId, senderUid }) => {
+  if (!receiverUid || !title || !body) {
+    return { success: false, error: 'receiverUid, title, and body are required' };
+  }
+
+  // Prevent self notification
+  if (senderUid && senderUid === receiverUid) {
+    return { success: true, message: 'Skipped self notification' };
+  }
+
+  if (!initFirebase()) {
+    return { success: false, error: 'Firebase Admin SDK not configured on server' };
+  }
+
+  try {
+    // 1. Get user's FCM token from PostgreSQL
+    const userRes = await pool.query('SELECT fcm_token FROM users WHERE uid = $1', [receiverUid]);
+    if (userRes.rows.length === 0) {
+      return { success: false, error: 'User not found' };
+    }
+
+    const fcmToken = userRes.rows[0].fcm_token;
+    if (!fcmToken) {
+      return { success: false, error: 'User does not have an FCM token registered' };
+    }
+
+    // 2. Build the payload
+    const message = {
+      token: fcmToken,
+      notification: {
+        title: title,
+        body: body,
+      },
+      data: {
+        type: type || 'general',
+        relatedId: relatedId || '',
+        senderUid: senderUid || '',
+        click_action: 'FLUTTER_NOTIFICATION_CLICK'
+      },
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          channelId: 'high_importance_channel'
+        }
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: 'default'
+          }
+        }
+      }
+    };
+
+    // 3. Send the notification
+    const response = await admin.messaging().send(message);
+    console.log('Successfully sent internal push message:', response);
+    return { success: true, messageId: response };
+  } catch (error) {
+    console.error('Error sending internal push notification:', error);
+    return { success: false, error: 'Failed to send push notification', details: error.message };
+  }
+};
+
+exports.sendPushNotification = async (req, res) => {
+  const { receiverUid, title, body, type, relatedId, senderUid } = req.body;
+  const result = await exports.internalSendPushNotification({ receiverUid, title, body, type, relatedId, senderUid });
+  
+  if (result.success) {
+    return res.status(200).json(result);
+  } else {
+    const statusCode = result.error === 'User not found' || result.error === 'User does not have an FCM token registered' ? 404 
+      : result.error === 'Firebase Admin SDK not configured on server' ? 503 
+      : result.error.includes('required') ? 400 : 500;
+    return res.status(statusCode).json(result);
+  }
+};
+
+

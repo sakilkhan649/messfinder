@@ -20,11 +20,16 @@ class ChatRoomModel {
   });
 
   factory ChatRoomModel.fromMap(Map<String, dynamic> map) {
+    String photoUrl = map['other_user_image']?.toString() ?? '';
+    if (photoUrl.startsWith('http://') && !photoUrl.contains('localhost')) {
+      photoUrl = photoUrl.replaceFirst('http://', 'https://');
+    }
+    
     return ChatRoomModel(
       id: map['chat_id']?.toString() ?? '',
       otherUserUid: map['other_user_uid']?.toString() ?? '',
       otherUserName: map['other_user_name']?.toString() ?? 'Unknown',
-      otherUserPhoto: map['other_user_image']?.toString() ?? '',
+      otherUserPhoto: photoUrl,
       lastMessage: map['last_message']?.toString() ?? '',
       lastMessageTime: map['last_message_time'] != null
           ? DateTime.parse(map['last_message_time'])

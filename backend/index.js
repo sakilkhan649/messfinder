@@ -27,6 +27,7 @@ app.use('/api/chats', require('./routes/chatRoutes'));
 app.use('/api/upload', require('./routes/uploadRoutes'));
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Serve uploaded files as static
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -170,7 +171,7 @@ io.on('connection', (socket) => {
     }
   };
 
-  socket.on('make_call', (data) => {
+  socket.on('make_call', async (data) => {
     // data: { targetUserId, channelName, isVideo, callerId, callerName, callerPhoto }
     const token = generateAgoraToken(data.channelName, 0);
     const payload = { ...data, token };
@@ -182,11 +183,24 @@ io.on('connection', (socket) => {
     if (isTargetOnline) {
       io.to(data.targetUserId).emit('incoming_call', payload);
     } else {
-      console.log(`Target user ${data.targetUserId} is currently offline`);
-      socket.emit('call_user_offline', {
-        targetUserId: data.targetUserId,
-        message: 'User is currently offline'
+      console.log(`Target user ${data.targetUserId} is currently offline over socket`);
+      // Optional: Inform caller immediately that user is offline, but wait to see if push wakes them up
+      // socket.emit('call_user_offline', { targetUserId: data.targetUserId, message: 'User is offline' });
+    }
+
+    // Always send an FCM push notification to wake up the app if it's in the background
+    try {
+      const { internalSendPushNotification } = require('./controllers/notificationController');
+      await internalSendPushNotification({
+        receiverUid: data.targetUserId,
+        title: data.isVideo ? '🎥 Incoming Video Call' : '📞 Incoming Audio Call',
+        body: `Incoming call from ${data.callerName}`,
+        type: 'call',
+        relatedId: data.channelName,
+        senderUid: data.callerId
       });
+    } catch (e) {
+      console.error('Failed to send call push notification:', e);
     }
   });
 

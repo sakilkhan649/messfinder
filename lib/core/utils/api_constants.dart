@@ -97,8 +97,8 @@ class ApiConstants {
   static String bookingDelete(String bookingId) => '/bookings/$bookingId';
 
   // ─── Push Notification Endpoints (Vercel Backend) ─────────────────────────
-  static const String sendPushNotification = '/api/send';
-  static const String sendPushNotificationUrl = '$vercelBackendUrl/api/send';
+  static const String sendPushNotification = '/notifications/send';
+  static const String sendPushNotificationUrl = '$apiBaseUrl/notifications/send';
 
   // ─── Socket.IO Events ────────────────────────────────────────────────────
   // Rooms & Connection
