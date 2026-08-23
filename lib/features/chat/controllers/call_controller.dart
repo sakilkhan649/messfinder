@@ -59,6 +59,17 @@ class CallController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    final authCtrl = Get.find<AuthController>();
+    ever(authCtrl.currentUser, (user) {
+      if (user != null && user.uid.isNotEmpty) {
+        if (_socket == null || _socket?.connected != true) {
+          _initSocketSignaling();
+        }
+      } else {
+        _socket?.disconnect();
+        _socket = null;
+      }
+    });
     _initSocketSignaling();
   }
 
