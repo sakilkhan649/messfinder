@@ -9,6 +9,7 @@ import '../../chat/controllers/chat_controller.dart';
 import '../../chat/views/chat_screen.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../bachelor/views/bachelor_home_screen.dart'; // To access BachelorPostCard
+import '../../landlord/controllers/post_controller.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   final String userId;
@@ -34,10 +35,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Future<void> _loadProfileAndPosts() async {
     try {
-      // Fetch public user profile via REST API
-      final res = await ApiService().dio.get('/auth/user/${widget.userId}');
-      if (res.statusCode == 200 && res.data != null) {
-        final data = res.data;
+      final postCtrl = Get.find<PostController>();
+      final data = await postCtrl.getLandlordProfile(widget.userId);
+      if (data != null) {
         name = data['name'] ?? 'Landlord';
         profilePic = data['profile_image'] ?? data['photoUrl'];
         isPaid = true; // 🆓 Free Launch: always verified
