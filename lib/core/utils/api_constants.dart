@@ -1,7 +1,8 @@
 class ApiConstants {
   // ─── Base URLs ───────────────────────────────────────────────────────────
-  // Server Host & API Base (Change to 'http://10.0.2.2:5000' if you want to test on local emulator)
+  // Server Host & API Base
   static const String serverBaseUrl = 'https://messfinder-backend-production.up.railway.app';
+  // static const String serverBaseUrl = 'http://10.0.2.2:5000'; // Local Emulator testing
   static const String apiBaseUrl = '$serverBaseUrl/api';
   static const String baseUrl = apiBaseUrl; // Backward-compatible alias
 
