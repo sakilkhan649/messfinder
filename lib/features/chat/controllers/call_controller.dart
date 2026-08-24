@@ -487,8 +487,12 @@ class CallController extends GetxController {
       await _engine!.enableAudio();
 
       if (isVideo) {
-        await _engine!.enableVideo();
-        await _engine!.startPreview();
+        try {
+          await _engine!.enableVideo();
+          await _engine!.startPreview();
+        } catch (videoError) {
+          AppLogger.w('Failed to enable video/preview: $videoError', tag: 'CALL_CTRL');
+        }
       }
 
       // Join channel only if we have a token (Caller will join later on call_accepted)
