@@ -262,6 +262,7 @@ class NotificationService {
     String type = '',
     String relatedId = '',
     String senderUid = '',
+    String senderPhotoUrl = '',
   }) async {
     try {
       final vercelUrl = ApiConstants.sendPushNotificationUrl;
@@ -276,6 +277,7 @@ class NotificationService {
           'type': type,
           'relatedId': relatedId,
           'senderUid': senderUid,
+          'senderPhotoUrl': senderPhotoUrl,
         }),
       );
 
@@ -295,6 +297,7 @@ class NotificationService {
     required String title,
     required String body,
     String senderUid = '',
+    String senderPhotoUrl = '',
     Map<String, String> data = const {},
   }) async {
     await sendPush(
@@ -304,6 +307,7 @@ class NotificationService {
       type: data['type'] ?? '',
       relatedId: data['relatedId'] ?? '',
       senderUid: senderUid.isNotEmpty ? senderUid : (data['senderUid'] ?? ''),
+      senderPhotoUrl: senderPhotoUrl,
     );
   }
 

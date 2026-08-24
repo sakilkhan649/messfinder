@@ -56,8 +56,8 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
   }
 
   try {
-    const isTopic = receiverUid.startsWith('topic_');
-    const topicName = isTopic ? receiverUid.replace('topic_', '') : null;
+    const isTopic = receiverUid.startsWith('/topics/');
+    const topicName = isTopic ? receiverUid.replace('/topics/', '') : null;
 
     let fcmToken = null;
     if (!isTopic) {
