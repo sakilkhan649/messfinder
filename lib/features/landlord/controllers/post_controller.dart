@@ -574,6 +574,7 @@ class PostController extends GetxController {
         NotificationService().showLocalNotification(
           title: authorTitle,
           body: authorBody,
+          imageUrl: user.photoUrl,
         );
       } catch (e) {
         // ignore

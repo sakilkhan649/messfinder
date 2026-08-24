@@ -30,7 +30,7 @@ class NotificationService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static const _androidChannel = AndroidNotificationChannel(
-    'messfinder_high_importance_v2',
+    'messfinder_high_importance_v3',
     'MessFinder Notifications',
     description: 'Important notifications from MessFinder',
     importance: Importance.high,
