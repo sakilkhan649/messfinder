@@ -65,7 +65,7 @@ class AddProductController extends GetxController {
 
   Future<void> pickImages() async {
     final ImagePicker picker = ImagePicker();
-    final List<XFile> media = await picker.pickMultipleMedia(imageQuality: 80);
+    final List<XFile> media = await picker.pickMultiImage(imageQuality: 80);
     if (media.isNotEmpty) {
       localImages.addAll(media.map((e) => File(e.path)));
     }
