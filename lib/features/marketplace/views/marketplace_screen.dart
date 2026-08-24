@@ -561,13 +561,17 @@ class ProductCard extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        product.createdAt != null
-                            ? timeago.format(product.createdAt!)
-                            : '',
-                        style: GoogleFonts.poppins(
-                          fontSize: 10.sp,
-                          color: AppTheme.textSecondary,
+                      Expanded(
+                        child: Text(
+                          product.createdAt != null
+                              ? timeago.format(product.createdAt!)
+                              : '',
+                          style: GoogleFonts.poppins(
+                            fontSize: 10.sp,
+                            color: AppTheme.textSecondary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       if (isMyProduct)
