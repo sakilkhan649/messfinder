@@ -47,7 +47,10 @@ class CallScreen extends StatelessWidget {
                       child: AgoraVideoView(
                         controller: VideoViewController.remote(
                           rtcEngine: callCtrl.engine!,
-                          canvas: VideoCanvas(uid: remoteUid),
+                          canvas: VideoCanvas(
+                            uid: remoteUid,
+                            renderMode: RenderModeType.renderModeHidden, // Fills screen
+                          ),
                           connection: RtcConnection(channelId: callCtrl.currentChannel),
                         ),
                       ),
@@ -59,7 +62,10 @@ class CallScreen extends StatelessWidget {
                         child: AgoraVideoView(
                           controller: VideoViewController(
                             rtcEngine: callCtrl.engine!,
-                            canvas: const VideoCanvas(uid: 0),
+                            canvas: const VideoCanvas(
+                              uid: 0,
+                              renderMode: RenderModeType.renderModeHidden, // Fills screen
+                            ),
                           ),
                         ),
                       ),
@@ -301,7 +307,10 @@ class CallScreen extends StatelessWidget {
               child: AgoraVideoView(
                 controller: VideoViewController(
                   rtcEngine: callCtrl.engine!,
-                  canvas: const VideoCanvas(uid: 0),
+                  canvas: const VideoCanvas(
+                    uid: 0,
+                    renderMode: RenderModeType.renderModeHidden, // Fills PiP card
+                  ),
                 ),
               ),
             ),

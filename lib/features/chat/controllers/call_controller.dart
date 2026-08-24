@@ -424,10 +424,16 @@ class CallController extends GetxController {
       _socket?.emit('end_call', {'targetUserId': peerUserId});
     }
 
+    final bool wasRingingOrConnected = callState.value != CallState.idle;
+    
     _cleanupCall();
 
-    if (Get.currentRoute == '/CallScreen' || Get.currentRoute == '/IncomingCallScreen' || Get.isDialogOpen == true) {
-      Get.back();
+    if (wasRingingOrConnected) {
+      // Safely close the call screen without relying on fragile route names
+      if (Get.isSnackbarOpen) {
+        Get.closeCurrentSnackbar();
+      }
+      Get.back(); // Pops the CallScreen or IncomingCallScreen
     }
   }
 
