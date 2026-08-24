@@ -619,14 +619,28 @@ class CallController extends GetxController {
     isEngineReady.value = false;
     callState.value = CallState.idle;
     callStatusText.value = 'Calling...';
+    
+    currentRtcToken = '';
+    currentChannel = '';
+    peerUserId = '';
+    peerUserName = '';
+    peerUserPhoto = null;
 
     NotificationService().cancelCallNotification();
 
-    try {
-      _engine?.leaveChannel();
-      _engine?.release();
-    } catch (_) {}
+    final oldEngine = _engine;
     _engine = null;
+    
+    if (oldEngine != null) {
+      Future.microtask(() async {
+        try {
+          await oldEngine.leaveChannel();
+          await oldEngine.release();
+        } catch (e) {
+          AppLogger.w('Agora cleanup warning: $e', tag: 'CALL_CTRL');
+        }
+      });
+    }
   }
 
   void _logCallToChat({required String status, int duration = 0}) {
