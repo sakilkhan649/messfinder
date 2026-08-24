@@ -1034,10 +1034,11 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                                 Text(
                                   post.bachelorType.toLowerCase() == 'male'
                                       ? 'Male Only'
-                                      : post.bachelorType.toLowerCase() ==
-                                            'female'
-                                      ? 'Female Only'
-                                      : 'Any Bachelor',
+                                      : post.bachelorType.toLowerCase() == 'female'
+                                          ? 'Female Only'
+                                          : post.bachelorType.toLowerCase() == 'family'
+                                              ? 'Family'
+                                              : 'Any Bachelor',
                                   style: GoogleFonts.poppins(
                                     fontSize: 11.sp,
                                     fontWeight: FontWeight.w600,

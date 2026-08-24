@@ -317,13 +317,14 @@ class AddPostScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    Row(
+                    Wrap(
+                      spacing: 10.w,
+                      runSpacing: 10.h,
                       children: [
                         _buildGenderRadio('male', 'Male Only', controller),
-                        SizedBox(width: 10.w),
                         _buildGenderRadio('female', 'Female Only', controller),
-                        SizedBox(width: 10.w),
                         _buildGenderRadio('both', 'Any Bachelor', controller),
+                        _buildGenderRadio('family', 'Family', controller),
                       ],
                     ),
                     SizedBox(height: 18.h),
