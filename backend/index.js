@@ -162,7 +162,7 @@ io.on('connection', (socket) => {
         channelName,
         uid,
         role,
-        expirationTimeInSeconds,
+        privilegeExpiredTs,
         privilegeExpiredTs
       );
     } catch (err) {

@@ -183,6 +183,27 @@ class CallController extends GetxController {
       callState.value = CallState.connected;
       callStatusText.value = 'Connected';
       _startCallTimer();
+      
+      // Join channel now that we have the token (if caller)
+      if (isCaller && currentRtcToken.isNotEmpty) {
+        try {
+          await _engine?.joinChannel(
+            token: currentRtcToken,
+            channelId: currentChannel,
+            uid: 0,
+            options: ChannelMediaOptions(
+              clientRoleType: ClientRoleType.clientRoleBroadcaster,
+              channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+              publishCameraTrack: isVideoCall.value,
+              publishMicrophoneTrack: true,
+              autoSubscribeAudio: true,
+              autoSubscribeVideo: isVideoCall.value,
+            ),
+          );
+        } catch (e) {
+          AppLogger.e('Caller delayed join channel error: $e', e, null, 'CALL_CTRL');
+        }
+      }
     });
 
     // 3. Call Rejected / Busy Listener
@@ -199,6 +220,8 @@ class CallController extends GetxController {
         _logCallToChat(status: isBusy ? 'busy' : 'declined');
       }
 
+      endCall(notifyPeer: false);
+
       Get.snackbar(
         isBusy ? 'Line Busy' : 'Call Declined',
         isBusy
@@ -209,8 +232,6 @@ class CallController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-      
-      endCall(notifyPeer: false);
     });
 
     // 4. Target User Offline Listener
@@ -238,6 +259,8 @@ class CallController extends GetxController {
         );
       }
 
+      endCall(notifyPeer: false);
+
       Get.snackbar(
         'User is Offline',
         '$peerUserName is currently offline. A missed call notification has been sent.',
@@ -246,8 +269,6 @@ class CallController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-
-      endCall(notifyPeer: false);
     });
 
     // 5. Call Ended Listener
@@ -328,6 +349,8 @@ class CallController extends GetxController {
           senderUid: myUid,
         );
 
+        endCall(notifyPeer: true);
+
         Get.snackbar(
           'No Answer',
           '$peerUserName did not answer. A missed call notification has been sent.',
@@ -335,8 +358,6 @@ class CallController extends GetxController {
           backgroundColor: Colors.amber.shade800,
           colorText: Colors.white,
         );
-
-        endCall(notifyPeer: true);
       }
     });
 
@@ -470,20 +491,22 @@ class CallController extends GetxController {
         await _engine!.startPreview();
       }
 
-      // Join channel
-      await _engine!.joinChannel(
-        token: token,
-        channelId: currentChannel,
-        uid: 0,
-        options: ChannelMediaOptions(
-          clientRoleType: ClientRoleType.clientRoleBroadcaster,
-          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-          publishCameraTrack: isVideo,
-          publishMicrophoneTrack: true,
-          autoSubscribeAudio: true,
-          autoSubscribeVideo: isVideo,
-        ),
-      );
+      // Join channel only if we have a token (Caller will join later on call_accepted)
+      if (token.isNotEmpty) {
+        await _engine!.joinChannel(
+          token: token,
+          channelId: currentChannel,
+          uid: 0,
+          options: ChannelMediaOptions(
+            clientRoleType: ClientRoleType.clientRoleBroadcaster,
+            channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+            publishCameraTrack: isVideo,
+            publishMicrophoneTrack: true,
+            autoSubscribeAudio: true,
+            autoSubscribeVideo: isVideo,
+          ),
+        );
+      }
 
       // Set speakerphone safely
       try {

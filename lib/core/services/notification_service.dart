@@ -105,7 +105,7 @@ class NotificationService {
     final type = message.data['type'];
     if (type == 'call') {
       showCallNotification(
-        callerName: message.notification?.title?.split('from ').last ?? 'Someone',
+        callerName: message.notification?.body?.split(' is calling').first ?? 'Someone',
         isVideo: message.notification?.title?.contains('Video') ?? false,
         imageUrl: message.data['senderPhotoUrl'],
         payload: jsonEncode(message.data),
