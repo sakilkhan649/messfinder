@@ -102,11 +102,23 @@ class NotificationService {
       }
     }
 
+    final type = message.data['type'];
+    if (type == 'call') {
+      showCallNotification(
+        callerName: message.notification?.title?.split('from ').last ?? 'Someone',
+        isVideo: message.notification?.title?.contains('Video') ?? false,
+        imageUrl: message.data['senderPhotoUrl'],
+        payload: jsonEncode(message.data),
+      );
+      return;
+    }
+
     if (message.notification != null) {
       showLocalNotification(
         title: message.notification!.title ?? 'MessFinder',
         body: message.notification!.body ?? '',
         payload: jsonEncode(message.data),
+        imageUrl: message.data['senderPhotoUrl'],
       );
     }
   }
@@ -116,8 +128,21 @@ class NotificationService {
     required String title,
     required String body,
     String? payload,
+    String? imageUrl,
     int id = 0,
   }) async {
+    AndroidBitmap<Object>? largeIcon;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        final response = await http.get(Uri.parse(imageUrl));
+        if (response.statusCode == 200) {
+          largeIcon = ByteArrayAndroidBitmap(response.bodyBytes);
+        }
+      } catch (e) {
+        debugPrint('Failed to download notification image: $e');
+      }
+    }
+
     await _localNotifications.show(
       id,
       title,
@@ -130,6 +155,7 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          largeIcon: largeIcon,
           color: const Color(0xFF059669),
           playSound: true,
         ),
@@ -147,6 +173,7 @@ class NotificationService {
   Future<void> showCallNotification({
     required String callerName,
     required bool isVideo,
+    String? imageUrl,
     String? payload,
   }) async {
     await showLocalNotification(
@@ -154,6 +181,7 @@ class NotificationService {
       title: isVideo ? '📹 Incoming Video Call' : '📞 Incoming Audio Call',
       body: '$callerName is calling you...',
       payload: payload,
+      imageUrl: imageUrl,
     );
   }
 

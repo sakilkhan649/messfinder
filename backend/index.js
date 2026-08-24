@@ -197,7 +197,8 @@ io.on('connection', (socket) => {
         body: `Incoming call from ${data.callerName}`,
         type: 'call',
         relatedId: data.channelName,
-        senderUid: data.callerId
+        senderUid: data.callerId,
+        senderPhotoUrl: data.callerPhoto
       });
     } catch (e) {
       console.error('Failed to send call push notification:', e);
