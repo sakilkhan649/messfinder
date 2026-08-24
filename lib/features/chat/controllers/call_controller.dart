@@ -209,9 +209,8 @@ class CallController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 3),
       );
-      Future.delayed(const Duration(seconds: 2), () {
-        endCall();
-      });
+      
+      endCall(notifyPeer: false);
     });
 
     // 4. Target User Offline Listener
@@ -248,9 +247,7 @@ class CallController extends GetxController {
         duration: const Duration(seconds: 3),
       );
 
-      Future.delayed(const Duration(seconds: 3), () {
-        endCall();
-      });
+      endCall(notifyPeer: false);
     });
 
     // 5. Call Ended Listener
@@ -339,9 +336,7 @@ class CallController extends GetxController {
           colorText: Colors.white,
         );
 
-        Future.delayed(const Duration(seconds: 2), () {
-          endCall();
-        });
+        endCall(notifyPeer: true);
       }
     });
 
@@ -430,9 +425,6 @@ class CallController extends GetxController {
 
     if (wasRingingOrConnected) {
       // Safely close the call screen without relying on fragile route names
-      if (Get.isSnackbarOpen) {
-        Get.closeCurrentSnackbar();
-      }
       Get.back(); // Pops the CallScreen or IncomingCallScreen
     }
   }

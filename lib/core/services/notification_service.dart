@@ -130,7 +130,6 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
-          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
           color: const Color(0xFF059669),
           playSound: true,
         ),
