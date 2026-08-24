@@ -306,7 +306,11 @@ class CallController extends GetxController {
     _startOutgoingRingtone();
 
     // 1. Open Call Screen IMMEDIATELY so transition is smooth & instant
-    Get.to(() => const CallScreen());
+    Get.to(
+      () => const CallScreen(),
+      routeName: '/CallScreen',
+      transition: Transition.fadeIn,
+    );
 
     // 2. Initialize Agora in background without blocking UI thread
     _initAgoraEngine(isVideo, token: currentRtcToken);
@@ -385,7 +389,11 @@ class CallController extends GetxController {
     _startCallTimer();
 
     // Open screen immediately
-    Get.to(() => const CallScreen());
+    Get.to(
+      () => const CallScreen(),
+      routeName: '/CallScreen',
+      transition: Transition.fadeIn,
+    );
 
     // Initialize Agora engine
     _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
@@ -542,10 +550,10 @@ class CallController extends GetxController {
   void _startOutgoingRingtone() {
     try {
       FlutterRingtonePlayer().play(
-        android: AndroidSounds.ringtone,
+        android: AndroidSounds.notification,
         ios: IosSounds.glass,
         looping: true,
-        volume: 0.7,
+        volume: 0.3, // Lower volume for outgoing beep
       );
     } catch (e) {
       AppLogger.w('Outgoing ringtone notice: $e', tag: 'CALL_CTRL');

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/call_controller.dart';
@@ -39,21 +40,40 @@ class CallScreen extends StatelessWidget {
             bottom: false,
             child: Stack(
               children: [
-                // ── 1. Video Canvas or Audio Gradient ─────────────────
-                if (isVideo && isConnected && remoteUid != 0 && callCtrl.engine != null && callCtrl.isEngineReady.value)
-                  Positioned.fill(
-                    child: AgoraVideoView(
-                      controller: VideoViewController.remote(
-                        rtcEngine: callCtrl.engine!,
-                        canvas: VideoCanvas(uid: remoteUid),
-                        connection: RtcConnection(channelId: callCtrl.currentChannel),
+                // ── 1. Background (Remote Video, Local Video, or Audio) ──
+                if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value)
+                  if (isConnected && remoteUid != 0)
+                    Positioned.fill(
+                      child: AgoraVideoView(
+                        controller: VideoViewController.remote(
+                          rtcEngine: callCtrl.engine!,
+                          canvas: VideoCanvas(uid: remoteUid),
+                          connection: RtcConnection(channelId: callCtrl.currentChannel),
+                        ),
                       ),
-                    ),
-                  )
+                    )
+                  else
+                    Positioned.fill(
+                      child: Container(
+                        color: Colors.black, // fallback
+                        child: AgoraVideoView(
+                          controller: VideoViewController(
+                            rtcEngine: callCtrl.engine!,
+                            canvas: const VideoCanvas(uid: 0),
+                          ),
+                        ),
+                      ),
+                    )
                 else
                   _buildAudioBackground(callCtrl, isConnected),
 
-                // ── 2. Top Minimal Bar ─────────────────────────────────
+                // ── 2. Caller Info Overlay (For Audio, or Ringing Video) ──
+                if (!isConnected || !isVideo)
+                  Positioned.fill(
+                    child: _buildCallerInfoOverlay(callCtrl, isConnected, isVideo),
+                  ),
+
+                // ── 3. Top Minimal Bar ─────────────────────────────────
                 Positioned(
                   top: 50.h,
                   left: 20.w,
@@ -61,15 +81,15 @@ class CallScreen extends StatelessWidget {
                   child: _buildTopBar(callCtrl),
                 ),
 
-                // ── 3. Local Camera PiP (Video Calls only) ─────────────
-                if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
+                // ── 4. Local Camera PiP (Video Calls only, Connected) ──
+                if (isVideo && isConnected && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
                   Positioned(
                     top: 50.h,
                     right: 16.w,
                     child: _buildPipCamera(callCtrl),
                   ),
 
-                // ── 4. Bottom Controls Bar ────────────────────────────
+                // ── 5. Bottom Controls Bar ────────────────────────────
                 Positioned(
                   bottom: 40.h,
                   left: 20.w,
@@ -86,10 +106,6 @@ class CallScreen extends StatelessWidget {
 
   // ── Clean Lightweight Audio Background ─────────────────────────────────
   Widget _buildAudioBackground(CallController callCtrl, bool isConnected) {
-    final statusText = isConnected
-        ? _formatDuration(callCtrl.callDuration.value)
-        : callCtrl.callStatusText.value;
-
     return Positioned.fill(
       child: Container(
         decoration: const BoxDecoration(
@@ -103,88 +119,111 @@ class CallScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Avatar with subtle double ring
-            Container(
-              padding: EdgeInsets.all(4.r),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppTheme.primaryColor.withValues(alpha: 0.4),
-                  width: 2,
-                ),
-              ),
-              child: CircleAvatar(
-                radius: 64.r,
-                backgroundColor: const Color(0xFF334155),
-                backgroundImage: (callCtrl.peerUserPhoto != null &&
-                        callCtrl.peerUserPhoto!.isNotEmpty)
-                    ? NetworkImage(callCtrl.peerUserPhoto!)
-                    : null,
-                child: (callCtrl.peerUserPhoto == null ||
-                        callCtrl.peerUserPhoto!.isEmpty)
-                    ? Icon(Icons.person_rounded, size: 68.r, color: Colors.white70)
-                    : null,
-              ),
-            ),
-            SizedBox(height: 24.h),
-
-            // Caller Name
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
-              child: Text(
-                callCtrl.peerUserName,
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24.sp,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-            SizedBox(height: 8.h),
-
-            // Status Badge
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 7.r,
-                    height: 7.r,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: isConnected
-                          ? const Color(0xFF10B981)
-                          : (callCtrl.callStatusText.value == 'User is Offline'
-                              ? const Color(0xFFEF4444)
-                              : const Color(0xFFF59E0B)),
-                    ),
-                  ),
-                  SizedBox(width: 7.w),
-                  Text(
-                    statusText,
-                    style: GoogleFonts.poppins(
-                      color: isConnected ? const Color(0xFF34D399) : Colors.white70,
-                      fontSize: 13.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
+    );
+  }
+
+  // ── Caller Info Overlay (Avatar & Name) ────────────────────────────────
+  Widget _buildCallerInfoOverlay(CallController callCtrl, bool isConnected, bool isVideo) {
+    final statusText = isConnected
+        ? _formatDuration(callCtrl.callDuration.value)
+        : callCtrl.callStatusText.value;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // Avatar with subtle double ring
+        Container(
+          padding: EdgeInsets.all(4.r),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isVideo ? Colors.white.withValues(alpha: 0.3) : AppTheme.primaryColor.withValues(alpha: 0.4),
+              width: 2,
+            ),
+            boxShadow: isVideo ? [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.5),
+                blurRadius: 20,
+              )
+            ] : null,
+          ),
+          child: callCtrl.peerUserPhoto != null && callCtrl.peerUserPhoto!.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: callCtrl.peerUserPhoto!,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Center(
+                    child: SizedBox(
+                      width: 24.r,
+                      height: 24.r,
+                      child: const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Icon(
+                    Icons.person_rounded,
+                    size: 68.r,
+                    color: Colors.white70,
+                  ),
+                )
+              : Icon(Icons.person_rounded, size: 68.r, color: Colors.white70),
+        ),
+        SizedBox(height: 24.h),
+
+        // Caller Name
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 24.w),
+          child: Text(
+            callCtrl.peerUserName,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 24.sp,
+              shadows: isVideo ? [
+                Shadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 10)
+              ] : null,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(height: 8.h),
+
+        // Status Badge
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
+          decoration: BoxDecoration(
+            color: isVideo ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(20.r),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 7.r,
+                height: 7.r,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isConnected
+                      ? const Color(0xFF10B981)
+                      : (callCtrl.callStatusText.value == 'User is Offline'
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFF59E0B)),
+                ),
+              ),
+              SizedBox(width: 7.w),
+              Text(
+                statusText,
+                style: GoogleFonts.poppins(
+                  color: isConnected ? const Color(0xFF34D399) : Colors.white70,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
