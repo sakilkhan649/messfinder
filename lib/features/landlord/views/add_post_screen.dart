@@ -317,41 +317,57 @@ class AddPostScreen extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 8.h),
-                    Wrap(
-                      spacing: 10.w,
-                      runSpacing: 10.h,
+                    Column(
                       children: [
-                        _buildGenderRadio('male', 'Male Only', controller),
-                        _buildGenderRadio('female', 'Female Only', controller),
-                        _buildGenderRadio('both', 'Any Bachelor', controller),
-                        _buildGenderRadio('family', 'Family', controller),
-                      ],
-                    ),
-                    SizedBox(height: 18.h),
-
-                    Text(
-                      'Preferred Tenant Type',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.5.sp,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textPrimary,
-                      ),
-                    ),
-                    SizedBox(height: 8.h),
-                    Row(
-                      children: [
-                        _buildTenantRadio('Student', 'Student', controller),
-                        SizedBox(width: 8.w),
-                        _buildTenantRadio('Job', 'Job', controller),
-                        SizedBox(width: 8.w),
-                        _buildTenantRadio(
-                          'Student / Job holder',
-                          'Student / Job holder',
-                          controller,
+                        Row(
+                          children: [
+                            _buildGenderRadio('male', 'Male Only', controller),
+                            SizedBox(width: 10.w),
+                            _buildGenderRadio('female', 'Female Only', controller),
+                          ],
+                        ),
+                        SizedBox(height: 10.h),
+                        Row(
+                          children: [
+                            _buildGenderRadio('both', 'Any Bachelor', controller),
+                            SizedBox(width: 10.w),
+                            _buildGenderRadio('family', 'Family', controller),
+                          ],
                         ),
                       ],
                     ),
                     SizedBox(height: 18.h),
+
+                    Obx(() => controller.bachelorType.value == 'family'
+                        ? const SizedBox.shrink()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Preferred Tenant Type',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Row(
+                                children: [
+                                  _buildTenantRadio('Student', 'Student', controller),
+                                  SizedBox(width: 8.w),
+                                  _buildTenantRadio('Job', 'Job', controller),
+                                  SizedBox(width: 8.w),
+                                  _buildTenantRadio(
+                                    'Student / Job holder',
+                                    'Student / Job holder',
+                                    controller,
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 18.h),
+                            ],
+                          )),
 
                     Text(
                       'Division',

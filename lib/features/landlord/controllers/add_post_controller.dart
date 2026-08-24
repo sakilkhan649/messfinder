@@ -171,7 +171,7 @@ class AddPostController extends GetxController {
         ownerPhone: phoneController.text.trim().isNotEmpty
             ? phoneController.text.trim()
             : existingPost!.ownerPhone,
-        preferredTenant: preferredTenant.value,
+        preferredTenant: bachelorType.value == 'family' ? 'Family' : preferredTenant.value,
         facilities: selectedFacilities,
         images: imagesToUse,
         latitude: selectedLocation.value.latitude,
@@ -204,7 +204,7 @@ class AddPostController extends GetxController {
         district: selectedDistrict.value,
         ownerPhone: phoneController.text.trim(),
         bachelorType: bachelorType.value,
-        preferredTenant: preferredTenant.value,
+        preferredTenant: bachelorType.value == 'family' ? 'Family' : preferredTenant.value,
         facilities: selectedFacilities,
         images: imagesToUse,
         latitude: selectedLocation.value.latitude,
