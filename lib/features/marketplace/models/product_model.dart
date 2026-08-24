@@ -10,6 +10,7 @@ class ProductModel {
   final String condition;
   final String category;
   final List<String> images;
+  final String? videoUrl;
   final String division;
   final String district;
   final String status;
@@ -28,6 +29,7 @@ class ProductModel {
     this.condition = 'used',
     this.category = 'Others',
     this.images = const [],
+    this.videoUrl,
     this.division = 'Dhaka',
     this.district = 'Dhaka',
     this.status = 'active',
@@ -48,6 +50,7 @@ class ProductModel {
       condition: json['condition'] ?? 'used',
       category: json['category'] ?? 'Others',
       images: json['images'] != null ? List<String>.from(json['images']) : [],
+      videoUrl: json['video_url'],
       division: json['division'] ?? 'Dhaka',
       district: json['district'] ?? 'Dhaka',
       status: json['status'] ?? 'active',
@@ -66,6 +69,7 @@ class ProductModel {
       'condition': condition,
       'category': category,
       'images': images,
+      'video_url': videoUrl,
       'division': division,
       'district': district,
       'status': status,
@@ -84,6 +88,7 @@ class ProductModel {
     String? condition,
     String? category,
     List<String>? images,
+    String? videoUrl,
     String? division,
     String? district,
     String? status,
@@ -102,6 +107,7 @@ class ProductModel {
       condition: condition ?? this.condition,
       category: category ?? this.category,
       images: images ?? this.images,
+      videoUrl: videoUrl ?? this.videoUrl,
       division: division ?? this.division,
       district: district ?? this.district,
       status: status ?? this.status,

@@ -143,6 +143,7 @@ class MarketplaceController extends GetxController {
     required String condition,
     required String category,
     required List<File> localImages,
+    String? videoPath,
     required String division,
     required String district,
   }) async {
@@ -157,6 +158,15 @@ class MarketplaceController extends GetxController {
           uploadedImageUrls = List<String>.from(uploadResponse['urls']);
         }
       }
+      // Upload video if any
+      String? uploadedVideoUrl;
+      if (videoPath != null && videoPath.isNotEmpty) {
+        if (videoPath.startsWith('http://') || videoPath.startsWith('https://')) {
+          uploadedVideoUrl = videoPath;
+        } else {
+          uploadedVideoUrl = await MediaUploadService().uploadVideo(videoPath);
+        }
+      }
 
       final data = {
         'title': title,
@@ -165,6 +175,7 @@ class MarketplaceController extends GetxController {
         'condition': condition,
         'category': category,
         'images': uploadedImageUrls,
+        'videoUrl': uploadedVideoUrl,
         'division': division,
         'district': district,
       };
@@ -200,6 +211,7 @@ class MarketplaceController extends GetxController {
     required String category,
     required List<String> existingImages,
     required List<File> newLocalImages,
+    String? newVideoPath,
     required String division,
     required String district,
     required String status,
@@ -216,6 +228,15 @@ class MarketplaceController extends GetxController {
           allImageUrls.addAll(List<String>.from(uploadResponse['urls']));
         }
       }
+      // Upload video if any
+      String? finalVideoUrl;
+      if (newVideoPath != null && newVideoPath.isNotEmpty) {
+        if (newVideoPath.startsWith('http://') || newVideoPath.startsWith('https://')) {
+          finalVideoUrl = newVideoPath;
+        } else {
+          finalVideoUrl = await MediaUploadService().uploadVideo(newVideoPath);
+        }
+      }
 
       final data = {
         'title': title,
@@ -224,6 +245,7 @@ class MarketplaceController extends GetxController {
         'condition': condition,
         'category': category,
         'images': allImageUrls,
+        'videoUrl': finalVideoUrl,
         'division': division,
         'district': district,
         'status': status,

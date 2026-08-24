@@ -8,6 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../chat/controllers/chat_controller.dart';
 import '../../chat/views/chat_screen.dart';
+import '../../chat/views/widgets/video_player_widget.dart';
 import '../models/product_model.dart';
 import '../controllers/marketplace_controller.dart';
 import 'add_product_screen.dart';
@@ -208,6 +209,23 @@ class ProductDetailsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16.h),
                     
+                    if (product.videoUrl != null && product.videoUrl!.isNotEmpty) ...[
+                      Text(
+                        'Product Video',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14.sp,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      SizedBox(height: 8.h),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12.r),
+                        child: VideoPlayerWidget(videoUrl: product.videoUrl!),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+
                     // Location & Time Card
                     Container(
                       padding: EdgeInsets.all(12.w),

@@ -22,6 +22,9 @@ class AddProductController extends GetxController {
   final existingImages = <String>[].obs;
   final localImages = <File>[].obs;
 
+  final existingVideoUrl = ''.obs;
+  final pickedLocalVideo = ''.obs;
+
   ProductModel? editProduct;
   bool get isEditMode => editProduct != null;
   bool isInitialized = false;
@@ -40,6 +43,9 @@ class AddProductController extends GetxController {
       selectedDivision.value = product.division;
       selectedDistrict.value = product.district;
       existingImages.assignAll(product.images);
+      if (product.videoUrl != null && product.videoUrl!.isNotEmpty) {
+        existingVideoUrl.value = product.videoUrl!;
+      }
     } else {
       if (LocationData.divisions.isNotEmpty) {
         selectedDivision.value = LocationData.divisions.first;
@@ -71,6 +77,22 @@ class AddProductController extends GetxController {
 
   void removeLocalImage(int index) {
     localImages.removeAt(index);
+  }
+
+  Future<void> pickVideoFromGallery() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
+    if (video != null) {
+      pickedLocalVideo.value = video.path;
+    }
+  }
+
+  void removeLocalVideo() {
+    pickedLocalVideo.value = '';
+  }
+
+  void removeExistingVideo() {
+    existingVideoUrl.value = '';
   }
 
   void setDivision(String div) {
@@ -114,6 +136,7 @@ class AddProductController extends GetxController {
           category: selectedCategory.value,
           existingImages: existingImages,
           newLocalImages: localImages,
+          newVideoPath: pickedLocalVideo.value.isNotEmpty ? pickedLocalVideo.value : existingVideoUrl.value,
           division: selectedDivision.value,
           district: selectedDistrict.value,
           status: editProduct!.status,
@@ -126,6 +149,7 @@ class AddProductController extends GetxController {
           condition: selectedCondition.value,
           category: selectedCategory.value,
           localImages: localImages,
+          videoPath: pickedLocalVideo.value.isNotEmpty ? pickedLocalVideo.value : null,
           division: selectedDivision.value,
           district: selectedDistrict.value,
         );

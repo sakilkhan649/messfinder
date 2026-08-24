@@ -285,10 +285,67 @@ class AddProductScreen extends StatelessWidget {
               ),
               SizedBox(height: 16.h),
 
-              Text('Photos & Videos', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+              Text('Product Media (Photos & Video)', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
               SizedBox(height: 8.h),
               GestureDetector(
-                onTap: controller.pickImages,
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20.r),
+                      ),
+                    ),
+                    builder: (context) {
+                      return SafeArea(
+                        child: Container(
+                          padding: EdgeInsets.all(20.w),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Select Media Type',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 18.sp,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 20.h),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.photo_library,
+                                  color: emeraldTheme,
+                                ),
+                                title: Text(
+                                  'Upload Photos',
+                                  style: GoogleFonts.poppins(),
+                                ),
+                                onTap: () {
+                                  Get.back();
+                                  controller.pickImages();
+                                },
+                              ),
+                              ListTile(
+                                leading: Icon(
+                                  Icons.video_collection,
+                                  color: emeraldTheme,
+                                ),
+                                title: Text(
+                                  'Upload Video',
+                                  style: GoogleFonts.poppins(),
+                                ),
+                                onTap: () {
+                                  Get.back();
+                                  controller.pickVideoFromGallery();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
                 child: Container(
                   height: 100.h,
                   width: double.infinity,
@@ -309,79 +366,251 @@ class AddProductScreen extends StatelessWidget {
               SizedBox(height: 16.h),
 
               // Existing Images
-              Obx(() => controller.existingImages.isNotEmpty ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Existing Images', style: GoogleFonts.poppins(fontSize: 12.sp)),
-                  SizedBox(height: 8.h),
-                  SizedBox(
-                    height: 80.h,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: controller.existingImages.length,
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 8.w),
-                              width: 80.w,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8.r),
-                                child: AppImageHelper.buildImage(controller.existingImages[index]),
+              Obx(() {
+                if (controller.existingImages.isNotEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Existing Photos (${controller.existingImages.length})',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => controller.existingImages.clear(),
+                            child: Text(
+                              'Clear All',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.errorColor,
                               ),
                             ),
-                            Positioned(
-                              right: 8, top: 0,
-                              child: InkWell(
-                                onTap: () => controller.removeExistingImage(index),
-                                child: const Icon(Icons.remove_circle, color: Colors.red),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      SizedBox(
+                        height: 105.h,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.existingImages.length,
+                          itemBuilder: (context, index) {
+                            return Stack(
+                              children: [
+                                Container(
+                                  width: 120.w,
+                                  margin: EdgeInsets.only(right: 12.w),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    border: Border.all(
+                                      color: emeraldTheme,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    child: AppImageHelper.buildImage(
+                                      controller.existingImages[index],
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 6.h,
+                                  right: 18.w,
+                                  child: GestureDetector(
+                                    onTap: () => controller.removeExistingImage(index),
+                                    child: Container(
+                                      padding: EdgeInsets.all(5.r),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.errorColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        size: 14.r,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+
+              // Display selected local video or existing video
+              Obx(() {
+                if (controller.pickedLocalVideo.value.isNotEmpty) {
+                  return Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.video_file,
+                                color: emeraldTheme,
+                                size: 24.r,
                               ),
-                            )
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                  SizedBox(height: 16.h),
-                ],
-              ) : const SizedBox.shrink()),
+                              SizedBox(width: 8.w),
+                              Text(
+                                'Video Selected',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          GestureDetector(
+                            onTap: () => controller.pickedLocalVideo.value = '',
+                            child: Text(
+                              'Remove',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.errorColor,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  );
+                } else if (controller.isEditMode && controller.existingVideoUrl.value.isNotEmpty) {
+                  return Column(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.check_circle,
+                            color: emeraldTheme,
+                            size: 20.r,
+                          ),
+                          SizedBox(width: 8.w),
+                          Text(
+                            'Existing video attached',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w500,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+
 
               // Local Images
-              Obx(() => controller.localImages.isNotEmpty ? Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('New Images', style: GoogleFonts.poppins(fontSize: 12.sp)),
-                  SizedBox(height: 8.h),
-                  SizedBox(
-                    height: 80.h,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: controller.localImages.length,
-                      itemBuilder: (context, index) {
-                        return Stack(
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 8.w),
-                              width: 80.w,
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8.r),
-                                child: AppImageHelper.buildImage(controller.localImages[index].path, fit: BoxFit.cover),
+              Obx(() {
+                if (controller.localImages.isNotEmpty) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Selected Photos (${controller.localImages.length})',
+                            style: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => controller.localImages.clear(),
+                            child: Text(
+                              'Clear All',
+                              style: GoogleFonts.poppins(
+                                fontSize: 12.sp,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.errorColor,
                               ),
                             ),
-                            Positioned(
-                              right: 8, top: 0,
-                              child: InkWell(
-                                onTap: () => controller.removeLocalImage(index),
-                                child: const Icon(Icons.remove_circle, color: Colors.red),
-                              ),
-                            )
-                          ],
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ) : const SizedBox.shrink()),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                      SizedBox(
+                        height: 105.h,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: controller.localImages.length,
+                          itemBuilder: (context, index) {
+                            return Stack(
+                              children: [
+                                Container(
+                                  width: 120.w,
+                                  margin: EdgeInsets.only(right: 12.w),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(12.r),
+                                    border: Border.all(
+                                      color: emeraldTheme,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.r),
+                                    child: Image.file(
+                                      controller.localImages[index],
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 6.h,
+                                  right: 18.w,
+                                  child: GestureDetector(
+                                    onTap: () => controller.removeLocalImage(index),
+                                    child: Container(
+                                      padding: EdgeInsets.all(5.r),
+                                      decoration: const BoxDecoration(
+                                        color: AppTheme.errorColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        Icons.close_rounded,
+                                        size: 14.r,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      SizedBox(height: 16.h),
+                    ],
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
               SizedBox(height: 40.h),
 
               Obx(() => SizedBox(

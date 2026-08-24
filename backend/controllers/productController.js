@@ -2,14 +2,14 @@ const pool = require('../config/db');
 
 // Create a new product
 exports.createProduct = async (req, res) => {
-  const { title, description, price, condition, category, images, division, district } = req.body;
+  const { title, description, price, condition, category, images, videoUrl, division, district } = req.body;
 
   try {
     const newProduct = await pool.query(
       `INSERT INTO products (
-        seller_uid, title, description, price, condition, category, images, division, district
+        seller_uid, title, description, price, condition, category, images, video_url, division, district
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
       ) RETURNING *`,
       [
         req.user.uid,
@@ -19,6 +19,7 @@ exports.createProduct = async (req, res) => {
         condition || 'used',
         category || 'Others',
         JSON.stringify(images || []),
+        videoUrl || null,
         division || 'Dhaka',
         district || 'Dhaka'
       ]
@@ -133,7 +134,7 @@ exports.getUserProducts = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, price, condition, category, images, division, district, status } = req.body;
+    const { title, description, price, condition, category, images, videoUrl, division, district, status } = req.body;
     
     // Ensure only the seller can edit
     const existing = await pool.query(`SELECT seller_uid FROM products WHERE product_id = $1`, [id]);
@@ -152,11 +153,12 @@ exports.updateProduct = async (req, res) => {
         condition = COALESCE($4, condition),
         category = COALESCE($5, category),
         images = COALESCE($6, images),
-        division = COALESCE($7, division),
-        district = COALESCE($8, district),
-        status = COALESCE($9, status),
+        video_url = COALESCE($7, video_url),
+        division = COALESCE($8, division),
+        district = COALESCE($9, district),
+        status = COALESCE($10, status),
         updated_at = CURRENT_TIMESTAMP
-       WHERE product_id = $10 RETURNING *`,
+       WHERE product_id = $11 RETURNING *`,
       [
         title,
         description,
@@ -164,6 +166,7 @@ exports.updateProduct = async (req, res) => {
         condition,
         category,
         images ? JSON.stringify(images) : null,
+        videoUrl,
         division,
         district,
         status,
