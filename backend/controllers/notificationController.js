@@ -56,20 +56,25 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
   }
 
   try {
-    // 1. Get user's FCM token from PostgreSQL
-    const userRes = await pool.query('SELECT fcm_token FROM users WHERE uid = $1', [receiverUid]);
-    if (userRes.rows.length === 0) {
-      return { success: false, error: 'User not found' };
-    }
+    const isTopic = receiverUid.startsWith('topic_');
+    const topicName = isTopic ? receiverUid.replace('topic_', '') : null;
 
-    const fcmToken = userRes.rows[0].fcm_token;
-    if (!fcmToken) {
-      return { success: false, error: 'User does not have an FCM token registered' };
+    let fcmToken = null;
+    if (!isTopic) {
+      // 1. Get user's FCM token from PostgreSQL
+      const userRes = await pool.query('SELECT fcm_token FROM users WHERE uid = $1', [receiverUid]);
+      if (userRes.rows.length === 0) {
+        return { success: false, error: 'User not found' };
+      }
+      fcmToken = userRes.rows[0].fcm_token;
+      if (!fcmToken) {
+        return { success: false, error: 'User does not have an FCM token registered' };
+      }
     }
 
     // 2. Build the payload
     const message = {
-      token: fcmToken,
+      ...(isTopic ? { topic: topicName } : { token: fcmToken }),
       notification: {
         title: title,
         body: body,
