@@ -140,6 +140,8 @@ class CallScreen extends StatelessWidget {
       children: [
         // Avatar with subtle double ring
         Container(
+          width: 150.r,
+          height: 150.r,
           padding: EdgeInsets.all(4.r),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
@@ -154,24 +156,26 @@ class CallScreen extends StatelessWidget {
               )
             ] : null,
           ),
-          child: callCtrl.peerUserPhoto != null && callCtrl.peerUserPhoto!.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: callCtrl.peerUserPhoto!,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Center(
-                    child: SizedBox(
-                      width: 24.r,
-                      height: 24.r,
-                      child: const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+          child: ClipOval(
+            child: callCtrl.peerUserPhoto != null && callCtrl.peerUserPhoto!.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: callCtrl.peerUserPhoto!,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Center(
+                      child: SizedBox(
+                        width: 24.r,
+                        height: 24.r,
+                        child: const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+                      ),
                     ),
-                  ),
-                  errorWidget: (context, url, error) => Icon(
-                    Icons.person_rounded,
-                    size: 68.r,
-                    color: Colors.white70,
-                  ),
-                )
-              : Icon(Icons.person_rounded, size: 68.r, color: Colors.white70),
+                    errorWidget: (context, url, error) => Icon(
+                      Icons.person_rounded,
+                      size: 68.r,
+                      color: Colors.white70,
+                    ),
+                  )
+                : Icon(Icons.person_rounded, size: 68.r, color: Colors.white70),
+          ),
         ),
         SizedBox(height: 24.h),
 
