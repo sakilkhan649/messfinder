@@ -603,7 +603,7 @@ class PostController extends GetxController {
           title: titleStr,
           body: bodyStr,
           senderUid: user.uid,
-          senderPhotoUrl: user.profilePicture ?? '',
+          senderPhotoUrl: user.photoUrl ?? '',
           data: {'type': 'new_post', 'senderUid': user.uid},
         );
       } catch (e) {
