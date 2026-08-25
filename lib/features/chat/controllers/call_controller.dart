@@ -106,31 +106,34 @@ class CallController extends GetxController {
 
     // 1. Incoming Call Listener
     _socket?.on('incoming_call', (data) {
+      if (callState.value != CallState.idle) {
+        // Send a busy signal back to the caller
+        final callerId = data['callerId'];
+        if (callerId != null) {
+          _socket?.emit('reject_call', {
+            'callerId': callerId,
+            'reason': 'busy',
+          });
+          
+          // Store a missed call notification for the busy user
+          final callerName = data['callerName'] ?? 'Someone';
+          final authCtrl = Get.find<AuthController>();
+          final myUid = authCtrl.currentUser.value?.uid ?? '';
+          NotificationService().storeNotification(AppNotificationModel(
+            id: '',
+            title: '📞 Missed Call (Busy)',
+            body: 'Missed call from $callerName while you were on another call.',
+            type: NotificationType.call,
+            receiverUid: myUid,
+            senderUid: callerId,
+            createdAt: DateTime.now(),
+          ));
+        }
+        return; // Already in a call
+      }
+      
       // Ignore if I am the caller (backend might be broadcasting)
       if (data['callerId'] == currentUid) {
-        return;
-      }
-
-      if (callState.value != CallState.idle) {
-        // User is currently busy on another active call!
-        _socket?.emit('reject_call', {
-          'callerId': data['callerId'],
-          'reason': 'busy',
-        });
-
-        // Store a missed call notification for the busy user
-        final callerName = data['callerName'] ?? 'Someone';
-        final authCtrl = Get.find<AuthController>();
-        final myUid = authCtrl.currentUser.value?.uid ?? '';
-        NotificationService().storeNotification(AppNotificationModel(
-          id: '',
-          title: '📞 Missed Call (Busy)',
-          body: 'Missed call from $callerName while you were on another call.',
-          type: NotificationType.call,
-          receiverUid: myUid,
-          senderUid: data['callerId'],
-          createdAt: DateTime.now(),
-        ));
         return;
       }
 

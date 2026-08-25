@@ -153,7 +153,7 @@ io.on('connection', (socket) => {
       const appCertificate = process.env.AGORA_APP_CERTIFICATE;
       if (!appId || !appCertificate) return '';
       const role = RtcRole.PUBLISHER;
-      const expirationTimeInSeconds = 3600;
+      const expirationTimeInSeconds = 86400; // 24 hours
       const currentTimestamp = Math.floor(Date.now() / 1000);
       const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
 
