@@ -1,8 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/app_logger.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:mess_finder/core/services/api_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/chat_screen.dart';
@@ -248,38 +250,52 @@ class _BookingCard extends StatelessWidget {
   const _BookingCard({required this.booking});
 
   Future<Map<String, dynamic>> _fetchPostInfo() async {
-    final doc = await FirebaseFirestore.instance
-        .collection(ApiConstants.postsCollection)
-        .doc(booking.postId)
-        .get();
-    if (doc.exists && doc.data() != null) {
-      final data = doc.data()!;
+    try {
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : Get.put(ApiService());
       
-      String ownerUid = data['ownerUid']?.toString() ?? '';
-      String ownerName = 'Unknown Landlord';
-      String? ownerPhoto;
+      // 1. Fetch Post Info from PostgreSQL backend
+      final postRes = await apiService.dio.get(ApiConstants.postById(booking.postId));
       
-      if (ownerUid.isNotEmpty) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection(ApiConstants.usersCollection)
-            .doc(ownerUid)
-            .get();
-        if (userDoc.exists && userDoc.data() != null) {
-          ownerName = userDoc.data()!['name']?.toString() ?? 'Unknown Landlord';
-          ownerPhoto = userDoc.data()!['photoUrl']?.toString();
+      if (postRes.statusCode == 200 && postRes.data != null) {
+        final postData = postRes.data;
+        
+        String ownerUid = postData['owner_uid']?.toString() ?? postData['ownerUid']?.toString() ?? '';
+        String ownerName = 'Unknown Landlord';
+        String? ownerPhoto;
+        String ownerPhone = postData['owner_phone']?.toString() ?? postData['ownerPhone']?.toString() ?? '';
+        
+        // 2. Fetch Landlord Info from PostgreSQL backend
+        if (ownerUid.isNotEmpty) {
+          try {
+            final userRes = await apiService.dio.get(ApiConstants.authUserById(ownerUid));
+            if (userRes.statusCode == 200 && userRes.data != null) {
+              final userData = userRes.data['user'] ?? userRes.data['data'] ?? userRes.data;
+              ownerName = userData['name']?.toString() ?? 'Unknown Landlord';
+              ownerPhoto = userData['profile_image']?.toString() ?? userData['photoUrl']?.toString();
+              
+              if (ownerPhone.isEmpty) {
+                ownerPhone = userData['phone']?.toString() ?? '';
+              }
+            }
+          } catch (e) {
+            AppLogger.e('Error fetching landlord user info: $e');
+          }
         }
+        
+        return {
+          'postTitle': postData['title']?.toString() ?? 'Unknown Room',
+          'postAddress': postData['address']?.toString() ?? '—',
+          'postRent': double.tryParse(postData['rent']?.toString() ?? '0') ?? 0.0,
+          'ownerPhone': ownerPhone,
+          'ownerName': ownerName,
+          'ownerPhotoUrl': ownerPhoto,
+          'ownerUid': ownerUid,
+        };
       }
-
-      return {
-        'postTitle': data['title']?.toString() ?? 'Unknown Room',
-        'postAddress': data['address']?.toString() ?? '—',
-        'postRent': (data['rent'] ?? 0).toDouble(),
-        'ownerPhone': data['ownerPhone']?.toString() ?? '',
-        'ownerName': ownerName,
-        'ownerPhotoUrl': ownerPhoto,
-        'ownerUid': ownerUid,
-      };
+    } catch (e) {
+      AppLogger.e('Error fetching post info for booking: $e');
     }
+    
     throw Exception('Not found');
   }
 
