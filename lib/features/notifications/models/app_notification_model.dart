@@ -20,7 +20,7 @@ class AppNotificationModel {
   final String receiverUid;
   final String? senderUid;
   final String? relatedId; // postId, bookingId, etc.
-  final bool isRead;
+  bool isRead;
   final DateTime createdAt;
 
   AppNotificationModel({

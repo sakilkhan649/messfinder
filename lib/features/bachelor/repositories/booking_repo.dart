@@ -50,7 +50,7 @@ class BookingRepository {
         receiverUid: booking.landlordUid,
         title: 'New Interested Bachelor! 🔔',
         body: '${booking.bachelorName} is interested in your room.',
-        type: NotificationType.bookingRequested,
+        type: NotificationType.bookingRequest,
         relatedId: booking.postId,
       );
     } catch (e, stack) {
