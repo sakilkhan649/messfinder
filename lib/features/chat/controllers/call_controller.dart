@@ -391,9 +391,18 @@ class CallController extends GetxController {
 
   // ── Accept Call (Receiver) ──────────────────────────────────────────
   Future<void> acceptCall() async {
+    if (callState.value == CallState.connected) {
+      return; // Prevent double-accept (avoids Agora error -17)
+    }
+
     _stopRingtone();
     isCaller = false;
     _hasLoggedCall = false;
+    
+    // Clear notifications when accepted
+    NotificationService().cancelCallNotification();
+    NotificationService().endAllCallKitCalls();
+
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
       Get.snackbar('Permission Required', 'Microphone permission is required.');
