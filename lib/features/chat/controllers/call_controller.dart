@@ -187,7 +187,7 @@ class CallController extends GetxController {
       _startCallTimer();
       
       // Join channel now that we have the token (if caller)
-      if (isCaller && currentRtcToken.isNotEmpty) {
+      if (isCaller && currentRtcToken.isNotEmpty && currentChannel.isNotEmpty) {
         try {
           await _engine?.joinChannel(
             token: currentRtcToken,
@@ -445,8 +445,16 @@ class CallController extends GetxController {
         'channelName': currentChannel,
       });
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        currentRtcToken = data['token'] ?? '';
+        final resData = jsonDecode(response.body);
+        if (resData['success'] == true) {
+          if (callState.value == CallState.idle || currentChannel.isEmpty) {
+            AppLogger.w('Call ended while waiting for accept API response', tag: 'CALL_CTRL');
+            return; // Abort joining if the call was already ended
+          }
+
+          final token = resData['token'];
+          currentRtcToken = token;
+        }
       }
     } catch (e) {
       AppLogger.e('Failed to accept call via API: $e', e, null, 'CALL_CTRL');
@@ -552,7 +560,7 @@ class CallController extends GetxController {
       }
 
       // Join channel only if we have a token (Caller will join later on call_accepted)
-      if (token.isNotEmpty) {
+      if (token.isNotEmpty && currentChannel.isNotEmpty) {
         await _engine!.joinChannel(
           token: token,
           channelId: currentChannel,
@@ -675,7 +683,7 @@ class CallController extends GetxController {
     isFrontCamera.value = true;
     isEngineReady.value = false;
     callState.value = CallState.idle;
-    callStatusText.value = 'Calling...';
+    callStatusText.value = '';
     
     currentRtcToken = '';
     currentChannel = '';
