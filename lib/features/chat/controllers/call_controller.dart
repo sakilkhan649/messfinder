@@ -17,7 +17,7 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
 import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
 
-enum CallState { idle, outgoing, incoming, connected, ended }
+enum CallState { idle, outgoing, incoming, connecting, connected, ended }
 
 class CallController extends GetxController {
   static CallController get to => Get.find<CallController>();
@@ -398,9 +398,11 @@ class CallController extends GetxController {
 
   // ── Accept Call (Receiver) ──────────────────────────────────────────
   Future<void> acceptCall() async {
-    if (callState.value == CallState.connected) {
-      return; // Prevent double-accept (avoids Agora error -17)
+    if (callState.value == CallState.connected || callState.value == CallState.connecting) {
+      return; // Prevent double-accept race conditions (avoids Agora error -17)
     }
+    
+    callState.value = CallState.connecting; // Set immediately before any awaits!
 
     _stopRingtone();
     isCaller = false;
@@ -413,6 +415,7 @@ class CallController extends GetxController {
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
       Get.snackbar('Permission Required', 'Microphone permission is required.');
+      rejectCall();
       return;
     }
 
@@ -420,6 +423,7 @@ class CallController extends GetxController {
       final camGranted = await Permission.camera.request().isGranted;
       if (!camGranted) {
         Get.snackbar('Permission Required', 'Camera permission is required.');
+        rejectCall();
         return;
       }
     }
@@ -429,8 +433,8 @@ class CallController extends GetxController {
       Get.back();
     }
 
-    callState.value = CallState.connected;
-    callStatusText.value = 'Connected';
+    callState.value = CallState.connected; // Officially connected now
+    callStatusText.value = 'Connecting...';
     _startCallTimer();
 
     // Open screen immediately
