@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -10,6 +9,7 @@ import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
+import 'package:mess_finder/features/chat/controllers/call_controller.dart';
 
 /// ─── Background message handler (top-level function, required by FCM) ────────
 import 'package:flutter_callkit_incoming/entities/entities.dart';
@@ -24,6 +24,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final isVideo = callerName.toString().toLowerCase().contains('video');
     final senderPhotoUrl = message.data['senderPhotoUrl'];
     final relatedId = message.data['relatedId']; 
+    final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
 
     final params = CallKitParams(
       id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -32,8 +33,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       avatar: senderPhotoUrl,
       handle: isVideo ? 'Video Call' : 'Audio Call',
       type: isVideo ? 1 : 0,
-      textAccept: 'Accept',
-      textDecline: 'Decline',
       missedCallNotification: const NotificationParams(
         showNotification: true,
         isShowCallback: false,
@@ -51,6 +50,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         ringtonePath: 'system_ringtone_default',
         backgroundColor: '#0955fa',
         actionColor: '#4CAF50',
+        textAccept: 'Accept',
+        textDecline: 'Decline',
       ),
       ios: const IOSParams(
         iconName: 'CallKitLogo',
@@ -130,44 +131,37 @@ class NotificationService {
     // 7. Handle CallKit events
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
-      switch (event.event) {
-        case Event.actionCallAccept:
-          final body = event.body;
-          final extra = body['extra'] as Map<dynamic, dynamic>?;
-          if (extra != null) {
-            final relatedId = extra['relatedId'];
-            final isVideo = extra['isVideo'] == true;
-            final senderUid = extra['senderUid'];
-            
-            if (Get.isRegistered<CallController>()) {
-              final callCtrl = Get.find<CallController>();
-              callCtrl.currentChannel = relatedId;
-              callCtrl.isVideoCall.value = isVideo;
-              if (senderUid != null) {
-                callCtrl.peerUserId = senderUid;
-              }
-              callCtrl.acceptCall();
+      if (event is CallEventActionCallAccept) {
+        final extra = event.callKitParams.extra;
+        if (extra != null) {
+          final relatedId = extra['relatedId'];
+          final isVideo = extra['isVideo'] == true;
+          final senderUid = extra['senderUid'];
+          
+          if (Get.isRegistered<CallController>()) {
+            final callCtrl = Get.find<CallController>();
+            callCtrl.currentChannel = relatedId;
+            callCtrl.isVideoCall.value = isVideo;
+            if (senderUid != null) {
+              callCtrl.peerUserId = senderUid;
             }
+            callCtrl.acceptCall();
           }
-          break;
-        case Event.actionCallDecline:
-          final body = event.body;
-          final extra = body['extra'] as Map<dynamic, dynamic>?;
-          if (extra != null) {
-            final relatedId = extra['relatedId'];
-            final senderUid = extra['senderUid'];
-            if (Get.isRegistered<CallController>()) {
-              final callCtrl = Get.find<CallController>();
-              callCtrl.currentChannel = relatedId;
-              if (senderUid != null) {
-                callCtrl.peerUserId = senderUid;
-              }
-              callCtrl.rejectCall();
+        }
+      } else if (event is CallEventActionCallDecline) {
+        final extra = event.callKitParams.extra;
+        if (extra != null) {
+          final relatedId = extra['relatedId'];
+          final senderUid = extra['senderUid'];
+          if (Get.isRegistered<CallController>()) {
+            final callCtrl = Get.find<CallController>();
+            callCtrl.currentChannel = relatedId;
+            if (senderUid != null) {
+              callCtrl.peerUserId = senderUid;
             }
+            callCtrl.rejectCall();
           }
-          break;
-        default:
-          break;
+        }
       }
     });
 
@@ -215,8 +209,6 @@ class NotificationService {
         avatar: senderPhotoUrl,
         handle: isVideo ? 'Video Call' : 'Audio Call',
         type: isVideo ? 1 : 0,
-        textAccept: 'Accept',
-        textDecline: 'Decline',
         duration: 30000,
         extra: <String, dynamic>{
           'relatedId': relatedId, 
@@ -229,6 +221,8 @@ class NotificationService {
           ringtonePath: 'system_ringtone_default',
           backgroundColor: '#0955fa',
           actionColor: '#4CAF50',
+          textAccept: 'Accept',
+          textDecline: 'Decline',
         ),
         ios: const IOSParams(
           iconName: 'CallKitLogo',

@@ -256,41 +256,6 @@ class _BookingCard extends StatelessWidget {
     throw Exception('Not found');
   }
 
-  String _statusLabel(String status) {
-    switch (status.trim().toLowerCase()) {
-      case 'approved':
-        return '✅ Approved';
-      case 'rejected':
-        return '❌ Rejected';
-      default:
-        return '⏳ Pending Review';
-    }
-  }
-
-  Color _statusColor(String status) {
-    final primaryColor = const Color(0xFF059669);
-    switch (status.trim().toLowerCase()) {
-      case 'approved':
-        return primaryColor;
-      case 'rejected':
-        return const Color(0xFFEF4444);
-      default:
-        return const Color(0xFFF59E0B);
-    }
-  }
-
-  Color _statusBg(String status) {
-    final primaryColor = const Color(0xFF059669);
-    switch (status.trim().toLowerCase()) {
-      case 'approved':
-        return primaryColor.withValues(alpha: 0.08);
-      case 'rejected':
-        return const Color(0xFFFEE2E2);
-      default:
-        return const Color(0xFFFEF3C7);
-    }
-  }
-
   String _timeAgo(DateTime? dt) {
     if (dt == null) return 'Recently';
     final diff = DateTime.now().difference(dt);
