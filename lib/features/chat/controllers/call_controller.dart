@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -172,7 +174,7 @@ class CallController extends GetxController {
       );
     });
 
-    // 2. Call Accepted Listener
+    // 2. Call Accepted Listener (Caller side)
     _socket?.on('call_accepted', (data) async {
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
       _stopRingtone();
@@ -203,6 +205,13 @@ class CallController extends GetxController {
           AppLogger.e('Caller delayed join channel error: $e', e, null, 'CALL_CTRL');
         }
       }
+    });
+
+    // 2.5 Call Token Received (Receiver side)
+    _socket?.on('call_joined_receiver', (data) async {
+      AppLogger.i('Token received for receiver from background', tag: 'CALL_CTRL');
+      currentRtcToken = data['token'] ?? '';
+      _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
     });
 
     // 3. Call Rejected / Busy Listener
@@ -399,6 +408,11 @@ class CallController extends GetxController {
       }
     }
 
+    // Dismiss incoming call screen if it's still open
+    if (Get.currentRoute == '/IncomingCallScreen') {
+      Get.back();
+    }
+
     callState.value = CallState.connected;
     callStatusText.value = 'Connected';
     _startCallTimer();
@@ -410,19 +424,45 @@ class CallController extends GetxController {
       transition: Transition.fadeIn,
     );
 
+    // Use HTTP API to accept call and get token instantly
+    try {
+      final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/accept_call');
+      final response = await http.post(url, body: {
+        'callerId': peerUserId,
+        'channelName': currentChannel,
+      });
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        currentRtcToken = data['token'] ?? '';
+      }
+    } catch (e) {
+      AppLogger.e('Failed to accept call via API: $e', e, null, 'CALL_CTRL');
+    }
+
     // Initialize Agora engine
     _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
-
-    _socket?.emit('accept_call', {
-      'callerId': peerUserId,
-      'channelName': currentChannel,
-    });
   }
 
   // ── Reject Call (Receiver) ──────────────────────────────────────────
   void rejectCall() {
     _stopRingtone();
-    _socket?.emit('reject_call', {'callerId': peerUserId});
+    
+    // Dismiss incoming call screen if it's open
+    if (Get.currentRoute == '/IncomingCallScreen') {
+      Get.back();
+    }
+    
+    // Use HTTP API to reject call for better reliability
+    try {
+      final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
+      http.post(url, body: {
+        'callerId': peerUserId,
+        'reason': 'declined'
+      });
+    } catch (e) {
+      AppLogger.e('Failed to reject call via API: $e', e, null, 'CALL_CTRL');
+    }
+    
     _cleanupCall();
   }
 
@@ -436,7 +476,7 @@ class CallController extends GetxController {
       _logCallToChat(status: 'cancelled');
     }
     if (notifyPeer && peerUserId.isNotEmpty) {
-      _socket?.emit('end_call', {'targetUserId': peerUserId});
+      _socket?.emit('end_call', {'targetUserId': peerUserId, 'channelName': currentChannel});
     }
 
     final bool wasRingingOrConnected = callState.value != CallState.idle;
@@ -626,6 +666,7 @@ class CallController extends GetxController {
     peerUserPhoto = null;
 
     NotificationService().cancelCallNotification();
+    NotificationService().endAllCallKitCalls();
 
     final oldEngine = _engine;
     _engine = null;

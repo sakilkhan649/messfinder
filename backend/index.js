@@ -212,6 +212,30 @@ io.on('connection', (socket) => {
     const payload = { ...data, token };
     console.log(`Call accepted by ${socket.id} for caller ${data.callerId} [Token generated]`);
     io.to(data.callerId).emit('call_accepted', payload);
+    // Send token back to the receiver so they can join Agora from background
+    socket.emit('call_joined_receiver', { token: token });
+  });
+
+  // Simple HTTP endpoint to reject call from background isolates
+  app.post('/api/reject_call', (req, res) => {
+    const { callerId, reason } = req.body;
+    if (callerId) {
+      io.to(callerId).emit('call_rejected', { callerId, reason: reason || 'declined' });
+      console.log(`Call rejected via API for caller ${callerId}`);
+    }
+    res.json({ success: true });
+  });
+
+  // Simple HTTP endpoint to accept call from background isolates
+  app.post('/api/accept_call', (req, res) => {
+    const { callerId, channelName } = req.body;
+    const token = generateAgoraToken(channelName, 0);
+    if (callerId) {
+      io.to(callerId).emit('call_accepted', { callerId, channelName, token });
+      console.log(`Call accepted via API for caller ${callerId} [Token generated]`);
+    }
+    // Return token in response so the receiver can join immediately
+    res.json({ success: true, token });
   });
 
   socket.on('reject_call', (data) => {
@@ -220,10 +244,26 @@ io.on('connection', (socket) => {
     io.to(data.callerId).emit('call_rejected', data);
   });
 
-  socket.on('end_call', (data) => {
-    // data: { targetUserId }
+  socket.on('end_call', async (data) => {
+    // data: { targetUserId, channelName }
     console.log(`Call ended for ${data.targetUserId}`);
     io.to(data.targetUserId).emit('call_ended', data);
+    
+    // Also send a silent push to cancel CallKit if the app is in the background
+    try {
+      const { internalSendPushNotification } = require('./controllers/notificationController');
+      await internalSendPushNotification({
+        receiverUid: data.targetUserId,
+        title: 'Call Ended',
+        body: 'The call has ended',
+        type: 'call_ended',
+        relatedId: data.channelName || '',
+        senderUid: '',
+        senderPhotoUrl: ''
+      });
+    } catch (e) {
+      console.error('Failed to send call_ended push notification:', e);
+    }
   });
 
   socket.on('disconnect', () => {

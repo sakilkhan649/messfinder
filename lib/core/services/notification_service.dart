@@ -19,6 +19,16 @@ import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('📨 [FCM] Background message: ${message.messageId}');
   
+  if (message.data['type'] == 'call_ended') {
+    final relatedId = message.data['relatedId'];
+    if (relatedId != null && relatedId.toString().isNotEmpty) {
+      await FlutterCallkitIncoming.endCall(relatedId);
+    } else {
+      await FlutterCallkitIncoming.endAllCalls();
+    }
+    return;
+  }
+  
   if (message.data['type'] == 'call') {
     final callerName = message.data['title'] ?? 'Unknown Caller';
     final isVideo = callerName.toString().toLowerCase().contains('video');
@@ -153,6 +163,17 @@ class NotificationService {
         if (extra != null) {
           final relatedId = extra['relatedId'];
           final senderUid = extra['senderUid'];
+
+          // Fallback HTTP request to reject call instantly even if backgrounded
+          if (senderUid != null) {
+             try {
+                final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
+                http.post(url, body: {'callerId': senderUid, 'reason': 'declined'});
+             } catch (e) {
+                debugPrint('Failed to reject call via API: $e');
+             }
+          }
+
           if (Get.isRegistered<CallController>()) {
             final callCtrl = Get.find<CallController>();
             callCtrl.currentChannel = relatedId;
@@ -196,6 +217,17 @@ class NotificationService {
     }
 
     final type = message.data['type'];
+    
+    if (type == 'call_ended') {
+      final relatedId = message.data['relatedId'];
+      if (relatedId != null && relatedId.toString().isNotEmpty) {
+        FlutterCallkitIncoming.endCall(relatedId);
+      } else {
+        FlutterCallkitIncoming.endAllCalls();
+      }
+      return;
+    }
+    
     if (type == 'call') {
       final callerName = message.data['title'] ?? 'Unknown Caller';
       final isVideo = callerName.toString().toLowerCase().contains('video');
@@ -317,6 +349,22 @@ class NotificationService {
       await _localNotifications.cancel(9999);
     } catch (e) {
       debugPrint('Cancel notification error: $e');
+    }
+  }
+
+  Future<void> endCallKitCall(String id) async {
+    try {
+      await FlutterCallkitIncoming.endCall(id);
+    } catch (e) {
+      debugPrint('End CallKit call error: $e');
+    }
+  }
+
+  Future<void> endAllCallKitCalls() async {
+    try {
+      await FlutterCallkitIncoming.endAllCalls();
+    } catch (e) {
+      debugPrint('End all CallKit calls error: $e');
     }
   }
 
