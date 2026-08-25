@@ -291,9 +291,18 @@ io.on('connection', (socket) => {
 
   // ── Online Users Query ────────────────────────────────────────────
   socket.on('get_online_users', (uids) => {
-    // uids: string[] - list of uids to check
-    const onlineUids = (uids || []).filter(uid => onlineUsers.has(uid));
-    socket.emit('online_users_list', onlineUids);
+    try {
+      let uidsArray = [];
+      if (Array.isArray(uids)) {
+        uidsArray = uids;
+      } else if (typeof uids === 'string') {
+        uidsArray = [uids];
+      }
+      const onlineUids = uidsArray.filter(uid => onlineUsers.has(uid));
+      socket.emit('online_users_list', onlineUids);
+    } catch (error) {
+      console.error('Socket get_online_users error:', error);
+    }
   });
 
   socket.on('disconnect', () => {
