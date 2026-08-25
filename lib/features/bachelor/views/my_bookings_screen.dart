@@ -567,39 +567,6 @@ class _BookingCard extends StatelessWidget {
                   ],
                 ),
                 SizedBox(height: 12.h),
-                Divider(height: 1, color: const Color(0xFFF1F5F9)),
-                SizedBox(height: 10.h),
-
-                // Payment info
-                Row(
-                  children: [
-                    Icon(Icons.receipt_long_rounded,
-                        size: 14.r, color: Colors.grey.shade500),
-                    SizedBox(width: 6.w),
-                    Text(
-                      'TrxID: ${b.trxId.isNotEmpty ? b.trxId : "—"}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.sp,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 4.h),
-                Row(
-                  children: [
-                    Icon(Icons.phone_rounded,
-                        size: 14.r, color: Colors.grey.shade500),
-                    SizedBox(width: 6.w),
-                    Text(
-                      'Sent from: ${b.senderNumber.isNotEmpty ? b.senderNumber : "—"}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12.sp,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
 
                 // Approved unlocked note
                 if (isApproved) ...[
@@ -619,7 +586,7 @@ class _BookingCard extends StatelessWidget {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.lock_open_rounded,
+                            Icon(Icons.check_circle_rounded,
                                 size: 16.r,
                                 color: primaryColor),
                             SizedBox(width: 8.w),
@@ -729,6 +696,40 @@ class _BookingCard extends StatelessWidget {
                               fontSize: 12.sp,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFFB91C1C),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // Pending note
+                if (!isApproved && !isRejected) ...[
+                  SizedBox(height: 12.h),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(
+                        horizontal: 12.w, vertical: 8.h),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFFBEB),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(
+                          color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.hourglass_empty_rounded,
+                            size: 16.r,
+                            color: const Color(0xFFD97706)),
+                        SizedBox(width: 8.w),
+                        Expanded(
+                          child: Text(
+                            'Please wait for the landlord to approve your request.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFFB45309),
                             ),
                           ),
                         ),
