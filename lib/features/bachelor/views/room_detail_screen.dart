@@ -1,10 +1,10 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/services/api_service.dart';
 import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../landlord/controllers/post_controller.dart';
@@ -404,13 +404,11 @@ class RoomDetailScreen extends StatelessWidget {
           final authCtrl = Get.find<AuthController>();
           final user = authCtrl.currentUser.value;
           if (user != null) {
-            await FirebaseFirestore.instance.collection('reports').add({
+            await ApiService().dio.post('/reports', data: {
               'postId': post.postId,
               'reporterUid': user.uid,
               'reporterName': user.name,
               'reason': reason,
-              'createdAt': FieldValue.serverTimestamp(),
-              'status': 'pending',
             });
             Get.snackbar(
               'Report Submitted ⚠️',

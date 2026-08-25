@@ -11,67 +11,51 @@ class BookingRepository {
   final ApiService _apiService = ApiService();
 
   // Create a new booking request and update post availability
-  Future<String> createBooking(BookingModel booking) async {
+  Future<void> createBooking(BookingModel booking) async {
     try {
       AppLogger.i(
         'Saving booking request (PostId: ${booking.postId})',
         tag: 'BOOKING_REPO',
       );
-      final docRef = _firestore
-          .collection(ApiConstants.bookingsCollection)
-          .doc();
-      final bookingWithId = booking.copyWith(bookingId: docRef.id);
-
-      await _firestore.runTransaction((transaction) async {
-        // 1. Read: Get the Post document FIRST
-        final postRef = _firestore
-            .collection(ApiConstants.postsCollection)
-            .doc(booking.postId);
-        final postSnapshot = await transaction.get(postRef);
-
-        // 2. Write: Save the booking
-        transaction.set(docRef, bookingWithId.toMap());
-
-        // 3. Write: Update Post availability
-        if (postSnapshot.exists) {
-          // Forcefully set to unavailable so no one else can book it
-          transaction.update(postRef, {'seatCount': 0, 'isAvailable': false});
-        }
-      });
-
-      AppLogger.s(
-        'Booking request saved successfully and post updated in Firestore',
-        tag: 'BOOKING_REPO',
-      );
       
-      try {
-        await _apiService.dio.post(ApiConstants.bookings, data: bookingWithId.toApiMap());
-        AppLogger.s('Booking request synced with API Backend', tag: 'BOOKING_REPO');
-      } catch (e) {
-        AppLogger.e('Failed to sync booking with API: $e', e, null, 'BOOKING_REPO');
-        // We don't throw here to avoid failing the whole process if only the custom backend fails, 
-        // since Firestore succeeded. Or we could throw, depending on strictness.
-      }
+      // We don't use Firestore for bookings anymore. We generate a random ID for the backend if needed,
+      // or let the backend generate it. But since toApiMap expects an ID, we'll use a UUID or simple string.
+      // Wait, Firestore was used to generate an ID. Let's just use a timestamp-based ID or let the backend handle it.
+      // Actually, since the API expects bookingId, we will generate one here if it's empty.
+      final generatedId = booking.bookingId.isEmpty 
+          ? 'BOK-${DateTime.now().millisecondsSinceEpoch}-${booking.bachelorUid.substring(0, 4)}'
+          : booking.bookingId;
+          
+      final bookingWithId = booking.copyWith(bookingId: generatedId);
+
+      final apiData = {
+        'bookingId': bookingWithId.bookingId,
+        'postId': bookingWithId.postId,
+        'bachelorUid': bookingWithId.bachelorUid,
+        'landlordUid': bookingWithId.landlordUid,
+        'paymentStatus': bookingWithId.paymentStatus,
+        'trxId': bookingWithId.trxId,
+        'senderNumber': bookingWithId.senderNumber,
+        'isUnlocked': bookingWithId.isUnlocked,
+        'createdAt': bookingWithId.createdAt?.toIso8601String(),
+        'bachelorName': bookingWithId.bachelorName,
+        'bachelorPhone': bookingWithId.bachelorPhone,
+      };
+      
+      await _apiService.dio.post(ApiConstants.bookings, data: apiData);
+      AppLogger.s('Booking request synced with API Backend', tag: 'BOOKING_REPO');
       
       // Notify the landlord
       NotificationService().sendAndStore(
         receiverUid: booking.landlordUid,
-        title: 'New Booking Request! 🔔',
-        body: '${booking.bachelorName} requested to book your room.',
-        type: NotificationType.bookingRequest,
-        senderUid: booking.bachelorUid,
+        title: 'New Interested Bachelor! 🔔',
+        body: '${booking.bachelorName} is interested in your room.',
+        type: NotificationType.bookingRequested,
         relatedId: booking.postId,
       );
-
-      return docRef.id;
     } catch (e, stack) {
-      AppLogger.e(
-        'Failed to save booking request: $e',
-        e,
-        stack,
-        'BOOKING_REPO',
-      );
-      throw 'Failed to save booking request: $e';
+      AppLogger.e('Failed to sync booking with API: $e', e, stack, 'BOOKING_REPO');
+      // Silently fail or throw depending on UX preference
     }
   }
 
@@ -273,6 +257,22 @@ class BookingRepository {
   }
 
   // ─── Custom API Integration for Leads ──────────────────────────────────
+
+  Future<List<BookingModel>> getBachelorBookingsFromApi(String bachelorUid) async {
+    try {
+      final response = await _apiService.dio.get(ApiConstants.bachelorBookings(bachelorUid));
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data;
+        return data.map((json) {
+          return BookingModel.fromMap(json, json['bookingId']?.toString() ?? json['booking_id']?.toString() ?? '');
+        }).toList();
+      }
+      return [];
+    } catch (e) {
+      AppLogger.e('Failed to fetch bachelor bookings from API: $e', e, null, 'BOOKING_REPO');
+      throw 'Failed to fetch bookings: $e';
+    }
+  }
 
   Future<List<BookingModel>> getLandlordLeadsFromApi(String landlordUid) async {
     try {

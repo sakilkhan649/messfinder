@@ -27,7 +27,6 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static const _androidChannel = AndroidNotificationChannel(
     'messfinder_high_importance_v3',
@@ -243,15 +242,9 @@ class NotificationService {
     debugPrint('✅ [FCM] Unsubscribed from topic: $topic');
   }
 
-  // ── Store notification in Firestore (in-app notification center) ──────────
+  // ── (Deprecated) Store notification in Firestore ──────────
   Future<void> storeNotification(AppNotificationModel notification) async {
-    try {
-      await _firestore
-          .collection('notifications')
-          .add(notification.toMap());
-    } catch (e) {
-      debugPrint('❌ [FCM] Store notification error: $e');
-    }
+    // We now store directly via the API backend or it stores automatically when sending push
   }
 
   /// Send push via Vercel Backend (FCM HTTP v1 API)
@@ -327,17 +320,7 @@ class NotificationService {
       return;
     }
 
-    // 1. Store in Firestore (in-app notification center)
-    await storeNotification(AppNotificationModel(
-      id: '',
-      title: title,
-      body: body,
-      type: type,
-      receiverUid: receiverUid,
-      senderUid: senderUid,
-      relatedId: relatedId,
-      createdAt: DateTime.now(),
-    ));
+    // Storage happens automatically on the backend via internalSendPushNotification
 
     // 2. Send push notification via Vercel API
     await sendPush(
@@ -349,97 +332,32 @@ class NotificationService {
     );
   }
 
-  // ── Mark notification as read ────────────────────────────────────────────
+  // ── Mark notification as read via API ────────────────────────────────────────────
   Future<void> markAsRead(String notificationId) async {
-    await _firestore
-        .collection('notifications')
-        .doc(notificationId)
-        .update({'isRead': true});
+    try {
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+      await apiService.dio.put('/notifications/$notificationId/read');
+    } catch (e) {
+      debugPrint('❌ [API] markAsRead error: $e');
+    }
   }
 
-  Future<void> deleteNotification(String notificationId) async {
-    await _firestore
-        .collection('notifications')
-        .doc(notificationId)
-        .delete();
-  }
-
-  Future<void> markAllAsRead(String uid, {String? role}) async {
-    final batch = _firestore.batch();
-    final targets = <String>[uid, 'all'];
-    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
-      targets.add(role.toLowerCase());
+  // ── Fetch notifications from API ──────────────────────────────────
+  Future<List<AppNotificationModel>> fetchNotificationsFromApi(String uid) async {
+    try {
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+      final response = await apiService.dio.get('/notifications/$uid');
+      
+      final data = response.data as List<dynamic>;
+      final list = data.map((item) => AppNotificationModel.fromMap(item, item['id'])).toList();
+      
+      // Filter out self actions (though backend shouldn't send them)
+      final filteredList = list.where((item) => item.senderUid != uid).toList();
+      filteredList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      return filteredList;
+    } catch (e) {
+      debugPrint('❌ [API] fetchNotificationsFromApi error: $e');
+      return [];
     }
-    final query = await _firestore
-        .collection('notifications')
-        .where('receiverUid', whereIn: targets)
-        .where('isRead', isEqualTo: false)
-        .get();
-    for (final doc in query.docs) {
-      final sender = doc.data()['senderUid']?.toString();
-      if (sender == uid) continue; // Skip self actions
-      batch.update(doc.reference, {'isRead': true});
-    }
-    await batch.commit();
-  }
-
-  Future<void> deleteAllNotifications(String uid, {String? role}) async {
-    final batch = _firestore.batch();
-    final targets = <String>[uid, 'all'];
-    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
-      targets.add(role.toLowerCase());
-    }
-    final query = await _firestore
-        .collection('notifications')
-        .where('receiverUid', whereIn: targets)
-        .get();
-    for (final doc in query.docs) {
-      final sender = doc.data()['senderUid']?.toString();
-      if (sender == uid) continue;
-      batch.delete(doc.reference);
-    }
-    await batch.commit();
-  }
-
-  // ── Stream of notifications for a user ──────────────────────────────────
-  Stream<List<AppNotificationModel>> getNotificationsStream(String uid, {String? role}) {
-    final targets = <String>[uid, 'all'];
-    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
-      targets.add(role.toLowerCase());
-    }
-    return _firestore
-        .collection('notifications')
-        .where('receiverUid', whereIn: targets)
-        .snapshots()
-        .map((snap) {
-          final list = snap.docs
-              .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
-              .where((item) => item.senderUid != uid) // Never show actions performed by myself
-              .toList();
-          list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return list;
-        })
-        .handleError((error) {
-          debugPrint('❌ Notifications stream error: $error');
-        });
-  }
-
-  // ── Unread count stream ──────────────────────────────────────────────────
-  Stream<int> getUnreadCountStream(String uid, {String? role}) {
-    final targets = <String>[uid, 'all'];
-    if (role != null && role.isNotEmpty && role.toLowerCase() != 'all') {
-      targets.add(role.toLowerCase());
-    }
-    return _firestore
-        .collection('notifications')
-        .where('receiverUid', whereIn: targets)
-        .snapshots()
-        .map((snap) => snap.docs
-            .map((doc) => AppNotificationModel.fromMap(doc.data(), doc.id))
-            .where((item) => item.senderUid != uid && !item.isRead) // Filter out self actions
-            .length)
-        .handleError((error) {
-          debugPrint('❌ Unread count stream error: $error');
-        });
   }
 }

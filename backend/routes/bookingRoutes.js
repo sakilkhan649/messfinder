@@ -5,6 +5,7 @@ const bookingController = require('../controllers/bookingController');
 // Routes for landlord leads
 router.post('/', bookingController.createBooking);
 router.get('/landlord/:uid', bookingController.getLandlordLeads);
+router.get('/bachelor/:uid', bookingController.getBachelorBookings);
 router.get('/post/:postId', bookingController.getPostLeads);
 
 // Actions for leads

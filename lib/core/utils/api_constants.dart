@@ -93,6 +93,7 @@ class ApiConstants {
   // ─── Custom Bookings Endpoints (/api/bookings) ───────────────────────────
   static const String bookings = '/bookings';
   static String landlordLeads(String uid) => '/bookings/landlord/$uid';
+  static String bachelorBookings(String uid) => '/bookings/bachelor/$uid';
   static String postLeads(String postId) => '/bookings/post/$postId';
   static String bookingApprove(String bookingId) => '/bookings/$bookingId/approve';
   static String bookingReject(String bookingId) => '/bookings/$bookingId/reject';

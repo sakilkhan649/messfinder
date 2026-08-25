@@ -15,17 +15,42 @@ import '../../notifications/views/widgets/notification_bell_action.dart';
 import '../models/booking_model.dart';
 import '../repositories/booking_repo.dart';
 
-class MyBookingsScreen extends StatelessWidget {
+class MyBookingsScreen extends StatefulWidget {
   const MyBookingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final Color primaryColor = const Color(0xFF059669); // Deep Indigo
+  State<MyBookingsScreen> createState() => _MyBookingsScreenState();
+}
 
+class _MyBookingsScreenState extends State<MyBookingsScreen> {
+  final Color primaryColor = const Color(0xFF059669);
+  late Future<List<BookingModel>> _bookingsFuture;
+  final repo = BookingRepository();
+  String _uid = '';
+
+  @override
+  void initState() {
+    super.initState();
     final auth = Get.find<AuthController>();
-    final uid = auth.currentUser.value?.uid ?? '';
-    final repo = BookingRepository();
+    _uid = auth.currentUser.value?.uid ?? '';
+    _loadBookings();
+  }
 
+  void _loadBookings() {
+    if (_uid.isNotEmpty) {
+      _bookingsFuture = repo.getBachelorBookingsFromApi(_uid);
+    }
+  }
+
+  Future<void> _refresh() async {
+    setState(() {
+      _loadBookings();
+    });
+    await _bookingsFuture;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       appBar: AppBar(
@@ -43,12 +68,14 @@ class MyBookingsScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: const [
           NotificationBellAction(),
         ],
       ),
-      body: uid.isEmpty
+      body: _uid.isEmpty
           ? Center(
               child: Text(
                 'Please log in to view your contacted rooms.',
@@ -56,8 +83,8 @@ class MyBookingsScreen extends StatelessWidget {
                     fontSize: 14.sp, color: AppTheme.textSecondary),
               ),
             )
-          : StreamBuilder<List<BookingModel>>(
-              stream: repo.getBookingsForBachelor(uid),
+          : FutureBuilder<List<BookingModel>>(
+              future: _bookingsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return Center(
@@ -88,9 +115,7 @@ class MyBookingsScreen extends StatelessWidget {
                 if (bookings.isEmpty) {
                   return RefreshIndicator(
                     color: primaryColor,
-                    onRefresh: () async {
-                      await Future.delayed(const Duration(seconds: 1));
-                    },
+                    onRefresh: _refresh,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       child: Container(
@@ -128,10 +153,7 @@ class MyBookingsScreen extends StatelessWidget {
 
                 return RefreshIndicator(
                   color: primaryColor,
-                  onRefresh: () async {
-                    // For StreamBuilder, a pull to refresh mostly just gives UI feedback
-                    await Future.delayed(const Duration(seconds: 1));
-                  },
+                  onRefresh: _refresh,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
                     padding: EdgeInsets.symmetric(

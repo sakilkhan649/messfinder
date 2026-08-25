@@ -3,6 +3,29 @@ const pool = require('../config/db');
 const path = require('path');
 const fs = require('fs');
 
+// Ensure notifications table exists
+const initNotificationsTable = async () => {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        receiver_uid VARCHAR(255) NOT NULL,
+        sender_uid VARCHAR(255),
+        title VARCHAR(255) NOT NULL,
+        body TEXT NOT NULL,
+        type VARCHAR(50) DEFAULT 'general',
+        related_id VARCHAR(255),
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+  } catch (err) {
+    console.error('Error creating notifications table:', err);
+  }
+};
+
+initNotificationsTable();
+
 // Initialize Firebase Admin lazily to prevent crashing if the key is missing
 let isFirebaseInitialized = false;
 
@@ -49,6 +72,20 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
   // Prevent self notification
   if (senderUid && senderUid === receiverUid) {
     return { success: true, message: 'Skipped self notification' };
+  }
+
+  // SAVE TO POSTGRES
+  try {
+    const isTopic = receiverUid.startsWith('/topics/');
+    if (!isTopic) {
+      await pool.query(
+        `INSERT INTO notifications (receiver_uid, sender_uid, title, body, type, related_id)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [receiverUid, senderUid || null, title, body, type || 'general', relatedId || null]
+      );
+    }
+  } catch (dbError) {
+    console.error('Error saving notification to DB:', dbError);
   }
 
   if (!initFirebase()) {
@@ -124,6 +161,51 @@ exports.sendPushNotification = async (req, res) => {
       : result.error === 'Firebase Admin SDK not configured on server' ? 503 
       : result.error.includes('required') ? 400 : 500;
     return res.status(statusCode).json(result);
+  }
+};
+
+exports.getNotifications = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const result = await pool.query(
+      `SELECT n.*, u.name as sender_name, u.photo_url as sender_photo_url
+       FROM notifications n
+       LEFT JOIN users u ON n.sender_uid = u.uid
+       WHERE n.receiver_uid = $1
+       ORDER BY n.created_at DESC
+       LIMIT 50`,
+      [uid]
+    );
+
+    const notifications = result.rows.map(row => ({
+      id: row.id.toString(),
+      receiverUid: row.receiver_uid,
+      senderUid: row.sender_uid,
+      senderName: row.sender_name || 'System',
+      senderPhotoUrl: row.sender_photo_url || '',
+      title: row.title,
+      body: row.body,
+      type: row.type,
+      relatedId: row.related_id,
+      isRead: row.is_read,
+      createdAt: row.created_at,
+    }));
+
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.markAsRead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('UPDATE notifications SET is_read = true WHERE id = $1', [id]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error marking notification read:', error);
+    res.status(500).json({ error: 'Server error' });
   }
 };
 

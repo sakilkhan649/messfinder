@@ -57,6 +57,63 @@ exports.getLandlordLeads = async (req, res) => {
   }
 };
 
+exports.getBachelorBookings = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    const result = await pool.query(
+      `SELECT b.*, u.name as user_table_name, u.phone as user_table_phone, u.email as user_table_email
+       FROM bookings b
+       LEFT JOIN users u ON b.bachelor_uid = u.uid
+       WHERE b.bachelor_uid = $1
+       ORDER BY b.created_at DESC`,
+      [uid]
+    );
+
+    const bookings = result.rows.map(row => {
+      // Resolve name
+      let finalName = row.bachelor_name;
+      if (!finalName || finalName.toLowerCase() === 'user' || finalName.toLowerCase() === 'unknown') {
+        finalName = row.user_table_name;
+      }
+      if (!finalName || finalName.toLowerCase() === 'user' || finalName.toLowerCase() === 'unknown') {
+        if (row.user_table_email) {
+          finalName = row.user_table_email.split('@')[0];
+        } else {
+          finalName = 'Bachelor Tenant';
+        }
+      }
+
+      // Resolve phone
+      let finalPhone = row.bachelor_phone;
+      if (!finalPhone || finalPhone === '—' || finalPhone === '') {
+        finalPhone = row.user_table_phone;
+      }
+      if (!finalPhone || finalPhone === '—' || finalPhone === '') {
+        finalPhone = row.sender_number || 'Not provided';
+      }
+
+      return {
+        bookingId: row.booking_id,
+        postId: row.post_id,
+        bachelorUid: row.bachelor_uid,
+        landlordUid: row.landlord_uid,
+        bachelorName: finalName,
+        bachelorPhone: finalPhone,
+        trxId: row.trx_id || '',
+        senderNumber: row.sender_number || '',
+        paymentStatus: row.payment_status,
+        isUnlocked: row.is_unlocked,
+        createdAt: row.created_at,
+      };
+    });
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.error('Error fetching bachelor bookings:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 exports.createBooking = async (req, res) => {
   try {
     const {
