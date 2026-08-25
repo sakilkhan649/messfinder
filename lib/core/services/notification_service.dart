@@ -139,7 +139,7 @@ class NotificationService {
     }
 
     // 7. Handle CallKit events
-    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) async {
       if (event == null) return;
       if (event is CallEventActionCallAccept) {
         final extra = event.callKitParams.extra;
@@ -168,7 +168,7 @@ class NotificationService {
           if (senderUid != null) {
              try {
                 final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
-                http.post(url, body: {'callerId': senderUid, 'reason': 'declined'});
+                await http.post(url, body: {'callerId': senderUid, 'reason': 'declined'}).timeout(const Duration(seconds: 5));
              } catch (e) {
                 debugPrint('Failed to reject call via API: $e');
              }

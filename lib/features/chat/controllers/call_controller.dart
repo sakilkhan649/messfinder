@@ -142,9 +142,6 @@ class CallController extends GetxController {
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
 
-      // Play Incoming Call Ringtone
-      _startIncomingRingtone();
-
       NotificationService().showCallNotification(
         callerName: peerUserName,
         isVideo: isVideoCall.value,
