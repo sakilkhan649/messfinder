@@ -43,18 +43,23 @@ class CallScreen extends StatelessWidget {
                 // ── 1. Background (Remote Video, Local Video, or Audio) ──
                 if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value)
                   if (isConnected && remoteUid != 0)
-                    Positioned.fill(
-                      child: AgoraVideoView(
-                        controller: VideoViewController.remote(
-                          rtcEngine: callCtrl.engine!,
-                          canvas: VideoCanvas(
-                            uid: remoteUid,
-                            renderMode: RenderModeType.renderModeHidden, // Fills screen
+                    if (callCtrl.isRemoteVideoDisabled.value)
+                      Positioned.fill(
+                        child: _buildCallerInfoOverlay(callCtrl, isConnected, true),
+                      )
+                    else
+                      Positioned.fill(
+                        child: AgoraVideoView(
+                          controller: VideoViewController.remote(
+                            rtcEngine: callCtrl.engine!,
+                            canvas: VideoCanvas(
+                              uid: remoteUid,
+                              renderMode: RenderModeType.renderModeHidden, // Fills screen
+                            ),
+                            connection: RtcConnection(channelId: callCtrl.currentChannel),
                           ),
-                          connection: RtcConnection(channelId: callCtrl.currentChannel),
                         ),
-                      ),
-                    )
+                      )
                   else
                     Positioned.fill(
                       child: Container(

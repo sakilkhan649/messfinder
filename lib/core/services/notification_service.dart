@@ -31,7 +31,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   
   if (message.data['type'] == 'call') {
     final callerName = message.data['title'] ?? 'Unknown Caller';
-    final isVideo = callerName.toString().toLowerCase().contains('video');
+    final body = message.data['body'] ?? '';
+    final isVideo = body.toString().toLowerCase().contains('video');
     final senderPhotoUrl = message.data['senderPhotoUrl'];
     final relatedId = message.data['relatedId']; 
     final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
@@ -230,7 +231,8 @@ class NotificationService {
     
     if (type == 'call') {
       final callerName = message.data['title'] ?? 'Unknown Caller';
-      final isVideo = callerName.toString().toLowerCase().contains('video');
+      final body = message.data['body'] ?? '';
+      final isVideo = body.toString().toLowerCase().contains('video');
       final senderPhotoUrl = message.data['senderPhotoUrl'];
       final relatedId = message.data['relatedId'];
 

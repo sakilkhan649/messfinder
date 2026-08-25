@@ -37,6 +37,7 @@ class CallController extends GetxController {
   final RxBool isVideoCall = false.obs;
   final RxBool isMuted = false.obs;
   final RxBool isVideoDisabled = false.obs;
+  final RxBool isRemoteVideoDisabled = false.obs;
   final RxBool isSpeakerOn = true.obs;
   final RxBool isFrontCamera = true.obs;
   final RxInt remoteUid = 0.obs;
@@ -139,6 +140,7 @@ class CallController extends GetxController {
       peerUserName = data['callerName'] ?? 'Unknown User';
       peerUserPhoto = data['callerPhoto'];
       isVideoCall.value = data['isVideo'] == true;
+      isSpeakerOn.value = isVideoCall.value; // Correct speaker default
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
 
@@ -173,6 +175,8 @@ class CallController extends GetxController {
 
     // 2. Call Accepted Listener (Caller side)
     _socket?.on('call_accepted', (data) async {
+      if (callState.value == CallState.connected) return; // Prevent double-join (-17 error)
+      
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -321,6 +325,7 @@ class CallController extends GetxController {
     peerUserName = targetUserName;
     peerUserPhoto = targetUserPhoto;
     isVideoCall.value = isVideo;
+    isSpeakerOn.value = isVideo; // Default to loudspeaker for video, earpiece for audio
     currentChannel = 'call_${myUid}_${DateTime.now().millisecondsSinceEpoch}';
     callState.value = CallState.outgoing;
     callStatusText.value = 'Ringing...';
@@ -369,10 +374,12 @@ class CallController extends GetxController {
     // Send Push Notification
     NotificationService().sendPush(
       receiverUid: targetUserId,
-      title: isVideo ? '📹 Incoming Video Call' : '📞 Incoming Audio Call',
-      body: '${myUser?.name ?? "User"} is calling you...',
+      title: myUser?.name ?? 'User',
+      body: isVideo ? 'Incoming Video Call' : 'Incoming Audio Call',
       type: 'call',
       relatedId: currentChannel,
+      senderUid: myUid,
+      senderPhotoUrl: myUser?.photoUrl ?? '',
     );
 
     // Emit Signal to Server
@@ -522,6 +529,10 @@ class CallController extends GetxController {
             _stopRingtone();
             endCall(notifyPeer: false);
           },
+          onUserMuteVideo: (RtcConnection connection, int remoteUid, bool muted) {
+            AppLogger.i('Remote user muted video: $muted', tag: 'CALL_CTRL');
+            isRemoteVideoDisabled.value = muted;
+          },
           onLeaveChannel: (RtcConnection connection, RtcStats stats) {
             AppLogger.i('Left Agora channel', tag: 'CALL_CTRL');
           },
@@ -659,6 +670,7 @@ class CallController extends GetxController {
     remoteUid.value = 0;
     isMuted.value = false;
     isVideoDisabled.value = false;
+    isRemoteVideoDisabled.value = false;
     isSpeakerOn.value = true;
     isFrontCamera.value = true;
     isEngineReady.value = false;
