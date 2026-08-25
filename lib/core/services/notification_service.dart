@@ -12,10 +12,66 @@ import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 
 /// ─── Background message handler (top-level function, required by FCM) ────────
+import 'package:flutter_callkit_incoming/entities/entities.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Firebase is already initialized by the time this runs.
   debugPrint('📨 [FCM] Background message: ${message.messageId}');
+  
+  if (message.data['type'] == 'call') {
+    final callerName = message.data['title'] ?? 'Unknown Caller';
+    final isVideo = callerName.toString().toLowerCase().contains('video');
+    final senderPhotoUrl = message.data['senderPhotoUrl'];
+    final relatedId = message.data['relatedId']; 
+
+    final params = CallKitParams(
+      id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+      nameCaller: callerName,
+      appName: 'Mess Finder',
+      avatar: senderPhotoUrl,
+      handle: isVideo ? 'Video Call' : 'Audio Call',
+      type: isVideo ? 1 : 0,
+      textAccept: 'Accept',
+      textDecline: 'Decline',
+      missedCallNotification: const NotificationParams(
+        showNotification: true,
+        isShowCallback: false,
+        subtitle: 'Missed call',
+      ),
+      duration: 30000,
+      extra: <String, dynamic>{
+        'relatedId': relatedId, 
+        'isVideo': isVideo,
+        'senderUid': senderUid,
+      },
+      android: const AndroidParams(
+        isCustomNotification: true,
+        isShowLogo: false,
+        ringtonePath: 'system_ringtone_default',
+        backgroundColor: '#0955fa',
+        actionColor: '#4CAF50',
+      ),
+      ios: const IOSParams(
+        iconName: 'CallKitLogo',
+        handleType: '',
+        supportsVideo: true,
+        maximumCallGroups: 2,
+        maximumCallsPerCallGroup: 1,
+        audioSessionMode: 'default',
+        audioSessionActive: true,
+        audioSessionPreferredSampleRate: 44100.0,
+        audioSessionPreferredIOBufferDuration: 0.005,
+        supportsDTMF: true,
+        supportsHolding: true,
+        supportsGrouping: false,
+        supportsUngrouping: false,
+        ringtonePath: 'system_ringtone_default',
+      ),
+    );
+    
+    await FlutterCallkitIncoming.showCallkitIncoming(params);
+  }
 }
 
 /// ─── Core Notification Service ───────────────────────────────────────────────
@@ -71,6 +127,50 @@ class NotificationService {
       _handleNotificationTap(initialMessage);
     }
 
+    // 7. Handle CallKit events
+    FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
+      if (event == null) return;
+      switch (event.event) {
+        case Event.actionCallAccept:
+          final body = event.body;
+          final extra = body['extra'] as Map<dynamic, dynamic>?;
+          if (extra != null) {
+            final relatedId = extra['relatedId'];
+            final isVideo = extra['isVideo'] == true;
+            final senderUid = extra['senderUid'];
+            
+            if (Get.isRegistered<CallController>()) {
+              final callCtrl = Get.find<CallController>();
+              callCtrl.currentChannel = relatedId;
+              callCtrl.isVideoCall.value = isVideo;
+              if (senderUid != null) {
+                callCtrl.peerUserId = senderUid;
+              }
+              callCtrl.acceptCall();
+            }
+          }
+          break;
+        case Event.actionCallDecline:
+          final body = event.body;
+          final extra = body['extra'] as Map<dynamic, dynamic>?;
+          if (extra != null) {
+            final relatedId = extra['relatedId'];
+            final senderUid = extra['senderUid'];
+            if (Get.isRegistered<CallController>()) {
+              final callCtrl = Get.find<CallController>();
+              callCtrl.currentChannel = relatedId;
+              if (senderUid != null) {
+                callCtrl.peerUserId = senderUid;
+              }
+              callCtrl.rejectCall();
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    });
+
     debugPrint('✅ [FCM] NotificationService initialized');
   }
 
@@ -103,12 +203,46 @@ class NotificationService {
 
     final type = message.data['type'];
     if (type == 'call') {
-      showCallNotification(
-        callerName: message.notification?.body?.split(' is calling').first ?? 'Someone',
-        isVideo: message.notification?.title?.contains('Video') ?? false,
-        imageUrl: message.data['senderPhotoUrl'],
-        payload: jsonEncode(message.data),
+      final callerName = message.data['title'] ?? 'Unknown Caller';
+      final isVideo = callerName.toString().toLowerCase().contains('video');
+      final senderPhotoUrl = message.data['senderPhotoUrl'];
+      final relatedId = message.data['relatedId'];
+
+      final params = CallKitParams(
+        id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        nameCaller: callerName,
+        appName: 'Mess Finder',
+        avatar: senderPhotoUrl,
+        handle: isVideo ? 'Video Call' : 'Audio Call',
+        type: isVideo ? 1 : 0,
+        textAccept: 'Accept',
+        textDecline: 'Decline',
+        duration: 30000,
+        extra: <String, dynamic>{
+          'relatedId': relatedId, 
+          'isVideo': isVideo,
+          'senderUid': senderUid,
+        },
+        android: const AndroidParams(
+          isCustomNotification: true,
+          isShowLogo: false,
+          ringtonePath: 'system_ringtone_default',
+          backgroundColor: '#0955fa',
+          actionColor: '#4CAF50',
+        ),
+        ios: const IOSParams(
+          iconName: 'CallKitLogo',
+          supportsVideo: true,
+          maximumCallGroups: 2,
+          maximumCallsPerCallGroup: 1,
+          audioSessionActive: true,
+          supportsDTMF: true,
+          supportsHolding: true,
+          ringtonePath: 'system_ringtone_default',
+        ),
       );
+      
+      FlutterCallkitIncoming.showCallkitIncoming(params);
       return;
     }
 
