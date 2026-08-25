@@ -168,7 +168,7 @@ exports.getNotifications = async (req, res) => {
   try {
     const { uid } = req.params;
     const result = await pool.query(
-      `SELECT n.*, u.name as sender_name, u.photo_url as sender_photo_url
+      `SELECT n.*, u.name as sender_name, u.profile_image as sender_photo_url
        FROM notifications n
        LEFT JOIN users u ON n.sender_uid = u.uid
        WHERE n.receiver_uid = $1
