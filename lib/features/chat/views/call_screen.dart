@@ -8,8 +8,33 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/call_controller.dart';
 
-class CallScreen extends StatelessWidget {
+class CallScreen extends StatefulWidget {
   const CallScreen({super.key});
+
+  @override
+  State<CallScreen> createState() => _CallScreenState();
+}
+
+class _CallScreenState extends State<CallScreen> {
+  bool _showControls = true;
+  Offset _pipPosition = Offset(20, 100);
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final size = MediaQuery.of(context).size;
+      setState(() {
+        _pipPosition = Offset(size.width - 110.w, 80.h);
+      });
+    });
+  }
+
+  void _toggleControls() {
+    setState(() {
+      _showControls = !_showControls;
+    });
+  }
 
   String _formatDuration(int seconds) {
     final minutes = (seconds / 60).floor().toString().padLeft(2, '0');
@@ -30,87 +55,100 @@ class CallScreen extends StatelessWidget {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
-        body: Obx(() {
-          final isVideo = callCtrl.isVideoCall.value;
-          final isConnected = callCtrl.callState.value == CallState.connected;
-          final remoteUid = callCtrl.remoteUid.value;
+        body: GestureDetector(
+          onTap: _toggleControls,
+          behavior: HitTestBehavior.opaque,
+          child: Obx(() {
+            final isVideo = callCtrl.isVideoCall.value;
+            final isConnected = callCtrl.callState.value == CallState.connected;
+            final remoteUid = callCtrl.remoteUid.value;
 
-          return SafeArea(
-            top: false,
-            bottom: false,
-            child: Stack(
-              children: [
-                // ── 1. Background (Remote Video, Local Video, or Audio) ──
-                if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value)
-                  if (isConnected && remoteUid != 0)
-                    if (callCtrl.isRemoteVideoDisabled.value)
-                      Positioned.fill(
-                        child: _buildCallerInfoOverlay(callCtrl, isConnected, true),
-                      )
+            return SafeArea(
+              top: false,
+              bottom: false,
+              child: Stack(
+                children: [
+                  // ── 1. Background (Remote Video, Local Video, or Audio) ──
+                  if (isVideo && callCtrl.engine != null && callCtrl.isEngineReady.value)
+                    if (isConnected && remoteUid != 0)
+                      if (callCtrl.isRemoteVideoDisabled.value)
+                        Positioned.fill(
+                          child: _buildCallerInfoOverlay(callCtrl, isConnected, true),
+                        )
+                      else
+                        Positioned.fill(
+                          child: AgoraVideoView(
+                            controller: VideoViewController.remote(
+                              rtcEngine: callCtrl.engine!,
+                              canvas: VideoCanvas(
+                                uid: remoteUid,
+                                renderMode: RenderModeType.renderModeHidden, // Fills screen
+                              ),
+                              connection: RtcConnection(channelId: callCtrl.currentChannel),
+                            ),
+                          ),
+                        )
                     else
                       Positioned.fill(
-                        child: AgoraVideoView(
-                          controller: VideoViewController.remote(
-                            rtcEngine: callCtrl.engine!,
-                            canvas: VideoCanvas(
-                              uid: remoteUid,
-                              renderMode: RenderModeType.renderModeHidden, // Fills screen
+                        child: Container(
+                          color: Colors.black, // fallback
+                          child: AgoraVideoView(
+                            controller: VideoViewController(
+                              rtcEngine: callCtrl.engine!,
+                              canvas: const VideoCanvas(
+                                uid: 0,
+                                renderMode: RenderModeType.renderModeHidden, // Fills screen
+                              ),
                             ),
-                            connection: RtcConnection(channelId: callCtrl.currentChannel),
                           ),
                         ),
                       )
                   else
+                    _buildAudioBackground(callCtrl, isConnected),
+
+                  // ── 2. Caller Info Overlay (For Audio, or Ringing Video) ──
+                  if (!isConnected || !isVideo)
                     Positioned.fill(
-                      child: Container(
-                        color: Colors.black, // fallback
-                        child: AgoraVideoView(
-                          controller: VideoViewController(
-                            rtcEngine: callCtrl.engine!,
-                            canvas: const VideoCanvas(
-                              uid: 0,
-                              renderMode: RenderModeType.renderModeHidden, // Fills screen
-                            ),
-                          ),
-                        ),
+                      child: _buildCallerInfoOverlay(callCtrl, isConnected, isVideo),
+                    ),
+
+                  // ── 3. Top Minimal Bar ─────────────────────────────────
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    top: _showControls ? 50.h : -100.h,
+                    left: 20.w,
+                    right: isVideo ? 120.w : 20.w,
+                    child: _buildTopBar(callCtrl),
+                  ),
+
+                  // ── 4. Local Camera PiP (Video Calls only, Connected) ──
+                  if (isVideo && isConnected && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
+                    Positioned(
+                      left: _pipPosition.dx,
+                      top: _pipPosition.dy,
+                      child: GestureDetector(
+                        onPanUpdate: (details) {
+                          setState(() {
+                            _pipPosition += details.delta;
+                          });
+                        },
+                        child: _buildPipCamera(callCtrl),
                       ),
-                    )
-                else
-                  _buildAudioBackground(callCtrl, isConnected),
+                    ),
 
-                // ── 2. Caller Info Overlay (For Audio, or Ringing Video) ──
-                if (!isConnected || !isVideo)
-                  Positioned.fill(
-                    child: _buildCallerInfoOverlay(callCtrl, isConnected, isVideo),
+                  // ── 5. Bottom Controls Bar ────────────────────────────
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 300),
+                    bottom: _showControls ? 40.h : -120.h,
+                    left: 20.w,
+                    right: 20.w,
+                    child: _buildControls(callCtrl),
                   ),
-
-                // ── 3. Top Minimal Bar ─────────────────────────────────
-                Positioned(
-                  top: 50.h,
-                  left: 20.w,
-                  right: isVideo ? 120.w : 20.w,
-                  child: _buildTopBar(callCtrl),
-                ),
-
-                // ── 4. Local Camera PiP (Video Calls only, Connected) ──
-                if (isVideo && isConnected && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
-                  Positioned(
-                    top: 50.h,
-                    right: 16.w,
-                    child: _buildPipCamera(callCtrl),
-                  ),
-
-                // ── 5. Bottom Controls Bar ────────────────────────────
-                Positioned(
-                  bottom: 40.h,
-                  left: 20.w,
-                  right: 20.w,
-                  child: _buildControls(callCtrl),
-                ),
-              ],
-            ),
-          );
-        }),
+                ],
+              ),
+            );
+          }),
+        ),
       ),
     );
   }
@@ -252,7 +290,7 @@ class CallScreen extends StatelessWidget {
             width: 36.r,
             height: 36.r,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: Colors.black.withValues(alpha: 0.3),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.arrow_back_ios_new_rounded,
@@ -287,6 +325,16 @@ class CallScreen extends StatelessWidget {
               ),
             ],
           ),
+        ),
+        const Spacer(),
+        // Network indicator
+        Container(
+          padding: EdgeInsets.all(6.r),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.3),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.signal_cellular_4_bar_rounded, color: Colors.green, size: 16),
         ),
       ],
     );
@@ -399,13 +447,26 @@ class CallScreen extends StatelessWidget {
               onTap: callCtrl.toggleSpeaker,
             ),
 
-          // 3. Flip Camera (Video only)
+          // 3. Switch to Audio/Video
           if (isVideo)
             _buildActionButton(
-              icon: Icons.flip_camera_ios_rounded,
-              label: 'Flip',
+              icon: Icons.phone_rounded,
+              label: 'Audio Only',
               isActive: false,
-              onTap: callCtrl.switchCamera,
+              onTap: () {
+                callCtrl.isVideoCall.value = false;
+                callCtrl.toggleVideo(); // Disables video when switching to audio
+              },
+            )
+          else
+            _buildActionButton(
+              icon: Icons.videocam_rounded,
+              label: 'Video',
+              isActive: false,
+              onTap: () {
+                callCtrl.isVideoCall.value = true;
+                callCtrl.toggleVideo(); // Enables video
+              },
             ),
 
           // 4. End Call Button

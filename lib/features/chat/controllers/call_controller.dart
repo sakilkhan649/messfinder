@@ -58,6 +58,8 @@ class CallController extends GetxController {
 
   Timer? _timer;
   Timer? _ringingTimeoutTimer;
+  
+  bool _pendingAcceptCall = false;
 
   @override
   void onInit() {
@@ -103,6 +105,14 @@ class CallController extends GetxController {
       AppLogger.i('Call signaling socket connected for $currentUid', tag: 'CALL_CTRL');
       // Ensure backend routes calls correctly by joining personal user room
       _socket?.emit(ApiConstants.socketJoinUserRoom, currentUid);
+      // If there's a pending accept_call from background CallKit, emit it now
+      if (_pendingAcceptCall) {
+        _pendingAcceptCall = false;
+        _socket?.emit('accept_call', {
+          'channelName': currentChannel,
+          'targetUserId': peerUserId,
+        });
+      }
     });
 
     // 1. Incoming Call Listener
@@ -438,11 +448,13 @@ class CallController extends GetxController {
     _startCallTimer();
 
     // Open screen immediately
-    Get.to(
-      () => const CallScreen(),
-      routeName: '/CallScreen',
-      transition: Transition.fadeIn,
-    );
+    if (Get.currentRoute != '/CallScreen') {
+      Get.to(
+        () => const CallScreen(),
+        routeName: '/CallScreen',
+        transition: Transition.fadeIn,
+      );
+    }
 
     // Use HTTP API to accept call and get token instantly
     try {
@@ -668,17 +680,6 @@ class CallController extends GetxController {
       );
     } catch (e) {
       AppLogger.w('Outgoing ringtone notice: $e', tag: 'CALL_CTRL');
-    }
-  }
-
-  void _startIncomingRingtone() {
-    try {
-      FlutterRingtonePlayer().playRingtone(
-        looping: true,
-        volume: 1.0,
-      );
-    } catch (e) {
-      AppLogger.w('Incoming ringtone notice: $e', tag: 'CALL_CTRL');
     }
   }
 

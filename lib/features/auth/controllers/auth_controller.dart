@@ -12,6 +12,8 @@ import '../../notifications/controllers/notification_controller.dart';
 import '../models/user_model.dart';
 import '../repositories/auth_repo.dart';
 import '../views/login_screen.dart';
+import '../../chat/controllers/call_controller.dart';
+import '../../chat/views/call_screen.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepo = AuthRepository();
@@ -171,9 +173,12 @@ class AuthController extends GetxController {
       Get.offAll(() => const LoginScreen());
     }
   }
-  void handleNavigation(UserModel user) {
+  void handleNavigation(UserModel user) async {
     // Save FCM token & subscribe to role-based topic
     _setupNotificationsForUser(user);
+
+    final currentRoute = Get.currentRoute;
+    final isCallActive = currentRoute == '/CallScreen' || currentRoute == '/IncomingCallScreen';
 
     // Always use the actual user role from Firestore, NOT selectedRole
     if (user.isAdmin) {
@@ -184,6 +189,18 @@ class AuthController extends GetxController {
       selectedRole.value = user.role;
       Get.offAll(() => UserHomeScreen(user: user),
           transition: Transition.rightToLeft);
+    }
+
+    if (isCallActive) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (Get.isRegistered<CallController>()) {
+        final callCtrl = Get.find<CallController>();
+        if (callCtrl.callState.value != CallState.idle) {
+          if (currentRoute == '/CallScreen') {
+            Get.to(() => const CallScreen(), routeName: '/CallScreen');
+          }
+        }
+      }
     }
   }
 

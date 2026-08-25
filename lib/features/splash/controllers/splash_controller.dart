@@ -23,7 +23,7 @@ class SplashController extends GetxController {
     // Immediately check if launched from a CallKit incoming call
     try {
       final activeCalls = await FlutterCallkitIncoming.activeCalls();
-      if (activeCalls is List && activeCalls.isNotEmpty) {
+      if (activeCalls.isNotEmpty) {
         // App was launched by accepting a call. 
         // Do NOT wait 2.5s. The NotificationService will push the CallScreen instantly.
         // We pause the splash navigation so it doesn't overwrite the CallScreen.

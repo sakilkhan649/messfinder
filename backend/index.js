@@ -41,6 +41,9 @@ const io = new Server(server, {
   cors: { origin: '*' }
 });
 
+// Track online users: uid -> socket.id
+const onlineUsers = new Map();
+
 // Socket.io integration
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
@@ -48,7 +51,10 @@ io.on('connection', (socket) => {
   const queryUid = socket.handshake.query?.userId;
   if (queryUid) {
     socket.join(queryUid);
+    onlineUsers.set(queryUid, socket.id);
     console.log(`User auto-joined room from query: ${queryUid}`);
+    // Notify everyone this user is online
+    socket.broadcast.emit('user_online', { userId: queryUid });
   }
 
   socket.on('join_chat', (chatId) => {
@@ -266,8 +272,36 @@ io.on('connection', (socket) => {
     }
   });
 
+  // ── Typing Indicators ─────────────────────────────────────────────
+  socket.on('typing_start', (data) => {
+    // data: { chatId, userId }
+    socket.to(data.chatId).emit('user_typing', { chatId: data.chatId, userId: data.userId });
+  });
+
+  socket.on('typing_stop', (data) => {
+    // data: { chatId, userId }
+    socket.to(data.chatId).emit('user_stop_typing', { chatId: data.chatId, userId: data.userId });
+  });
+
+  // ── Message Seen ──────────────────────────────────────────────────
+  socket.on('mark_seen', (data) => {
+    // data: { chatId, lastMessageId, seenByUid }
+    socket.to(data.chatId).emit('message_seen', { chatId: data.chatId, lastMessageId: data.lastMessageId, seenByUid: data.seenByUid });
+  });
+
+  // ── Online Users Query ────────────────────────────────────────────
+  socket.on('get_online_users', (uids) => {
+    // uids: string[] - list of uids to check
+    const onlineUids = (uids || []).filter(uid => onlineUsers.has(uid));
+    socket.emit('online_users_list', onlineUids);
+  });
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
+    if (queryUid) {
+      onlineUsers.delete(queryUid);
+      socket.broadcast.emit('user_offline', { userId: queryUid });
+    }
   });
 });
 

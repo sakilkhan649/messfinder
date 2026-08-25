@@ -258,7 +258,7 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  // ── Messenger-Style Top Profile Header (Under AppBar at top of chat) ───
+  // ── Messenger-Style Top Profile Header ───────────────────────────────
   Widget _buildTopProfileHeader(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 20.h, horizontal: 20.w),
@@ -1291,7 +1291,12 @@ class ChatScreen extends StatelessWidget {
     return !RegExp(r'[\p{L}\p{N}\p{P}]', unicode: true)
         .hasMatch(textWithoutSpaces);
   }
+
+
+
 }
+
+
 
 // ── Screen Controller ────────────────────────────────────────────────
 class ChatScreenController extends GetxController {
@@ -1328,7 +1333,7 @@ class ChatScreenController extends GetxController {
 
   @override
   void onClose() {
-    chatController.leaveChat();
+    chatController.leaveChat(chatRoomId);
     messageController.dispose();
     super.onClose();
   }

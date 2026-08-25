@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -28,14 +29,25 @@ class ChatController extends GetxController {
     return '';
   }
 
-  // Reactive state
+  // ── Reactive State ────────────────────────────────────────────────────
   final RxList<ChatRoomModel> chatRooms = <ChatRoomModel>[].obs;
   final RxList<MessageModel> currentMessages = <MessageModel>[].obs;
   final RxBool isLoadingRooms = true.obs;
   final RxBool isLoadingMessages = false.obs;
   final RxBool isSending = false.obs;
 
-  // Pagination & Search for Chat Rooms
+  // ── Typing & Online Presence ──────────────────────────────────────────
+  /// chatId -> userId who is typing
+  final RxMap<String, String> typingUsers = <String, String>{}.obs;
+  /// Set of userIds who are currently online
+  final RxSet<String> onlineUsers = <String>{}.obs;
+  /// chatId -> last seen messageId (from peer)
+  final RxMap<String, String> seenMessageIds = <String, String>{}.obs;
+
+  Timer? _typingDebounceTimer;
+  bool _isCurrentlyTyping = false;
+
+  // ── Pagination & Search for Chat Rooms ───────────────────────────────
   int _roomPage = 1;
   final int _roomLimit = 20;
   final RxBool hasMoreRooms = true.obs;
@@ -45,7 +57,7 @@ class ChatController extends GetxController {
   final RxString searchQuery = ''.obs;
   final ScrollController chatListScrollController = ScrollController();
 
-  // Pagination for Chat Messages
+  // ── Pagination for Chat Messages ──────────────────────────────────────
   int _messageOffset = 0;
   final int _messageLimit = 50;
   final RxBool hasMoreMessages = true.obs;
@@ -68,6 +80,7 @@ class ChatController extends GetxController {
   void onClose() {
     _socket?.disconnect();
     _socket?.dispose();
+    _typingDebounceTimer?.cancel();
     searchController.dispose();
     chatListScrollController.dispose();
     messageScrollController.dispose();
@@ -75,7 +88,8 @@ class ChatController extends GetxController {
   }
 
   void _onChatListScroll() {
-    if (chatListScrollController.position.pixels >= chatListScrollController.position.maxScrollExtent - 200 &&
+    if (chatListScrollController.position.pixels >=
+            chatListScrollController.position.maxScrollExtent - 200 &&
         !isFetchingMoreRooms.value &&
         hasMoreRooms.value) {
       fetchChatRooms(isLoadMore: true);
@@ -83,7 +97,8 @@ class ChatController extends GetxController {
   }
 
   void _onMessageScroll() {
-    if (messageScrollController.position.pixels >= messageScrollController.position.maxScrollExtent - 200 &&
+    if (messageScrollController.position.pixels >=
+            messageScrollController.position.maxScrollExtent - 200 &&
         !isFetchingMoreMessages.value &&
         hasMoreMessages.value &&
         _currentActiveChatId != null) {
@@ -96,14 +111,18 @@ class ChatController extends GetxController {
     searchQuery.value = '';
   }
 
+  // ── Socket Initialization ─────────────────────────────────────────────
   void _initSocket() {
     final socketUrl = ApiConstants.serverBaseUrl;
     AppLogger.i('Connecting Socket.io to: $socketUrl', tag: 'CHAT_CTRL');
 
-    _socket = socket_io.io(socketUrl, socket_io.OptionBuilder()
-        .setTransports(['websocket'])
-        .disableAutoConnect()
-        .build());
+    _socket = socket_io.io(
+        socketUrl,
+        socket_io.OptionBuilder()
+            .setTransports(['websocket'])
+            .disableAutoConnect()
+            .setQuery({'userId': currentUserId})
+            .build());
 
     _socket?.connect();
 
@@ -112,34 +131,43 @@ class ChatController extends GetxController {
       if (_currentActiveChatId != null) {
         _socket?.emit('join_chat', _currentActiveChatId);
       }
+      _requestOnlineUsers();
     });
 
+    // ── Incoming Message ──────────────────────────────────────────────
     _socket?.on('receive_message', (data) {
       if (data == null) return;
       final map = Map<String, dynamic>.from(data);
       final msg = MessageModel.fromMap(map);
       final chatId = (map['chat_id'] ?? map['chatId'])?.toString();
-      // If we are currently in this chat room, add message to list
       if (chatId == _currentActiveChatId) {
-        // Only add if not already in list to avoid duplicates
         if (!currentMessages.any((m) => m.id.isNotEmpty && m.id == msg.id)) {
+          // Remove optimistic duplicate if exists
+          currentMessages.removeWhere((m) => m.id.startsWith('temp_') && m.text == msg.text && m.senderId == msg.senderId);
           currentMessages.insert(0, msg);
+          // Auto-mark as seen since we're actively in this chat
+          if (msg.senderId != currentUserId) {
+            _emitMarkSeen(chatId!, msg.id);
+          }
         }
       }
-      // Refresh chat rooms list to update last message
       fetchChatRooms();
     });
 
+    // ── Reaction ─────────────────────────────────────────────────────
     _socket?.on('message_reacted', (data) {
       if (data == null) return;
       final messageId = data['messageId']?.toString();
-      final reactions = data['reactions'] != null ? Map<String, String>.from(data['reactions']) : <String, String>{};
+      final reactions = data['reactions'] != null
+          ? Map<String, String>.from(data['reactions'])
+          : <String, String>{};
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         currentMessages[index] = currentMessages[index].copyWith(reactions: reactions);
       }
     });
 
+    // ── Edit ─────────────────────────────────────────────────────────
     _socket?.on('message_edited', (data) {
       if (data == null) return;
       final messageId = data['messageId']?.toString();
@@ -150,13 +178,60 @@ class ChatController extends GetxController {
       }
     });
 
+    // ── Delete ────────────────────────────────────────────────────────
     _socket?.on('message_deleted', (data) {
       if (data == null) return;
       final messageId = data['messageId']?.toString();
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
-        currentMessages[index] = currentMessages[index].copyWith(text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
+        currentMessages[index] = currentMessages[index].copyWith(
+            text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
       }
+    });
+
+    // ── Typing Indicators ─────────────────────────────────────────────
+    _socket?.on('user_typing', (data) {
+      if (data == null) return;
+      final chatId = data['chatId']?.toString() ?? '';
+      final userId = data['userId']?.toString() ?? '';
+      if (userId != currentUserId && chatId.isNotEmpty) {
+        typingUsers[chatId] = userId;
+      }
+    });
+
+    _socket?.on('user_stop_typing', (data) {
+      if (data == null) return;
+      final chatId = data['chatId']?.toString() ?? '';
+      typingUsers.remove(chatId);
+    });
+
+    // ── Message Seen ─────────────────────────────────────────────────
+    _socket?.on('message_seen', (data) {
+      if (data == null) return;
+      final chatId = data['chatId']?.toString() ?? '';
+      final lastMessageId = data['lastMessageId']?.toString() ?? '';
+      if (chatId.isNotEmpty && lastMessageId.isNotEmpty) {
+        seenMessageIds[chatId] = lastMessageId;
+      }
+    });
+
+    // ── Online Presence ───────────────────────────────────────────────
+    _socket?.on('user_online', (data) {
+      if (data == null) return;
+      final userId = data['userId']?.toString() ?? '';
+      if (userId.isNotEmpty) onlineUsers.add(userId);
+    });
+
+    _socket?.on('user_offline', (data) {
+      if (data == null) return;
+      final userId = data['userId']?.toString() ?? '';
+      onlineUsers.remove(userId);
+    });
+
+    _socket?.on('online_users_list', (data) {
+      if (data == null) return;
+      final uids = List<String>.from(data as List);
+      onlineUsers.addAll(uids);
     });
 
     _socket?.onDisconnect((_) {
@@ -164,12 +239,64 @@ class ChatController extends GetxController {
     });
   }
 
+  // ── Public Helpers ────────────────────────────────────────────────────
+  bool isUserOnline(String userId) => onlineUsers.contains(userId);
+
+  bool isTypingInChat(String chatId) => typingUsers.containsKey(chatId);
+
+  // ── Typing Emit (with debounce) ───────────────────────────────────────
+  void onUserTyping(String chatId) {
+    if (!_isCurrentlyTyping) {
+      _isCurrentlyTyping = true;
+      _socket?.emit('typing_start', {'chatId': chatId, 'userId': currentUserId});
+    }
+    _typingDebounceTimer?.cancel();
+    _typingDebounceTimer = Timer(const Duration(seconds: 2), () {
+      _isCurrentlyTyping = false;
+      _socket?.emit('typing_stop', {'chatId': chatId, 'userId': currentUserId});
+    });
+  }
+
+  void stopTyping(String chatId) {
+    _typingDebounceTimer?.cancel();
+    if (_isCurrentlyTyping) {
+      _isCurrentlyTyping = false;
+      _socket?.emit('typing_stop', {'chatId': chatId, 'userId': currentUserId});
+    }
+  }
+
+  // ── Mark Seen ─────────────────────────────────────────────────────────
+  void _emitMarkSeen(String chatId, String lastMessageId) {
+    _socket?.emit('mark_seen', {
+      'chatId': chatId,
+      'lastMessageId': lastMessageId,
+      'seenByUid': currentUserId,
+    });
+  }
+
+  void markChatAsSeen(String chatId) {
+    if (currentMessages.isEmpty) return;
+    final lastMsg = currentMessages.first;
+    if (lastMsg.senderId != currentUserId) {
+      _emitMarkSeen(chatId, lastMsg.id);
+    }
+  }
+
+  void _requestOnlineUsers() {
+    final uids = chatRooms.map((r) => r.otherUserUid).toList();
+    if (uids.isNotEmpty) {
+      _socket?.emit('get_online_users', uids);
+    }
+  }
+
+  // ── Chat Room & Join/Leave ────────────────────────────────────────────
   void joinChat(String chatId) {
     _currentActiveChatId = chatId;
     _socket?.emit('join_chat', chatId);
   }
 
-  void leaveChat() {
+  void leaveChat(String chatId) {
+    stopTyping(chatId);
     _currentActiveChatId = null;
   }
 
@@ -177,7 +304,7 @@ class ChatController extends GetxController {
 
   Future<void> fetchChatRooms({bool isRefresh = false, bool isLoadMore = false}) async {
     if (_isFetchingRooms) return;
-    
+
     if (isRefresh) {
       _roomPage = 1;
       hasMoreRooms.value = true;
@@ -188,9 +315,9 @@ class ChatController extends GetxController {
     } else {
       if (!isRefresh) isLoadingRooms.value = true;
     }
-    
+
     _isFetchingRooms = true;
-    
+
     if (!isLoadMore && _roomPage == 1) {
       try {
         final prefs = await SharedPreferences.getInstance();
@@ -222,7 +349,6 @@ class ChatController extends GetxController {
             await prefs.setString('cached_chat_rooms', jsonEncode(data));
           } catch (_) {}
         } else {
-          // Prevent duplicates when appending
           for (var room in newRooms) {
             if (!chatRooms.any((c) => c.id == room.id)) {
               chatRooms.add(room);
@@ -235,6 +361,8 @@ class ChatController extends GetxController {
         } else {
           _roomPage++;
         }
+
+        _requestOnlineUsers();
       }
     } catch (e) {
       AppLogger.e('Failed to fetch chat rooms: $e', e, null, 'CHAT_CTRL');
@@ -250,8 +378,8 @@ class ChatController extends GetxController {
     hasMoreMessages.value = true;
     _messageOffset = 0;
     currentMessages.clear();
-    
-    // Load from cache first
+    seenMessageIds.remove(chatId);
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final cached = prefs.getString('cached_messages_$chatId');
@@ -266,21 +394,22 @@ class ChatController extends GetxController {
     }
 
     try {
-      final response = await _apiService.dio.get('/chats/$chatId/messages', queryParameters: {
-        'limit': _messageLimit,
-        'offset': _messageOffset,
-      });
+      final response = await _apiService.dio.get('/chats/$chatId/messages',
+          queryParameters: {
+            'limit': _messageLimit,
+            'offset': _messageOffset,
+          });
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
         currentMessages.assignAll(msgs.reversed.toList());
-        
+
         if (msgs.length < _messageLimit) {
           hasMoreMessages.value = false;
         } else {
           _messageOffset += _messageLimit;
         }
-        
+
         try {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('cached_messages_$chatId', jsonEncode(data));
@@ -290,29 +419,29 @@ class ChatController extends GetxController {
       AppLogger.e('Failed to fetch messages: $e', e, null, 'CHAT_CTRL');
     } finally {
       isLoadingMessages.value = false;
+      markChatAsSeen(chatId);
     }
   }
 
   Future<void> loadMoreMessages(String chatId) async {
     if (isFetchingMoreMessages.value || !hasMoreMessages.value) return;
     isFetchingMoreMessages.value = true;
-    
+
     try {
-      final response = await _apiService.dio.get('/chats/$chatId/messages', queryParameters: {
-        'limit': _messageLimit,
-        'offset': _messageOffset,
-      });
+      final response = await _apiService.dio.get('/chats/$chatId/messages',
+          queryParameters: {
+            'limit': _messageLimit,
+            'offset': _messageOffset,
+          });
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
-        
+
         if (msgs.length < _messageLimit) {
           hasMoreMessages.value = false;
         } else {
           _messageOffset += _messageLimit;
         }
-        
-        // Append to existing (since reversed, we add to the end of the currentMessages list)
         currentMessages.addAll(msgs.reversed.toList());
       }
     } catch (e) {
@@ -322,14 +451,14 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<String> createOrGetChatRoom(String targetUserId, String targetUserName, String? targetUserPhoto) async {
+  Future<String> createOrGetChatRoom(
+      String targetUserId, String targetUserName, String? targetUserPhoto) async {
     try {
       final response = await _apiService.dio.post('/chats', data: {
         'targetUserId': targetUserId,
       });
       if (response.statusCode == 200 || response.statusCode == 201) {
         final chatId = response.data['chatId'];
-        // Refresh chat rooms so the new one appears
         fetchChatRooms();
         return chatId;
       }
@@ -340,24 +469,42 @@ class ChatController extends GetxController {
     }
   }
 
-  Future<void> sendMessage(String chatRoomId, String text, String targetUserId, {String? imageUrl, String? videoUrl}) async {
+  Future<void> sendMessage(String chatRoomId, String text, String targetUserId,
+      {String? imageUrl, String? videoUrl, String? replyToMessageId}) async {
     if (text.trim().isEmpty && imageUrl == null && videoUrl == null) return;
+
+    stopTyping(chatRoomId);
+
+    // Optimistic UI
+    final tempId = 'temp_${DateTime.now().millisecondsSinceEpoch}';
+    final optimisticMsg = MessageModel(
+      id: tempId,
+      senderId: currentUserId,
+      text: text.trim(),
+      imageUrl: imageUrl,
+      videoUrl: videoUrl,
+      createdAt: DateTime.now(),
+      isRead: false,
+    );
+    if (imageUrl == null && videoUrl == null) {
+      currentMessages.insert(0, optimisticMsg);
+    }
 
     try {
       isSending.value = true;
-      
-      // Emit via socket
+
       _socket?.emit('send_message', {
         'chatId': chatRoomId,
         'senderUid': currentUserId,
         'text': text.trim(),
         'imageUrl': imageUrl,
         'videoUrl': videoUrl,
+        'replyToMessageId': ?replyToMessageId,
       });
 
-      // Send Push Notification
       try {
-        final currentUserName = Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
+        final currentUserName =
+            Get.find<AuthController>().currentUser.value?.name ?? 'Someone';
         final String messagePreview;
         if (videoUrl != null) {
           messagePreview = text.isNotEmpty ? '🎥 ${text.trim()}' : '🎥 Sent a video';
@@ -395,7 +542,7 @@ class ChatController extends GetxController {
       final ImagePicker picker = ImagePicker();
       final List<XFile> images = await picker.pickMultiImage(imageQuality: 70);
       if (images.isEmpty) return;
-      
+
       final TextEditingController textCtrl = TextEditingController();
 
       final result = await Get.bottomSheet<Map<String, dynamic>>(
@@ -458,7 +605,8 @@ class ChatController extends GetxController {
                             ),
                             filled: true,
                             fillColor: Colors.grey.shade100,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 12),
                           ),
                         ),
                       ),
@@ -510,7 +658,7 @@ class ChatController extends GetxController {
       final ImagePicker picker = ImagePicker();
       final XFile? video = await picker.pickVideo(source: ImageSource.gallery);
       if (video == null) return;
-      
+
       isSending.value = true;
       try {
         final videoUrl = await MediaUploadService().uploadVideo(video.path);
@@ -534,7 +682,6 @@ class ChatController extends GetxController {
 
   Future<void> toggleReaction(String chatRoomId, String messageId, String emoji) async {
     try {
-      // 1. Optimistic local update
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final old = currentMessages[index];
@@ -547,7 +694,6 @@ class ChatController extends GetxController {
         currentMessages[index] = old.copyWith(reactions: reactions);
       }
 
-      // 2. Emit via socket
       _socket?.emit('react_message', {
         'chatId': chatRoomId,
         'messageId': messageId,
@@ -555,11 +701,9 @@ class ChatController extends GetxController {
         'uid': currentUserId,
       });
 
-      // 3. Fallback REST call
       try {
-        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId/react', data: {
-          'emoji': emoji,
-        });
+        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId/react',
+            data: {'emoji': emoji});
       } catch (e) {
         debugPrint('REST react error: $e');
       }
@@ -571,14 +715,12 @@ class ChatController extends GetxController {
   Future<void> editMessage(String chatRoomId, String messageId, String newText) async {
     if (newText.trim().isEmpty) return;
     try {
-      // 1. Optimistic local update
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final old = currentMessages[index];
         currentMessages[index] = old.copyWith(text: newText.trim(), isEdited: true);
       }
 
-      // 2. Emit via socket
       _socket?.emit('edit_message', {
         'chatId': chatRoomId,
         'messageId': messageId,
@@ -586,11 +728,9 @@ class ChatController extends GetxController {
         'senderUid': currentUserId,
       });
 
-      // 3. Fallback REST call
       try {
-        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId', data: {
-          'text': newText.trim(),
-        });
+        await _apiService.dio.put('/chats/$chatRoomId/messages/$messageId',
+            data: {'text': newText.trim()});
       } catch (e) {
         debugPrint('REST edit error: $e');
       }
@@ -601,21 +741,19 @@ class ChatController extends GetxController {
 
   Future<void> deleteMessage(String chatRoomId, String messageId) async {
     try {
-      // 1. Optimistic local update
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final old = currentMessages[index];
-        currentMessages[index] = old.copyWith(text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
+        currentMessages[index] = old.copyWith(
+            text: '', isDeleted: true, imageUrl: null, videoUrl: null, stickerUrl: null);
       }
 
-      // 2. Emit via socket
       _socket?.emit('delete_message', {
         'chatId': chatRoomId,
         'messageId': messageId,
         'senderUid': currentUserId,
       });
 
-      // 3. Fallback REST call
       try {
         await _apiService.dio.delete('/chats/$chatRoomId/messages/$messageId');
       } catch (e) {
@@ -627,6 +765,6 @@ class ChatController extends GetxController {
   }
 
   Future<void> markMessagesAsRead(String chatRoomId) async {
-    // Marked locally
+    markChatAsSeen(chatRoomId);
   }
 }
