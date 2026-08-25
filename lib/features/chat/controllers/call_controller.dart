@@ -409,9 +409,8 @@ class CallController extends GetxController {
     isCaller = false;
     _hasLoggedCall = false;
     
-    // Clear notifications when accepted
+    // Clear local app notifications (but DO NOT end CallKit here, it must stay active for audio session)
     NotificationService().cancelCallNotification();
-    NotificationService().endAllCallKitCalls();
 
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
@@ -530,13 +529,14 @@ class CallController extends GetxController {
   // ── Agora Engine Setup ───────────────────────────────────────────────
   Future<void> _initAgoraEngine(bool isVideo, {String token = ''}) async {
     try {
-      _engine = createAgoraRtcEngine();
-      await _engine!.initialize(RtcEngineContext(
+      final engine = createAgoraRtcEngine();
+      _engine = engine;
+      await engine.initialize(RtcEngineContext(
         appId: agoraAppId,
         channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
       ));
 
-      _engine!.registerEventHandler(
+      engine.registerEventHandler(
         RtcEngineEventHandler(
           onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
             AppLogger.i('Joined Agora channel: ${connection.channelId}', tag: 'CALL_CTRL');
@@ -565,12 +565,12 @@ class CallController extends GetxController {
       );
 
       // Always enable audio
-      await _engine!.enableAudio();
+      await engine.enableAudio();
 
       if (isVideo) {
         try {
-          await _engine!.enableVideo();
-          await _engine!.startPreview();
+          await engine.enableVideo();
+          await engine.startPreview();
         } catch (videoError) {
           AppLogger.w('Failed to enable video/preview: $videoError', tag: 'CALL_CTRL');
         }
@@ -578,7 +578,7 @@ class CallController extends GetxController {
 
       // Join channel only if we have a token (Caller will join later on call_accepted)
       if (token.isNotEmpty && currentChannel.isNotEmpty) {
-        await _engine!.joinChannel(
+        await engine.joinChannel(
           token: token,
           channelId: currentChannel,
           uid: 0,
@@ -595,9 +595,14 @@ class CallController extends GetxController {
 
       // Set speakerphone safely
       try {
-        await _engine!.setEnableSpeakerphone(isSpeakerOn.value);
+        await engine.setEnableSpeakerphone(isSpeakerOn.value);
       } catch (speakerError) {
         AppLogger.w('Speakerphone routing notice: $speakerError', tag: 'CALL_CTRL');
+      }
+
+      if (_engine == null) {
+        AppLogger.w('Engine was cancelled during initialization.', tag: 'CALL_CTRL');
+        return;
       }
 
       isEngineReady.value = true;

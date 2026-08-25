@@ -49,7 +49,9 @@ class AppNotificationModel {
       relatedId: map['relatedId'],
       isRead: map['isRead'] ?? false,
       createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
+          ? (map['createdAt'] is Timestamp
+              ? (map['createdAt'] as Timestamp).toDate()
+              : DateTime.tryParse(map['createdAt'].toString()) ?? DateTime.now())
           : DateTime.now(),
     );
   }
