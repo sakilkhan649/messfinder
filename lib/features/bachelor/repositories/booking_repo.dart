@@ -45,7 +45,7 @@ class BookingRepository {
       );
       
       try {
-        await _apiService.dio.post(ApiConstants.bookings, data: bookingWithId.toMap());
+        await _apiService.dio.post(ApiConstants.bookings, data: bookingWithId.toApiMap());
         AppLogger.s('Booking request synced with API Backend', tag: 'BOOKING_REPO');
       } catch (e) {
         AppLogger.e('Failed to sync booking with API: $e', e, null, 'BOOKING_REPO');

@@ -61,6 +61,22 @@ class BookingModel {
     };
   }
 
+  Map<String, dynamic> toApiMap() {
+    return {
+      'bookingId': bookingId,
+      'postId': postId,
+      'bachelorUid': bachelorUid,
+      'landlordUid': landlordUid,
+      'paymentStatus': paymentStatus,
+      'trxId': trxId,
+      'senderNumber': senderNumber,
+      'isUnlocked': isUnlocked,
+      'createdAt': createdAt?.toIso8601String(),
+      if (bachelorName != null) 'bachelorName': bachelorName,
+      if (bachelorPhone != null) 'bachelorPhone': bachelorPhone,
+    };
+  }
+
   BookingModel copyWith({
     String? bookingId,
     String? postId,
