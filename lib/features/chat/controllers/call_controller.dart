@@ -16,6 +16,7 @@ import 'package:mess_finder/features/notifications/models/app_notification_model
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
 import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
+import 'package:mess_finder/core/middlewares/auth_middleware.dart';
 
 enum CallState { idle, outgoing, incoming, connecting, connected, ended }
 
@@ -514,6 +515,15 @@ class CallController extends GetxController {
     if (wasRingingOrConnected) {
       // Safely close the call screen without relying on fragile route names
       Get.back(); // Pops the CallScreen or IncomingCallScreen
+      
+      // If the app was launched from a terminated state, the user will be left on the Splash screen
+      // We must route them to the Home screen after the call ends.
+      Future.delayed(const Duration(milliseconds: 300), () {
+        final route = Get.currentRoute;
+        if (route == '/SplashScreen' || route == '/' || route == '') {
+          AuthMiddleware.checkAuthAndNavigate();
+        }
+      });
     }
   }
 
