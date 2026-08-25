@@ -57,6 +57,47 @@ exports.getLandlordLeads = async (req, res) => {
   }
 };
 
+exports.createBooking = async (req, res) => {
+  try {
+    const {
+      bookingId,
+      postId,
+      bachelorUid,
+      landlordUid,
+      bachelorName,
+      bachelorPhone,
+      trxId,
+      senderNumber,
+      paymentStatus,
+      isUnlocked,
+    } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO bookings 
+      (booking_id, post_id, bachelor_uid, landlord_uid, bachelor_name, bachelor_phone, trx_id, sender_number, payment_status, is_unlocked, created_at, updated_at) 
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP) 
+      RETURNING *`,
+      [
+        bookingId,
+        postId,
+        bachelorUid,
+        landlordUid,
+        bachelorName || null,
+        bachelorPhone || null,
+        trxId || '',
+        senderNumber || '',
+        paymentStatus || 'pending',
+        isUnlocked || false
+      ]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Error creating booking:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 exports.getPostLeads = async (req, res) => {
   try {
     const { postId } = req.params;

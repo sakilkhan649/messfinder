@@ -30,7 +30,7 @@ class TenantLeadsScreen extends StatelessWidget {
         ),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          post != null ? post!.title : 'Bachelor booking requests',
+          post != null ? post!.title : 'Interested Bachelors',
           style: GoogleFonts.poppins(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -178,7 +178,6 @@ class TenantLeadsScreen extends StatelessWidget {
               child: Obx(() {
                 final filteredLeads = controller.filterLeads(
                   allLeads,
-                  1, // Force it to look at 'approved' leads since all leads are now instantly approved
                   controller.searchQuery.value,
                 );
 
@@ -203,7 +202,7 @@ class TenantLeadsScreen extends StatelessWidget {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          'When bachelors view your contact,\nthey will appear here.',
+                          'When bachelors contact you,\nthey will appear here.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 13.sp,

@@ -3,6 +3,7 @@ const router = express.Router();
 const bookingController = require('../controllers/bookingController');
 
 // Routes for landlord leads
+router.post('/', bookingController.createBooking);
 router.get('/landlord/:uid', bookingController.getLandlordLeads);
 router.get('/post/:postId', bookingController.getPostLeads);
 

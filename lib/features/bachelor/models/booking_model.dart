@@ -37,9 +37,7 @@ class BookingModel {
       trxId: map['trxId'] ?? '',
       senderNumber: map['senderNumber'] ?? '',
       isUnlocked: map['isUnlocked'] ?? false,
-      createdAt: map['createdAt'] != null
-          ? (map['createdAt'] as Timestamp).toDate()
-          : null,
+      createdAt: _parseDate(map['createdAt'] ?? map['created_at']),
       bachelorName: map['bachelorName']?.toString(),
       bachelorPhone: map['bachelorPhone']?.toString(),
     );
@@ -89,6 +87,15 @@ class BookingModel {
       bachelorName: bachelorName ?? this.bachelorName,
       bachelorPhone: bachelorPhone ?? this.bachelorPhone,
     );
+  }
+
+  static DateTime? _parseDate(dynamic val) {
+    if (val == null) return null;
+    if (val is Timestamp) return val.toDate();
+    if (val is String) {
+      return DateTime.tryParse(val);
+    }
+    return null;
   }
 }
 

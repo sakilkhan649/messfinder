@@ -40,9 +40,18 @@ class BookingRepository {
       });
 
       AppLogger.s(
-        'Booking request saved successfully and post updated',
+        'Booking request saved successfully and post updated in Firestore',
         tag: 'BOOKING_REPO',
       );
+      
+      try {
+        await _apiService.dio.post(ApiConstants.bookings, data: bookingWithId.toMap());
+        AppLogger.s('Booking request synced with API Backend', tag: 'BOOKING_REPO');
+      } catch (e) {
+        AppLogger.e('Failed to sync booking with API: $e', e, null, 'BOOKING_REPO');
+        // We don't throw here to avoid failing the whole process if only the custom backend fails, 
+        // since Firestore succeeded. Or we could throw, depending on strictness.
+      }
       
       // Notify the landlord
       NotificationService().sendAndStore(
