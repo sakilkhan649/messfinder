@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 import '../utils/api_constants.dart';
 import '../utils/app_logger.dart';
@@ -36,23 +37,32 @@ class SocketService extends GetxService with WidgetsBindingObserver {
 
   final Map<String, List<dynamic Function(dynamic)>> _eventListeners = {};
 
-  void connect(String userId) {
+  Future<void> connect(String userId) async {
     if (userId.isEmpty) return;
     
     // If already connected with the same user, do nothing
     if (_socket != null && _socket!.connected && _currentUserId == userId) {
+      debugPrint('⚡ [SocketService] Already connected for user: $userId');
       return;
     }
 
     _currentUserId = userId;
     
+    String? token;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      token = prefs.getString('access_token');
+    } catch (e) {
+      debugPrint('⚡ [SocketService] Could not retrieve token: $e');
+    }
+
     // Disconnect existing if any
     if (_socket != null) {
       _socket!.disconnect();
       _socket!.dispose();
     }
 
-    AppLogger.i('Connecting Socket.IO for user: $_currentUserId', tag: 'SOCKET_SVC');
+    debugPrint('⚡ [SocketService] Initializing connection for: $userId');
 
     _socket = socket_io.io(
       ApiConstants.serverBaseUrl,
@@ -62,12 +72,18 @@ class SocketService extends GetxService with WidgetsBindingObserver {
           .setReconnectionDelay(1000)
           .setReconnectionDelayMax(5000)
           .disableAutoConnect()
-          .setQuery({'userId': _currentUserId})
+          .setQuery({
+            'userId': _currentUserId,
+            if (token != null) 'token': token,
+          })
+          .setAuth({
+            if (token != null) 'token': token,
+          })
           .build(),
     );
 
     _socket!.onConnect((_) {
-      AppLogger.s('Socket.IO Globally Connected', tag: 'SOCKET_SVC');
+      debugPrint('✅ [SocketService] Connected via: ${_socket!.io.engine?.transport?.name}');
     });
 
     _socket!.onDisconnect((_) {
