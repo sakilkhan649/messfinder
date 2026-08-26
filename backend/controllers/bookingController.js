@@ -129,6 +129,16 @@ exports.createBooking = async (req, res) => {
       isUnlocked,
     } = req.body;
 
+    // Prevent duplicate booking: same bachelor cannot book the same post twice
+    const existing = await pool.query(
+      'SELECT booking_id FROM bookings WHERE post_id = $1 AND bachelor_uid = $2',
+      [postId, bachelorUid]
+    );
+    if (existing.rows.length > 0) {
+      // Return the existing booking instead of creating a new one
+      return res.status(200).json({ bookingId: existing.rows[0].booking_id, duplicate: true });
+    }
+
     const result = await pool.query(
       `INSERT INTO bookings 
       (booking_id, post_id, bachelor_uid, landlord_uid, bachelor_name, bachelor_phone, trx_id, sender_number, payment_status, is_unlocked, created_at, updated_at) 

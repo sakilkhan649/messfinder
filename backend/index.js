@@ -14,6 +14,14 @@ const pool = require('./config/db');
 pool.query('ALTER TABLE products ADD COLUMN video_url TEXT;').catch(e => {
   if (e.code !== '42701') console.error('Migration error:', e);
 });
+// Remove duplicate bookings (keep oldest entry per post+bachelor pair)
+pool.query(`
+  DELETE FROM bookings WHERE ctid NOT IN (
+    SELECT MIN(ctid) FROM bookings GROUP BY post_id, bachelor_uid
+  )
+`).then(r => { if (r.rowCount > 0) console.log('Cleaned up', r.rowCount, 'duplicate booking(s).'); })
+  .catch(e => console.error('Duplicate cleanup error:', e.message));
+
 
 // Middleware
 app.use(cors());
