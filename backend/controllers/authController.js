@@ -264,7 +264,14 @@ exports.getUserById = async (req, res) => {
 // Update Profile
 exports.updateProfile = async (req, res) => {
   const { name, email, gender, profile_image, photoUrl, phone } = req.body;
-  const imageToUse = profile_image || photoUrl;
+  const imageToUse = profile_image || photoUrl || null;
+
+  // Convert empty strings to null so COALESCE keeps the existing DB value
+  const safeName = name && name.trim() !== '' ? name.trim() : null;
+  const safeEmail = email && email.trim() !== '' ? email.trim().toLowerCase() : null;
+  const safeGender = gender && gender.trim() !== '' ? gender.trim() : null;
+  const safePhone = phone && phone.trim() !== '' ? phone.trim() : null;
+
   try {
     const updatedUser = await pool.query(
       `UPDATE users SET 
@@ -276,7 +283,7 @@ exports.updateProfile = async (req, res) => {
         updated_at = CURRENT_TIMESTAMP
        WHERE uid = $6
        RETURNING uid, name, phone, email, gender, role, status, profile_image, created_at, updated_at`,
-      [name, email, gender, imageToUse, phone, req.user.uid]
+      [safeName, safeEmail, safeGender, imageToUse, safePhone, req.user.uid]
     );
 
     res.status(200).json(updatedUser.rows[0]);

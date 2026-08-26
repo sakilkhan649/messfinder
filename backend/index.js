@@ -9,6 +9,12 @@ dotenv.config({ path: path.join(__dirname, '.env') });
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Run pending migrations
+const pool = require('./config/db');
+pool.query('ALTER TABLE products ADD COLUMN video_url TEXT;').catch(e => {
+  if (e.code !== '42701') console.error('Migration error:', e);
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());

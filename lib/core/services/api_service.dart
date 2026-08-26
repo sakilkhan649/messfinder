@@ -10,7 +10,7 @@ class ApiService {
   late Dio _dio;
 
   // Uses centralized URL from ApiConstants
-  static const String baseUrl = ApiConstants.apiBaseUrl;
+  static const String baseUrl = ApiConstants.serverBaseUrl;
 
   ApiService._internal() {
     _dio = Dio(BaseOptions(
@@ -24,6 +24,13 @@ class ApiService {
 
     _dio.interceptors.add(QueuedInterceptorsWrapper(
       onRequest: (options, handler) async {
+        // Ensure all relative paths are prefixed with /api
+        if (!options.path.startsWith('http') && !options.path.startsWith('/api')) {
+          options.path = options.path.startsWith('/') 
+              ? '/api${options.path}' 
+              : '/api/${options.path}';
+        }
+
         final prefs = await SharedPreferences.getInstance();
         final token = prefs.getString(ApiConstants.authTokenKey);
         if (token != null && token.isNotEmpty) {
@@ -126,7 +133,9 @@ class ApiService {
       ));
 
       final response = await refreshDio.post(
-        ApiConstants.authRefreshToken,
+        ApiConstants.authRefreshToken.startsWith('/')
+            ? '/api${ApiConstants.authRefreshToken}'
+            : '/api/${ApiConstants.authRefreshToken}',
         data: {'refreshToken': refreshToken},
       );
 
