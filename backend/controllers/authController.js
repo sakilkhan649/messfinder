@@ -1,7 +1,8 @@
-const prisma = require('../config/prisma');
+const pool = require('../config/db');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_key_mess_finder';
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET || (JWT_SECRET + '_refresh');
@@ -64,22 +65,21 @@ const sendEmailOtp = async (toEmail, otp) => {
 // Signup
 exports.signup = async (req, res) => {
   const { name, phone, email, password, gender, role } = req.body;
-  const crypto = require('crypto');
 
   try {
     const cleanEmail = email ? email.trim().toLowerCase() : null;
     const cleanPhone = phone ? phone.trim() : null;
 
-    const existingUser = await prisma.users.findFirst({
-      where: {
-        OR: [
-          { email: cleanEmail !== null ? cleanEmail : undefined },
-          { phone: cleanPhone !== null ? cleanPhone : undefined }
-        ]
-      }
-    });
+    if (!cleanEmail && !cleanPhone) {
+      return res.status(400).json({ error: 'Email or Phone must be provided' });
+    }
 
-    if (existingUser) {
+    const { rows: existingUsers } = await pool.query(
+      'SELECT * FROM users WHERE email = $1 OR phone = $2',
+      [cleanEmail, cleanPhone]
+    );
+
+    if (existingUsers.length > 0) {
       return res.status(400).json({ error: 'User with this email or phone already exists' });
     }
 
@@ -87,18 +87,13 @@ exports.signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
     const uid = crypto.randomUUID();
 
-    const newUser = await prisma.users.create({
-      data: {
-        uid,
-        name: name ? name.trim() : '',
-        phone: cleanPhone,
-        email: cleanEmail,
-        password: hashedPassword,
-        gender: gender || null,
-        role: role || 'bachelor'
-      }
-    });
+    const { rows: newUsers } = await pool.query(
+      `INSERT INTO users (uid, name, phone, email, password, gender, role, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'active') RETURNING *`,
+      [uid, name ? name.trim() : '', cleanPhone, cleanEmail, hashedPassword, gender || null, role || 'bachelor']
+    );
 
+    const newUser = newUsers[0];
     delete newUser.password;
 
     const tokens = generateTokens(newUser.uid);
@@ -117,21 +112,19 @@ exports.login = async (req, res) => {
     return res.status(400).json({ error: 'Email/Phone and password are required' });
   }
 
-  const cleanIdentifier = email.trim();
+  const cleanIdentifier = email.trim().toLowerCase();
 
   try {
-    const user = await prisma.users.findFirst({
-      where: {
-        OR: [
-          { email: cleanIdentifier },
-          { phone: cleanIdentifier }
-        ]
-      }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT * FROM users WHERE email = $1 OR phone = $1',
+      [cleanIdentifier]
+    );
 
-    if (!user) {
+    if (users.length === 0) {
       return res.status(404).json({ error: 'No account found with this email/phone. Please create an account first.' });
     }
+
+    const user = users[0];
     
     if (!user.password) {
       return res.status(400).json({ error: 'This account was created with Google Sign-In. Please click "Continue with Google".' });
@@ -163,15 +156,16 @@ exports.refreshToken = async (req, res) => {
   try {
     const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
     
-    const user = await prisma.users.findUnique({
-      where: { uid: decoded.uid },
-      select: { uid: true, name: true, email: true, phone: true, role: true, status: true, profile_image: true, created_at: true }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT uid, name, email, phone, role, status, profile_image, created_at FROM users WHERE uid = $1',
+      [decoded.uid]
+    );
     
-    if (!user) {
+    if (users.length === 0) {
       return res.status(401).json({ error: 'User no longer exists' });
     }
 
+    const user = users[0];
     const tokens = generateTokens(user.uid);
 
     res.status(200).json({
@@ -193,39 +187,34 @@ exports.googleLogin = async (req, res) => {
   }
 
   const cleanEmail = email.trim().toLowerCase();
-  const crypto = require('crypto');
 
   try {
-    let user = await prisma.users.findFirst({
-      where: { email: cleanEmail }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [cleanEmail]
+    );
 
-    if (user) {
+    let user;
+
+    if (users.length > 0) {
+      user = users[0];
       if ((!user.profile_image && profileImage) || (!user.google_id && googleId)) {
-        user = await prisma.users.update({
-          where: { uid: user.uid },
-          data: {
-            profile_image: user.profile_image || profileImage,
-            google_id: user.google_id || googleId,
-            updated_at: new Date()
-          }
-        });
+        const { rows: updatedUsers } = await pool.query(
+          `UPDATE users SET profile_image = $1, google_id = $2, updated_at = NOW() WHERE uid = $3 RETURNING *`,
+          [user.profile_image || profileImage, user.google_id || googleId, user.uid]
+        );
+        user = updatedUsers[0];
       }
     } else {
       const uid = crypto.randomUUID();
       const newRole = role || 'bachelor';
 
-      user = await prisma.users.create({
-        data: {
-          uid,
-          name: name || 'Google User',
-          email: cleanEmail,
-          profile_image: profileImage || null,
-          google_id: googleId || null,
-          role: newRole,
-          status: 'active'
-        }
-      });
+      const { rows: newUsers } = await pool.query(
+        `INSERT INTO users (uid, name, email, profile_image, google_id, role, status)
+         VALUES ($1, $2, $3, $4, $5, $6, 'active') RETURNING *`,
+        [uid, name || 'Google User', cleanEmail, profileImage || null, googleId || null, newRole]
+      );
+      user = newUsers[0];
     }
 
     delete user.password;
@@ -241,15 +230,15 @@ exports.googleLogin = async (req, res) => {
 // Get User Profile
 exports.getProfile = async (req, res) => {
   try {
-    const user = await prisma.users.findUnique({
-      where: { uid: req.user.uid },
-      select: { uid: true, name: true, phone: true, email: true, gender: true, role: true, status: true, profile_image: true, created_at: true, updated_at: true }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT uid, name, phone, email, gender, role, status, profile_image, created_at, updated_at FROM users WHERE uid = $1',
+      [req.user.uid]
+    );
     
-    if (!user) {
+    if (users.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+    res.status(200).json(users[0]);
   } catch (error) {
     console.error('getProfile error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -259,15 +248,15 @@ exports.getProfile = async (req, res) => {
 // Get Public User Profile by UID
 exports.getUserById = async (req, res) => {
   try {
-    const user = await prisma.users.findUnique({
-      where: { uid: req.params.uid },
-      select: { uid: true, name: true, phone: true, email: true, gender: true, role: true, status: true, profile_image: true, created_at: true }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT uid, name, phone, email, gender, role, status, profile_image, created_at FROM users WHERE uid = $1',
+      [req.params.uid]
+    );
     
-    if (!user) {
+    if (users.length === 0) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.status(200).json(user);
+    res.status(200).json(users[0]);
   } catch (error) {
     console.error('getUserById error:', error);
     res.status(500).json({ error: 'Server error' });
@@ -285,20 +274,48 @@ exports.updateProfile = async (req, res) => {
   const safePhone = phone && phone.trim() !== '' ? phone.trim() : undefined;
 
   try {
-    const updatedUser = await prisma.users.update({
-      where: { uid: req.user.uid },
-      data: {
-        ...(safeName && { name: safeName }),
-        ...(safeEmail && { email: safeEmail }),
-        ...(safeGender && { gender: safeGender }),
-        ...(imageToUse && { profile_image: imageToUse }),
-        ...(safePhone && { phone: safePhone }),
-        updated_at: new Date()
-      },
-      select: { uid: true, name: true, phone: true, email: true, gender: true, role: true, status: true, profile_image: true, created_at: true, updated_at: true }
-    });
+    let updateFields = [];
+    let values = [];
+    let queryIndex = 1;
 
-    res.status(200).json(updatedUser);
+    if (safeName) {
+      updateFields.push(`name = $${queryIndex++}`);
+      values.push(safeName);
+    }
+    if (safeEmail) {
+      updateFields.push(`email = $${queryIndex++}`);
+      values.push(safeEmail);
+    }
+    if (safeGender) {
+      updateFields.push(`gender = $${queryIndex++}`);
+      values.push(safeGender);
+    }
+    if (imageToUse) {
+      updateFields.push(`profile_image = $${queryIndex++}`);
+      values.push(imageToUse);
+    }
+    if (safePhone) {
+      updateFields.push(`phone = $${queryIndex++}`);
+      values.push(safePhone);
+    }
+
+    if (updateFields.length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    updateFields.push(`updated_at = NOW()`);
+    
+    values.push(req.user.uid);
+    const query = `
+      UPDATE users 
+      SET ${updateFields.join(', ')} 
+      WHERE uid = $${queryIndex} 
+      RETURNING uid, name, phone, email, gender, role, status, profile_image, created_at, updated_at
+    `;
+
+    const { rows: updatedUsers } = await pool.query(query, values);
+
+    res.status(200).json(updatedUsers[0]);
   } catch (error) {
     console.error('Update profile error:', error);
     res.status(500).json({ error: 'Failed to update profile' });
@@ -312,13 +329,10 @@ exports.updateFcmToken = async (req, res) => {
     return res.status(400).json({ error: 'fcmToken is required' });
   }
   try {
-    await prisma.users.update({
-      where: { uid: req.user.uid },
-      data: {
-        fcm_token: fcmToken,
-        updated_at: new Date()
-      }
-    });
+    await pool.query(
+      'UPDATE users SET fcm_token = $1, updated_at = NOW() WHERE uid = $2',
+      [fcmToken, req.user.uid]
+    );
     res.status(200).json({ message: 'FCM Token updated successfully' });
   } catch (error) {
     console.error('Update FCM Token error:', error);
@@ -336,21 +350,23 @@ exports.sendResetOtp = async (req, res) => {
   const cleanEmail = email.trim().toLowerCase();
 
   try {
-    const user = await prisma.users.findFirst({
-      where: { email: cleanEmail }
-    });
-    if (!user) {
+    const { rows: users } = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [cleanEmail]
+    );
+    if (users.length === 0) {
       return res.status(404).json({ error: 'No user found with this email address' });
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
-    await prisma.password_resets.upsert({
-      where: { email: cleanEmail },
-      update: { otp, expires_at: expiresAt, created_at: new Date() },
-      create: { email: cleanEmail, otp, expires_at: expiresAt, created_at: new Date() }
-    });
+    await pool.query(`
+      INSERT INTO password_resets (email, otp, expires_at, created_at)
+      VALUES ($1, $2, $3, NOW())
+      ON CONFLICT (email) DO UPDATE 
+      SET otp = EXCLUDED.otp, expires_at = EXCLUDED.expires_at, created_at = NOW()
+    `, [cleanEmail, otp, expiresAt]);
 
     await sendEmailOtp(cleanEmail, otp);
 
@@ -375,13 +391,16 @@ exports.verifyResetOtp = async (req, res) => {
   const cleanOtp = otp.trim();
 
   try {
-    const resetRecord = await prisma.password_resets.findUnique({
-      where: { email: cleanEmail }
-    });
+    const { rows: resets } = await pool.query(
+      'SELECT * FROM password_resets WHERE email = $1',
+      [cleanEmail]
+    );
 
-    if (!resetRecord) {
+    if (resets.length === 0) {
       return res.status(400).json({ error: 'No OTP request found for this email' });
     }
+
+    const resetRecord = resets[0];
 
     if (new Date() > new Date(resetRecord.expires_at)) {
       return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
@@ -416,13 +435,16 @@ exports.resetPasswordWithOtp = async (req, res) => {
   const cleanOtp = otp.trim();
 
   try {
-    const resetRecord = await prisma.password_resets.findUnique({
-      where: { email: cleanEmail }
-    });
+    const { rows: resets } = await pool.query(
+      'SELECT * FROM password_resets WHERE email = $1',
+      [cleanEmail]
+    );
 
-    if (!resetRecord) {
+    if (resets.length === 0) {
       return res.status(400).json({ error: 'Invalid or expired OTP session' });
     }
+
+    const resetRecord = resets[0];
 
     if (new Date() > new Date(resetRecord.expires_at)) {
       return res.status(400).json({ error: 'OTP has expired. Please request a new one.' });
@@ -435,14 +457,15 @@ exports.resetPasswordWithOtp = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await prisma.users.updateMany({
-      where: { email: cleanEmail },
-      data: { password: hashedPassword, updated_at: new Date() }
-    });
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = NOW() WHERE email = $2',
+      [hashedPassword, cleanEmail]
+    );
 
-    await prisma.password_resets.delete({
-      where: { email: cleanEmail }
-    });
+    await pool.query(
+      'DELETE FROM password_resets WHERE email = $1',
+      [cleanEmail]
+    );
 
     res.status(200).json({
       success: true,
@@ -458,23 +481,24 @@ exports.resetPasswordWithOtp = async (req, res) => {
 exports.changePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   try {
-    const user = await prisma.users.findUnique({
-      where: { uid: req.user.uid },
-      select: { password: true }
-    });
+    const { rows: users } = await pool.query(
+      'SELECT password FROM users WHERE uid = $1',
+      [req.user.uid]
+    );
     
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (users.length === 0) return res.status(404).json({ error: 'User not found' });
 
+    const user = users[0];
     const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) return res.status(400).json({ error: 'Incorrect current password' });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    await prisma.users.update({
-      where: { uid: req.user.uid },
-      data: { password: hashedPassword, updated_at: new Date() }
-    });
+    await pool.query(
+      'UPDATE users SET password = $1, updated_at = NOW() WHERE uid = $2',
+      [hashedPassword, req.user.uid]
+    );
     
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
@@ -486,9 +510,10 @@ exports.changePassword = async (req, res) => {
 // Delete Account
 exports.deleteAccount = async (req, res) => {
   try {
-    await prisma.users.delete({
-      where: { uid: req.user.uid }
-    });
+    await pool.query(
+      'DELETE FROM users WHERE uid = $1',
+      [req.user.uid]
+    );
     res.status(200).json({ message: 'Account deleted successfully' });
   } catch (error) {
     console.error('Delete account error:', error);
