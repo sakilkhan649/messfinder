@@ -120,13 +120,18 @@ exports.login = async (req, res) => {
   const cleanIdentifier = email.trim();
 
   try {
-    const userResult = await prisma.$queryRaw`SELECT * FROM users WHERE LOWER(email) = LOWER(${cleanIdentifier}) OR phone = ${cleanIdentifier}`;
-    
-    if (userResult.length === 0) {
+    const user = await prisma.users.findFirst({
+      where: {
+        OR: [
+          { email: cleanIdentifier },
+          { phone: cleanIdentifier }
+        ]
+      }
+    });
+
+    if (!user) {
       return res.status(404).json({ error: 'No account found with this email/phone. Please create an account first.' });
     }
-
-    const user = userResult[0];
     
     if (!user.password) {
       return res.status(400).json({ error: 'This account was created with Google Sign-In. Please click "Continue with Google".' });
