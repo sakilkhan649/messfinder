@@ -34,6 +34,8 @@ class SocketService extends GetxService with WidgetsBindingObserver {
     }
   }
 
+  final Map<String, List<dynamic Function(dynamic)>> _eventListeners = {};
+
   void connect(String userId) {
     if (userId.isEmpty) return;
     
@@ -76,6 +78,13 @@ class SocketService extends GetxService with WidgetsBindingObserver {
       AppLogger.e('Socket.IO Connect Error: $err', null, null, 'SOCKET_SVC');
     });
 
+    // Reattach all previously registered listeners to the new socket instance
+    _eventListeners.forEach((event, handlers) {
+      for (var handler in handlers) {
+        _socket!.on(event, handler);
+      }
+    });
+
     _socket!.connect();
   }
 
@@ -87,16 +96,28 @@ class SocketService extends GetxService with WidgetsBindingObserver {
       _socket = null;
     }
     _currentUserId = '';
+    // Optional: whether to clear listeners on disconnect. Usually better not to, 
+    // so if they log back in, the listeners (like ChatController) still work.
   }
 
   // Wrapper for socket.on
   void on(String event, dynamic Function(dynamic) handler) {
+    if (!_eventListeners.containsKey(event)) {
+      _eventListeners[event] = [];
+    }
+    _eventListeners[event]!.add(handler);
     _socket?.on(event, handler);
   }
 
   // Wrapper for socket.off
   void off(String event, [dynamic Function(dynamic)? handler]) {
-    _socket?.off(event, handler);
+    if (handler != null) {
+      _eventListeners[event]?.remove(handler);
+      _socket?.off(event, handler);
+    } else {
+      _eventListeners.remove(event);
+      _socket?.off(event);
+    }
   }
 
   // Wrapper for socket.emit
