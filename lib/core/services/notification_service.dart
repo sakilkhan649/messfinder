@@ -97,7 +97,7 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   static const _androidChannel = AndroidNotificationChannel(
-    'messfinder_high_importance_v3',
+    'high_importance_channel',
     'MessFinder Notifications',
     description: 'Important notifications from MessFinder',
     importance: Importance.high,
@@ -213,6 +213,8 @@ class NotificationService {
           chatRoomId != null &&
           chatCtrl.currentActiveChatId == chatRoomId) {
         debugPrint('🚫 [FCM] Suppressed notification for currently active chat room');
+        // FALLBACK: In case WebSocket missed the real-time event, fetch messages silently
+        chatCtrl.fetchNewMessagesSilently(chatRoomId);
         return;
       }
     }
@@ -517,6 +519,26 @@ class NotificationService {
       await apiService.dio.put('/notifications/$notificationId/read');
     } catch (e) {
       debugPrint('❌ [API] markAsRead error: $e');
+    }
+  }
+
+  // ── Delete notification via API ────────────────────────────────────────────
+  Future<void> deleteNotification(String notificationId) async {
+    try {
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+      await apiService.dio.delete('/notifications/$notificationId');
+    } catch (e) {
+      debugPrint('❌ [API] deleteNotification error: $e');
+    }
+  }
+
+  // ── Delete all notifications via API ────────────────────────────────────────────
+  Future<void> deleteAllNotifications(String uid) async {
+    try {
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+      await apiService.dio.delete('/notifications/all/$uid');
+    } catch (e) {
+      debugPrint('❌ [API] deleteAllNotifications error: $e');
     }
   }
 

@@ -11,6 +11,7 @@ class EditProfileController extends GetxController {
   final formKey = GlobalKey<FormState>();
   late final TextEditingController nameController;
   late final TextEditingController phoneController;
+  late final TextEditingController emailController;
   
   final ImagePicker _picker = ImagePicker();
   final Rx<File?> selectedImageFile = Rx<File?>(null);
@@ -22,12 +23,14 @@ class EditProfileController extends GetxController {
     super.onInit();
     nameController = TextEditingController(text: user.name);
     phoneController = TextEditingController(text: user.phone);
+    emailController = TextEditingController(text: user.email);
   }
 
   @override
   void onClose() {
     nameController.dispose();
     phoneController.dispose();
+    emailController.dispose();
     super.onClose();
   }
 
@@ -57,6 +60,7 @@ class EditProfileController extends GetxController {
       authCtrl.updateProfile(
         name: nameController.text.trim(),
         phone: phoneController.text.trim(),
+        email: emailController.text.trim(),
         photoUrl: selectedImageFile.value?.path ?? user.photoUrl,
       );
     }

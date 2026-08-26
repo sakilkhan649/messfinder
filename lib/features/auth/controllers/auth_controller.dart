@@ -6,6 +6,7 @@ import '../../../core/utils/app_logger.dart';
 import '../../../core/network/api_checker.dart';
 import '../../../core/utils/app_constants.dart';
 import '../../../core/services/media_upload_service.dart';
+import '../../../core/services/socket_service.dart';
 import '../../admin/views/admin_dashboard_screen.dart';
 import '../../home/views/user_home_screen.dart';
 import '../../notifications/controllers/notification_controller.dart';
@@ -170,6 +171,9 @@ class AuthController extends GetxController {
       }
     } catch (e) {
       await _authRepo.logout();
+      if (Get.isRegistered<SocketService>()) {
+        Get.find<SocketService>().disconnect();
+      }
       Get.offAll(() => const LoginScreen());
     }
   }
@@ -217,6 +221,11 @@ class AuthController extends GetxController {
     if (Get.isRegistered<NotificationController>()) {
       Get.find<NotificationController>().listenForUser(user.uid, role: user.role);
     }
+    
+    // Connect Socket.IO
+    if (Get.isRegistered<SocketService>()) {
+      Get.find<SocketService>().connect(user.uid);
+    }
   }
 
 
@@ -225,6 +234,7 @@ class AuthController extends GetxController {
   Future<void> updateProfile({
     required String name,
     required String phone,
+    String? email,
     String? photoUrl,
   }) async {
     final user = currentUser.value;
@@ -251,6 +261,7 @@ class AuthController extends GetxController {
       final updatedUser = user.copyWith(
         name: name.trim(),
         phone: phone.trim(),
+        email: email?.trim(),
         photoUrl: finalPhotoUrl,
       );
       await _authRepo.saveUserData(updatedUser);
@@ -269,6 +280,9 @@ class AuthController extends GetxController {
   Future<void> logout() async {
     await _authRepo.logout();
     currentUser.value = null;
+    if (Get.isRegistered<SocketService>()) {
+      Get.find<SocketService>().disconnect();
+    }
     Get.offAll(() => const LoginScreen(),
         transition: Transition.fadeIn);
   }

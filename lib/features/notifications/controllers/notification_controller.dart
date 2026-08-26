@@ -67,13 +67,15 @@ class NotificationController extends GetxController {
 
   Future<void> deleteNotification(String id) async {
     notifications.removeWhere((n) => n.id == id);
-    // Delete not implemented in backend API yet, skipping actual backend deletion
+    await _service.deleteNotification(id);
   }
 
   Future<void> deleteAllNotifications() async {
     notifications.clear();
     unreadCount.value = 0;
-    // Delete all not implemented in backend API yet
+    if (currentUid.value.isNotEmpty) {
+      await _service.deleteAllNotifications(currentUid.value);
+    }
   }
 
   @override

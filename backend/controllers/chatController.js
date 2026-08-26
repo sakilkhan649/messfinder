@@ -123,7 +123,7 @@ exports.deleteMessage = async (req, res) => {
   const { messageId } = req.params;
   try {
     const result = await pool.query(
-      'UPDATE messages SET is_deleted = true, text = $1 WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
+      'UPDATE messages SET is_deleted = true, text = $1, image_url = null, video_url = null WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
       ['', messageId, req.user.uid]
     );
     if (result.rows.length === 0) {

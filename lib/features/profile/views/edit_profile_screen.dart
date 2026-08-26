@@ -135,6 +135,18 @@ class EditProfileScreen extends StatelessWidget {
                       keyboardType: TextInputType.phone,
                       validatorMsg: 'Please enter phone number',
                     ),
+                    SizedBox(height: 24.h),
+
+                    _buildLabel('Email Address'),
+                    SizedBox(height: 8.h),
+                    _buildTextField(
+                      controller: controller.emailController,
+                      hint: 'e.g. example@email.com',
+                      icon: Icons.email_outlined,
+                      primaryColor: primaryColor,
+                      keyboardType: TextInputType.emailAddress,
+                      validatorMsg: 'Please enter your email',
+                    ),
                   ],
                 ),
                 

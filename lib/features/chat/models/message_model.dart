@@ -10,6 +10,9 @@ class MessageModel {
   final bool isDeleted;
   final String? stickerUrl;
   final Map<String, String>? reactions;
+  final String? replyToMessageId;
+  final String? replyToMessageText;
+  final String? replyToMessageSender;
 
   MessageModel({
     required this.id,
@@ -23,6 +26,9 @@ class MessageModel {
     this.isDeleted = false,
     this.stickerUrl,
     this.reactions,
+    this.replyToMessageId,
+    this.replyToMessageText,
+    this.replyToMessageSender,
   });
 
   factory MessageModel.fromMap(Map<String, dynamic> map) {
@@ -47,6 +53,9 @@ class MessageModel {
       isDeleted: map['is_deleted'] ?? map['isDeleted'] ?? false,
       stickerUrl: (map['sticker_url'] ?? map['stickerUrl'])?.toString(),
       reactions: map['reactions'] != null ? Map<String, String>.from(map['reactions']) : null,
+      replyToMessageId: (map['reply_to_message_id'] ?? map['replyToMessageId'])?.toString(),
+      replyToMessageText: (map['reply_to_message_text'] ?? map['replyToMessageText'])?.toString(),
+      replyToMessageSender: (map['reply_to_message_sender'] ?? map['replyToMessageSender'])?.toString(),
     );
   }
 
@@ -57,6 +66,9 @@ class MessageModel {
       if (imageUrl != null) 'image_url': imageUrl,
       if (videoUrl != null) 'video_url': videoUrl,
       'is_read': isRead,
+      if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
+      if (replyToMessageText != null) 'replyToMessageText': replyToMessageText,
+      if (replyToMessageSender != null) 'replyToMessageSender': replyToMessageSender,
     };
   }
 
@@ -72,6 +84,9 @@ class MessageModel {
     bool? isDeleted,
     String? stickerUrl,
     Map<String, String>? reactions,
+    String? replyToMessageId,
+    String? replyToMessageText,
+    String? replyToMessageSender,
   }) {
     return MessageModel(
       id: id ?? this.id,
@@ -85,6 +100,9 @@ class MessageModel {
       isDeleted: isDeleted ?? this.isDeleted,
       stickerUrl: stickerUrl ?? this.stickerUrl,
       reactions: reactions ?? this.reactions,
+      replyToMessageId: replyToMessageId ?? this.replyToMessageId,
+      replyToMessageText: replyToMessageText ?? this.replyToMessageText,
+      replyToMessageSender: replyToMessageSender ?? this.replyToMessageSender,
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../features/landlord/controllers/tenant_leads_controller.dart';
 import '../../features/notifications/controllers/notification_controller.dart';
 import '../../features/marketplace/controllers/marketplace_controller.dart';
 import '../../features/home/controllers/user_home_controller.dart';
+import '../../core/services/socket_service.dart';
 import '../../features/bachelor/controllers/bachelor_main_controller.dart';
 import '../../features/bachelor/views/mess_map_screen.dart'; // Contains MessMapController
 import '../../features/onboarding/controllers/onboarding_controller.dart';
@@ -22,6 +23,7 @@ class AppBindings extends Bindings {
     Get.put(AuthController(), permanent: true);
     Get.put(NotificationController(), permanent: true);
     Get.put(CallController(), permanent: true);
+    Get.put(SocketService(), permanent: true);
     
     // Features (Lazy loaded, fenix: true ensures they are recreated if needed after being disposed)
     Get.lazyPut(() => SplashController(), fenix: true);

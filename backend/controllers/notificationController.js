@@ -213,4 +213,24 @@ exports.markAsRead = async (req, res) => {
   }
 };
 
+exports.deleteNotification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query('DELETE FROM notifications WHERE id = $1', [id]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
+exports.deleteAllNotifications = async (req, res) => {
+  try {
+    const { uid } = req.params;
+    await pool.query('DELETE FROM notifications WHERE receiver_uid = $1', [uid]);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error deleting all notifications:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

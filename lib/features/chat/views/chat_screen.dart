@@ -396,65 +396,132 @@ class ChatScreen extends StatelessWidget {
                       ));
                     },
                     child: Container(
-                      constraints: BoxConstraints(maxWidth: 230.w),
+                      constraints: BoxConstraints(maxWidth: 240.w),
                       decoration: BoxDecoration(
+                        color: message.text.trim().isNotEmpty
+                            ? (isMe ? const Color(0xFF059669) : Colors.white)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(16.r),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.08),
-                            blurRadius: 8.r,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
+                        border: (!isMe && message.text.trim().isNotEmpty)
+                            ? Border.all(color: const Color(0xFFE2E8F0), width: 0.8)
+                            : null,
+                        boxShadow: message.text.trim().isNotEmpty
+                            ? [
+                                BoxShadow(
+                                  color: isMe
+                                      ? const Color(0xFF059669).withValues(alpha: 0.18)
+                                      : Colors.black.withValues(alpha: 0.03),
+                                  blurRadius: 4.r,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.08),
+                                  blurRadius: 8.r,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16.r),
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            CachedNetworkImage(
-                              imageUrl: message.imageUrl!,
-                              width: 230.w,
-                              memCacheWidth: 600,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                height: 160.h,
-                                color: const Color(0xFFE2E8F0),
-                                child: const Center(
-                                  child: CircularProgressIndicator(
-                                    color: AppTheme.primaryColor,
-                                    strokeWidth: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.only(
+                              topLeft: Radius.circular(16.r),
+                              topRight: Radius.circular(16.r),
+                              bottomLeft: Radius.circular(message.text.trim().isNotEmpty ? 2.r : 16.r),
+                              bottomRight: Radius.circular(message.text.trim().isNotEmpty ? 2.r : 16.r),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                CachedNetworkImage(
+                                  imageUrl: message.imageUrl!,
+                                  width: 240.w,
+                                  memCacheWidth: 600,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    height: 160.h,
+                                    width: 240.w,
+                                    color: const Color(0xFFE2E8F0),
+                                    child: const Center(
+                                      child: CircularProgressIndicator(
+                                        color: AppTheme.primaryColor,
+                                        strokeWidth: 2,
+                                      ),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, err) => Container(
+                                    height: 140.h,
+                                    width: 240.w,
+                                    color: const Color(0xFFE2E8F0),
+                                    child: const Icon(Icons.broken_image,
+                                        color: Colors.grey),
                                   ),
                                 ),
-                              ),
-                              errorWidget: (context, url, err) => Container(
-                                height: 140.h,
-                                color: const Color(0xFFE2E8F0),
-                                child: const Icon(Icons.broken_image,
-                                    color: Colors.grey),
-                              ),
+                                // Timestamp Overlay on Image (only if no text)
+                                if (message.text.trim().isEmpty)
+                                  Container(
+                                    margin: EdgeInsets.all(8.r),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 6.w, vertical: 2.h),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.55),
+                                      borderRadius: BorderRadius.circular(10.r),
+                                    ),
+                                    child: Text(
+                                      _formatTime(
+                                          message.createdAt ?? DateTime.now()),
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 10.sp,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                              ],
                             ),
-                            // Timestamp Overlay on Image
-                            Container(
-                              margin: EdgeInsets.all(8.r),
+                          ),
+                          if (message.text.trim().isNotEmpty)
+                            Padding(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 6.w, vertical: 2.h),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.55),
-                                borderRadius: BorderRadius.circular(10.r),
-                              ),
-                              child: Text(
-                                _formatTime(
-                                    message.createdAt ?? DateTime.now()),
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.w500,
-                                ),
+                                  horizontal: 12.w, vertical: 8.h),
+                              child: Wrap(
+                                alignment: WrapAlignment.end,
+                                crossAxisAlignment: WrapCrossAlignment.end,
+                                spacing: 8.w,
+                                runSpacing: 2.h,
+                                children: [
+                                  Text(
+                                    message.text,
+                                    style: GoogleFonts.poppins(
+                                      color: isMe
+                                          ? Colors.white
+                                          : AppTheme.textPrimary,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.25,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(bottom: 1.h),
+                                    child: Text(
+                                      _formatTime(message.createdAt ??
+                                          DateTime.now()),
+                                      style: GoogleFonts.poppins(
+                                        color: isMe
+                                            ? Colors.white.withValues(alpha: 0.75)
+                                            : AppTheme.textSecondary,
+                                        fontSize: 9.5.sp,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
                   )
@@ -544,23 +611,79 @@ class ChatScreen extends StatelessWidget {
                               ),
                             ],
                           )
-                        : Wrap(
-                            alignment: WrapAlignment.end,
-                            crossAxisAlignment: WrapCrossAlignment.end,
-                            spacing: 8.w,
-                            runSpacing: 2.h,
+                        : Column(
+                            crossAxisAlignment: isMe
+                                ? CrossAxisAlignment.end
+                                : CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              SelectableText(
-                                message.text,
-                                style: GoogleFonts.poppins(
-                                  color: isMe
-                                      ? Colors.white
-                                      : AppTheme.textPrimary,
-                                  fontSize: 14.sp,
-                                  fontWeight: FontWeight.w400,
-                                  height: 1.25,
+                              // Reply Preview inside Bubble
+                              if (message.replyToMessageText != null)
+                                Container(
+                                  margin: EdgeInsets.only(bottom: 6.h),
+                                  padding: EdgeInsets.symmetric(
+                                      horizontal: 10.w, vertical: 6.h),
+                                  decoration: BoxDecoration(
+                                    color: isMe
+                                        ? Colors.white.withValues(alpha: 0.2)
+                                        : const Color(0xFFF1F5F9),
+                                    borderRadius: BorderRadius.circular(8.r),
+                                    border: Border(
+                                        left: BorderSide(
+                                            color: isMe
+                                                ? Colors.white
+                                                : AppTheme.primaryColor,
+                                            width: 3)),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        message.replyToMessageSender ==
+                                                _chatController.currentUserId
+                                            ? 'You'
+                                            : 'Replied to message',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 10.sp,
+                                          fontWeight: FontWeight.w600,
+                                          color: isMe
+                                              ? Colors.white
+                                              : AppTheme.primaryColor,
+                                        ),
+                                      ),
+                                      Text(
+                                        message.replyToMessageText!,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 11.sp,
+                                          color: isMe
+                                              ? Colors.white
+                                                  .withValues(alpha: 0.9)
+                                              : Colors.black54,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
+                              Wrap(
+                                alignment: WrapAlignment.end,
+                                crossAxisAlignment: WrapCrossAlignment.end,
+                                spacing: 8.w,
+                                runSpacing: 2.h,
+                                children: [
+                                  SelectableText(
+                                    message.text,
+                                    style: GoogleFonts.poppins(
+                                      color: isMe
+                                          ? Colors.white
+                                          : AppTheme.textPrimary,
+                                      fontSize: 14.sp,
+                                      fontWeight: FontWeight.w400,
+                                      height: 1.25,
+                                    ),
+                                  ),
                               Padding(
                                 padding: EdgeInsets.only(bottom: 1.h),
                                 child: Row(
@@ -594,6 +717,8 @@ class ChatScreen extends StatelessWidget {
                               ),
                             ],
                           ),
+                        ],
+                      ),
                   ),
 
                 // ── Floating Reaction Badge ──────────────────────────────
@@ -834,13 +959,82 @@ class ChatScreen extends StatelessWidget {
         top: false,
         bottom: true,
         minimum: EdgeInsets.zero,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(10.w, 6.h, 10.w, 6.h),
-          child: Row(
-            children: [
-              // Photo / Media Button (Distinct Soft Circle)
-              GestureDetector(
-                onTap: () => _chatController.sendImageMessage(chatRoomId, targetUserId),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Reply Preview Box
+            Obx(() {
+              final replyMsg = _chatController.replyMessage.value;
+              if (replyMsg == null) return const SizedBox.shrink();
+              return Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0))),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 4.w,
+                      height: 36.h,
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryColor,
+                        borderRadius: BorderRadius.circular(2.r),
+                      ),
+                    ),
+                    SizedBox(width: 10.w),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            replyMsg.senderId == _chatController.currentUserId
+                                ? 'Replying to yourself'
+                                : 'Replying to message',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                          Text(
+                            replyMsg.text.isNotEmpty
+                                ? replyMsg.text
+                                : (replyMsg.imageUrl != null
+                                    ? 'Image'
+                                    : 'Video'),
+                            style: GoogleFonts.poppins(
+                              fontSize: 12.sp,
+                              color: Colors.black54,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded,
+                          color: Colors.black54, size: 20),
+                      onPressed: () =>
+                          _chatController.replyMessage.value = null,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              );
+            }),
+
+            // Text Input Row
+            Padding(
+              padding: EdgeInsets.fromLTRB(10.w, 6.h, 10.w, 6.h),
+              child: Row(
+                children: [
+                  // Photo / Media Button (Distinct Soft Circle)
+                  GestureDetector(
+                    onTap: () => _chatController.sendImageMessage(
+                        chatRoomId, targetUserId),
                 child: Container(
                   padding: EdgeInsets.all(9.r),
                   decoration: const BoxDecoration(
@@ -1002,6 +1196,8 @@ class ChatScreen extends StatelessWidget {
             ],
           ),
         ),
+          ],
+        ),
       ),
     );
   }
@@ -1018,129 +1214,202 @@ class ChatScreen extends StatelessWidget {
     final hasText = message.text.trim().isNotEmpty && !message.isDeleted;
 
     Get.bottomSheet(
-      Material(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        clipBehavior: Clip.antiAlias,
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 16.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Drag Handle
-                Center(
-                  child: Container(
-                    width: 36.w,
-                    height: 4.h,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE2E8F0),
-                      borderRadius: BorderRadius.circular(2.r),
+      SafeArea(
+        bottom: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 1. Floating Reaction Pill (Separated)
+            if (!message.isDeleted) ...[
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 16.w),
+                padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w),
+                decoration: BoxDecoration(
+                  color: Colors.white, // Match bottom sheet color
+                  borderRadius: BorderRadius.circular(30.r),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.10),
+                      blurRadius: 15.r,
+                      offset: const Offset(0, 4),
                     ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ...['❤️', '😆', '😮', '😢', '😡', '👍'].map((emoji) {
+                      final isSelected = message.reactions?[
+                              _chatController.currentUserId] ==
+                          emoji;
+                      return GestureDetector(
+                        onTap: () {
+                          Get.back();
+                          _chatController.toggleReaction(
+                              chatRoomId, message.id, emoji);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: EdgeInsets.all(4.r),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? const Color(0xFFF1F5F9) // Light grey for selected in light mode
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(emoji,
+                              style: TextStyle(
+                                  fontSize: isSelected ? 30.sp : 26.sp)),
+                        ),
+                      );
+                    }),
+                    GestureDetector(
+                      onTap: () {},
+                      child: Container(
+                        padding: EdgeInsets.all(4.r),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF1F5F9), // Light grey for + button
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(Icons.add_rounded, color: Color(0xFF475569), size: 26.sp),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 18.h), // Increased gap
+            ],
+
+            // 2. The Menu Sheet
+            Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom), // Handle safe area properly
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 16.w), // Reduced vertical padding
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Drag Handle
+                      Center(
+                        child: Container(
+                          width: 36.w,
+                          height: 4.h,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(2.r),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 16.h), // Reduced from 20.h
+
+                      // Horizontal Menu Options
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Reply
+                          Expanded(
+                            child: _buildMenuAction(
+                              icon: Icons.reply_rounded,
+                              label: 'Reply',
+                              onTap: () {
+                                Get.back();
+                                _chatController.replyMessage.value = message;
+                              },
+                            ),
+                          ),
+
+                          // Copy Message
+                          if (hasText)
+                            Expanded(
+                              child: _buildMenuAction(
+                                icon: Icons.copy_rounded,
+                                label: 'Copy',
+                                onTap: () {
+                                  Get.back();
+                                  Clipboard.setData(ClipboardData(text: message.text));
+                                  Get.snackbar('Copied', 'Message copied to clipboard',
+                                      snackPosition: SnackPosition.BOTTOM,
+                                      duration: const Duration(seconds: 2));
+                                },
+                              ),
+                            ),
+
+                          // Edit Message (Own only)
+                          if (isMe && canEdit)
+                            Expanded(
+                              child: _buildMenuAction(
+                                icon: Icons.edit_rounded,
+                                label: 'Edit',
+                                onTap: () {
+                                  Get.back();
+                                  _showEditDialog(context, message);
+                                },
+                              ),
+                            ),
+
+                          // Delete/Unsend Message (Own only)
+                          if (isMe && !message.isDeleted)
+                            Expanded(
+                              child: _buildMenuAction(
+                                icon: Icons.delete_outline_rounded,
+                                label: 'Unsend',
+                                onTap: () {
+                                  Get.back();
+                                  _showDeleteDialog(context, message);
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: 8.h), // Reduced from 10.h
+                    ],
                   ),
                 ),
-                SizedBox(height: 14.h),
-
-                // Reaction Emojis (Other user's messages ONLY)
-                if (!isMe && !message.isDeleted) ...[
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children:
-                          ['❤️', '😂', '😮', '😢', '😡', '👍', '👎'].map((emoji) {
-                        final isSelected = message.reactions?[
-                                _chatController.currentUserId] ==
-                            emoji;
-                        return GestureDetector(
-                          onTap: () {
-                            Get.back();
-                            _chatController.toggleReaction(
-                                chatRoomId, message.id, emoji);
-                          },
-                          child: Container(
-                            margin: EdgeInsets.symmetric(horizontal: 4.w),
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 10.w, vertical: 8.h),
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppTheme.primaryColor
-                                      .withValues(alpha: 0.15)
-                                  : const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(14.r),
-                              border: isSelected
-                                  ? Border.all(
-                                      color: AppTheme.primaryColor,
-                                      width: 1.5)
-                                  : null,
-                            ),
-                            child: Text(emoji,
-                                style: TextStyle(fontSize: 24.sp)),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  if (hasText || isMe) ...[
-                    SizedBox(height: 14.h),
-                    const Divider(color: Color(0xFFE2E8F0), height: 1),
-                  ],
-                ],
-
-                // Copy Message
-                if (hasText)
-                  ListTile(
-                    leading: const Icon(Icons.copy_rounded,
-                        color: AppTheme.primaryColor),
-                    title: Text('Copy Message',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500, fontSize: 14.sp)),
-                    onTap: () {
-                      Get.back();
-                      Clipboard.setData(ClipboardData(text: message.text));
-                      Get.snackbar(
-                        'Copied',
-                        'Message copied to clipboard',
-                        snackPosition: SnackPosition.BOTTOM,
-                        duration: const Duration(seconds: 2),
-                      );
-                    },
-                  ),
-
-                // Edit Message (Own only)
-                if (isMe && canEdit)
-                  ListTile(
-                    leading:
-                        const Icon(Icons.edit_rounded, color: Colors.blue),
-                    title: Text('Edit Message',
-                        style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500, fontSize: 14.sp)),
-                    onTap: () {
-                      Get.back();
-                      _showEditDialog(context, message);
-                    },
-                  ),
-
-                // Delete Message (Own only)
-                if (isMe && !message.isDeleted)
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline_rounded,
-                        color: Colors.red),
-                    title: Text('Delete Message',
-                        style: GoogleFonts.poppins(
-                            color: Colors.red,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14.sp)),
-                    onTap: () {
-                      Get.back();
-                      _showDeleteDialog(context, message);
-                    },
-                  ),
-              ],
+              ),
             ),
-          ),
+          ],
+        ),
+      ),
+      backgroundColor: Colors.transparent, // Ensures the gap is transparent
+      isScrollControlled: true,
+    );
+  }
+
+  Widget _buildMenuAction({required IconData icon, required String label, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.r),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 6.h), // Reduced padding
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(10.r), // Reduced from 12.r
+              decoration: const BoxDecoration(
+                color: Color(0xFFF1F5F9), // Light grey circle background for icons
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: const Color(0xFF0F172A), size: 20.sp), // Reduced from 24.sp
+            ),
+            SizedBox(height: 6.h), // Reduced from 8.h
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 11.sp, // Reduced from 12.sp
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF0F172A),
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
@@ -1157,10 +1426,37 @@ class ChatScreen extends StatelessWidget {
           'Edit Message',
           style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
         ),
-        content: TextField(
-          controller: editController,
-          decoration: const InputDecoration(border: OutlineInputBorder()),
-          maxLines: 3,
+        content: Container(
+          width: double.maxFinite,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(16.r),
+            border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+          ),
+          child: TextField(
+            controller: editController,
+            textCapitalization: TextCapitalization.sentences,
+            maxLines: 5,
+            minLines: 1,
+            style: GoogleFonts.poppins(
+              fontSize: 14.sp,
+              color: const Color(0xFF0F172A),
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.transparent,
+              hintText: 'Edit message...',
+              hintStyle: GoogleFonts.poppins(
+                color: const Color(0xFF475569),
+                fontSize: 14.sp,
+              ),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            ),
+          ),
         ),
         actions: [
           TextButton(
@@ -1235,7 +1531,7 @@ class ChatScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Send a Quick Emoji',
+              Text('Insert Emoji',
                   style: GoogleFonts.poppins(
                       fontWeight: FontWeight.bold, fontSize: 16.sp)),
               SizedBox(height: 16.h),
@@ -1252,21 +1548,22 @@ class ChatScreen extends StatelessWidget {
                   return GestureDetector(
                     onTap: () {
                       Get.back();
-                      _chatController.sendMessage(
-                        chatRoomId,
-                        defaultStickers[index],
-                        targetUserId,
+                      final currentText = _screenController.messageController.text;
+                      _screenController.messageController.text = currentText + defaultStickers[index];
+                      _screenController.messageController.selection = TextSelection.fromPosition(
+                        TextPosition(offset: _screenController.messageController.text.length),
                       );
+                      _screenController.hasText.value = true;
                     },
                     child: Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(12.r),
+                      decoration: const BoxDecoration(
+                        color: Colors.transparent,
+                        shape: BoxShape.circle,
                       ),
                       child: Center(
                         child: Text(
                           defaultStickers[index],
-                          style: TextStyle(fontSize: 30.sp),
+                          style: TextStyle(fontSize: 34.sp),
                         ),
                       ),
                     ),
@@ -1291,13 +1588,7 @@ class ChatScreen extends StatelessWidget {
     return !RegExp(r'[\p{L}\p{N}\p{P}]', unicode: true)
         .hasMatch(textWithoutSpaces);
   }
-
-
-
 }
-
-
-
 // ── Screen Controller ────────────────────────────────────────────────
 class ChatScreenController extends GetxController {
   final String chatRoomId;

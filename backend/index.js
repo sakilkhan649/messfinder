@@ -81,16 +81,19 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_message', async (data) => {
-    // data: { chatId, senderUid, text, imageUrl, videoUrl }
+    // data: { chatId, senderUid, text, imageUrl, videoUrl, replyToMessageId, replyToMessageText, replyToMessageSender }
     try {
-      const { chatId, senderUid, text, imageUrl, videoUrl } = data;
+      const { chatId, senderUid, targetUid, text, imageUrl, videoUrl, replyToMessageId, replyToMessageText, replyToMessageSender } = data;
       const pool = require('./config/db');
 
       // Save message to database
       const newMsg = await pool.query(
-        `INSERT INTO messages (chat_id, sender_uid, text, image_url, video_url) 
-         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-        [chatId, senderUid, text, imageUrl, videoUrl]
+        `INSERT INTO messages (chat_id, sender_uid, text, image_url, video_url, reply_to_message_id, reply_to_message_text, reply_to_message_sender) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *, 
+         reply_to_message_id as "replyToMessageId", 
+         reply_to_message_text as "replyToMessageText", 
+         reply_to_message_sender as "replyToMessageSender"`,
+        [chatId, senderUid, text, imageUrl, videoUrl, replyToMessageId, replyToMessageText, replyToMessageSender]
       );
 
       // Update chat last message
@@ -101,6 +104,10 @@ io.on('connection', (socket) => {
 
       // Broadcast to room
       io.to(chatId).emit('receive_message', newMsg.rows[0]);
+      // Also broadcast to target user's personal room so their chat list updates
+      if (targetUid) {
+        io.to(targetUid).emit('receive_message', newMsg.rows[0]);
+      }
     } catch (error) {
       console.error('Socket send_message error:', error);
     }
@@ -150,7 +157,7 @@ io.on('connection', (socket) => {
       const { chatId, messageId, senderUid } = data;
       const pool = require('./config/db');
       const delRes = await pool.query(
-        'UPDATE messages SET is_deleted = true, text = $1 WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
+        'UPDATE messages SET is_deleted = true, text = $1, image_url = null, video_url = null WHERE message_id = $2 AND sender_uid = $3 RETURNING *',
         ['', messageId, senderUid]
       );
       if (delRes.rows.length > 0) {

@@ -11,6 +11,7 @@ import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
+import 'package:mess_finder/core/services/socket_service.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
@@ -29,8 +30,6 @@ class CallController extends GetxController {
 
   RtcEngine? _engine;
   RtcEngine? get engine => _engine;
-
-  socket_io.Socket? _socket;
 
   // Call States
   final Rx<CallState> callState = CallState.idle.obs;
@@ -67,12 +66,15 @@ class CallController extends GetxController {
     final authCtrl = Get.find<AuthController>();
     ever(authCtrl.currentUser, (user) {
       if (user != null && user.uid.isNotEmpty) {
-        if (_socket == null || _socket?.connected != true) {
+        if (!Get.isRegistered<SocketService>()) return;
+        final socketService = Get.find<SocketService>();
+        if (socketService.socket == null || socketService.socket?.connected != true) {
           _initSocketSignaling();
         }
       } else {
-        _socket?.disconnect();
-        _socket = null;
+        if (Get.isRegistered<SocketService>()) {
+          Get.find<SocketService>().disconnect();
+        }
       }
     });
     _initSocketSignaling();
@@ -85,43 +87,31 @@ class CallController extends GetxController {
   }
 
   void _initSocketSignaling() {
+    if (!Get.isRegistered<SocketService>()) return;
+    
+    final socketService = Get.find<SocketService>();
     final authCtrl = Get.find<AuthController>();
     final currentUid = authCtrl.currentUser.value?.uid;
     if (currentUid == null || currentUid.isEmpty) return;
 
-    final backendUrl = dotenv.env['SOCKET_URL'] ?? ApiConstants.serverBaseUrl;
-    _socket = socket_io.io(
-      backendUrl,
-      socket_io.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .setQuery({'userId': currentUid})
-          .build(),
-    );
-
-    _socket?.connect();
-
-    _socket?.onConnect((_) {
-      AppLogger.i('Call signaling socket connected for $currentUid', tag: 'CALL_CTRL');
-      // Ensure backend routes calls correctly by joining personal user room
-      _socket?.emit(ApiConstants.socketJoinUserRoom, currentUid);
-      // If there's a pending accept_call from background CallKit, emit it now
-      if (_pendingAcceptCall) {
-        _pendingAcceptCall = false;
-        _socket?.emit('accept_call', {
-          'channelName': currentChannel,
-          'targetUserId': peerUserId,
-        });
-      }
-    });
+    // The SocketService handles connection, we just need to emit/listen
+    socketService.emit(ApiConstants.socketJoinUserRoom, currentUid);
+    
+    if (_pendingAcceptCall) {
+      _pendingAcceptCall = false;
+      socketService.emit('accept_call', {
+        'channelName': currentChannel,
+        'targetUserId': peerUserId,
+      });
+    }
 
     // 1. Incoming Call Listener
-    _socket?.on('incoming_call', (data) {
+    socketService.on('incoming_call', (data) {
       if (callState.value != CallState.idle) {
         // Send a busy signal back to the caller
         final callerId = data['callerId'];
         if (callerId != null) {
-          _socket?.emit('reject_call', {
+          socketService.emit('reject_call', {
             'callerId': callerId,
             'reason': 'busy',
           });
@@ -188,7 +178,7 @@ class CallController extends GetxController {
     });
 
     // 2. Call Accepted Listener (Caller side)
-    _socket?.on('call_accepted', (data) async {
+    socketService.on('call_accepted', (data) async {
       if (callState.value == CallState.connected) return; // Prevent double-join (-17 error)
       
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
@@ -223,14 +213,14 @@ class CallController extends GetxController {
     });
 
     // 2.5 Call Token Received (Receiver side)
-    _socket?.on('call_joined_receiver', (data) async {
+    socketService.on('call_joined_receiver', (data) async {
       AppLogger.i('Token received for receiver from background', tag: 'CALL_CTRL');
       currentRtcToken = data['token'] ?? '';
       _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
     });
 
     // 3. Call Rejected / Busy Listener
-    _socket?.on('call_rejected', (data) {
+    socketService.on('call_rejected', (data) {
       AppLogger.i('Call rejected by peer: $data', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -258,7 +248,7 @@ class CallController extends GetxController {
     });
 
     // 4. Target User Offline Listener
-    _socket?.on('call_user_offline', (data) async {
+    socketService.on('call_user_offline', (data) async {
       AppLogger.i('Target user is offline: $data', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -295,7 +285,13 @@ class CallController extends GetxController {
     });
 
     // 5. Call Ended Listener
-    _socket?.on('call_ended', (data) {
+    // 3.5 End call fallback if already closed
+    if (Get.isRegistered<SocketService>()) {
+      Get.find<SocketService>().on('end_call', (data) {
+        AppLogger.i('End call fallback received', tag: 'CALL_CTRL');
+      });
+    }  
+    socketService.on('call_ended', (data) {
       AppLogger.i('Call ended by peer', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -397,14 +393,16 @@ class CallController extends GetxController {
     );
 
     // Emit Signal to Server
-    _socket?.emit('make_call', {
-      'targetUserId': targetUserId,
-      'channelName': currentChannel,
-      'isVideo': isVideo,
-      'callerId': myUid,
-      'callerName': myUser?.name ?? 'User',
-      'callerPhoto': null,
-    });
+    if (Get.isRegistered<SocketService>()) {
+      Get.find<SocketService>().emit('make_call', {
+        'targetUserId': targetUserId,
+        'channelName': currentChannel,
+        'isVideo': isVideo,
+        'callerId': myUid,
+        'callerName': myUser?.name ?? 'User',
+        'callerPhoto': null,
+      });
+    }
   }
 
   // ── Accept Call (Receiver) ──────────────────────────────────────────
@@ -516,7 +514,9 @@ class CallController extends GetxController {
       _logCallToChat(status: 'cancelled');
     }
     if (notifyPeer && peerUserId.isNotEmpty) {
-      _socket?.emit('end_call', {'targetUserId': peerUserId, 'channelName': currentChannel});
+      if (Get.isRegistered<SocketService>()) {
+        Get.find<SocketService>().emit('end_call', {'targetUserId': peerUserId, 'channelName': currentChannel});
+      }
     }
 
     final bool wasRingingOrConnected = callState.value != CallState.idle;

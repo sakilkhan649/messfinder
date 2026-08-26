@@ -305,13 +305,13 @@ class LoginScreen extends StatelessWidget {
 
                         SizedBox(height: 28.h),
 
-                        // Email Input Field
+                        // Email / Phone Input Field
                         _buildInputField(
-                          label: 'Email Address',
-                          hintText: 'example@email.com',
+                          label: 'Email Address or Phone Number',
+                          hintText: 'example@email.com or 017...',
                           controller: controller.emailController,
-                          icon: Icons.email_outlined,
-                          keyboardType: TextInputType.emailAddress,
+                          icon: Icons.person_outline_rounded,
+                          keyboardType: TextInputType.text,
                         ),
 
                         SizedBox(height: 16.h),
