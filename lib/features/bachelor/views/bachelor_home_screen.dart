@@ -1126,10 +1126,7 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
-                          ConstrainedBox(
-                            constraints: BoxConstraints(maxHeight: 500.h),
-                            child: VideoPlayerWidget(videoUrl: post.videoUrl!),
-                          ),
+                          VideoPlayerWidget(videoUrl: post.videoUrl!),
                         if (post.videoUrl != null && post.videoUrl!.isNotEmpty && post.images.isNotEmpty)
                           SizedBox(height: 4.h),
                         if (post.images.isNotEmpty)
