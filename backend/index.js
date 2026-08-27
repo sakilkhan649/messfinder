@@ -17,6 +17,17 @@ pool.query('ALTER TABLE products ADD COLUMN video_url TEXT;').catch(e => {
 pool.query('ALTER TABLE notifications ADD COLUMN related_id VARCHAR(255);').catch(e => {
   if (e.code !== '42701') console.error('Migration error (related_id):', e);
 });
+
+// Chat reply columns migration
+pool.query(`
+  ALTER TABLE messages 
+  ADD COLUMN IF NOT EXISTS reply_to_message_id VARCHAR(255),
+  ADD COLUMN IF NOT EXISTS reply_to_message_text TEXT,
+  ADD COLUMN IF NOT EXISTS reply_to_message_sender VARCHAR(255);
+`).catch(e => {
+  if (e.code !== '42701') console.error('Migration error (reply columns):', e);
+});
+
 // Remove duplicate bookings (keep oldest entry per post+bachelor pair)
 pool.query(`
   DELETE FROM bookings WHERE ctid NOT IN (

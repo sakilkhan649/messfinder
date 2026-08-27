@@ -51,7 +51,7 @@ class SocketService extends GetxService with WidgetsBindingObserver {
     String? token;
     try {
       final prefs = await SharedPreferences.getInstance();
-      token = prefs.getString('access_token');
+      token = prefs.getString(ApiConstants.authTokenKey);
     } catch (e) {
       debugPrint('⚡ [SocketService] Could not retrieve token: $e');
     }
