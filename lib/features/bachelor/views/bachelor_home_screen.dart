@@ -1125,16 +1125,33 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
+                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty && post.images.isEmpty)
                           VideoPlayerWidget(videoUrl: post.videoUrl!),
-                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty && post.images.isNotEmpty)
-                          SizedBox(height: 4.h),
-                        if (post.images.isNotEmpty)
+                          
+                        if (post.images.isNotEmpty && (post.videoUrl == null || post.videoUrl!.isEmpty))
                           SizedBox(
-                            height: post.videoUrl != null && post.videoUrl!.isNotEmpty ? 250.h : 300.h,
+                            height: 300.h,
                             width: double.infinity,
                             child: FacebookImageGrid(images: post.images, borderRadius: 0),
                           ),
+                          
+                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty && post.images.isNotEmpty)
+                          Column(
+                            children: [
+                              SizedBox(
+                                height: 240.h,
+                                width: double.infinity,
+                                child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                              ),
+                              SizedBox(height: 2.h),
+                              SizedBox(
+                                height: 140.h,
+                                width: double.infinity,
+                                child: FacebookImageGrid(images: post.images, borderRadius: 0),
+                              ),
+                            ],
+                          ),
+                          
                         if ((post.videoUrl == null || post.videoUrl!.isEmpty) && post.images.isEmpty)
                           Container(
                             height: 200.h,

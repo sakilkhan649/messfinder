@@ -108,6 +108,20 @@ class ChatController extends GetxController {
     }
   }
 
+  void _scrollToBottom() {
+    if (messageScrollController.hasClients) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (messageScrollController.hasClients) {
+          messageScrollController.animateTo(
+            0.0,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    }
+  }
+
   void clearSearch() {
     searchController.clear();
     searchQuery.value = '';
@@ -143,6 +157,11 @@ class ChatController extends GetxController {
                 m.videoUrl == msg.videoUrl,
           );
           currentMessages.insert(0, msg);
+          
+          if (messageScrollController.hasClients && messageScrollController.offset < 200) {
+            _scrollToBottom();
+          }
+
           // Auto-mark as seen since we're actively in this chat
           if (msg.senderId != currentUserId) {
             _emitMarkSeen(chatId!, msg.id);
@@ -585,6 +604,8 @@ class ChatController extends GetxController {
 
     // Always insert optimistic UI, even for media, since the URL is already uploaded
     currentMessages.insert(0, optimisticMsg);
+    
+    _scrollToBottom();
 
     // Clear reply state
     replyMessage.value = null;
