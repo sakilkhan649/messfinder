@@ -416,8 +416,11 @@ class CallController extends GetxController {
     isCaller = false;
     _hasLoggedCall = false;
     
-    // Clear local app notifications (but DO NOT end CallKit here, it must stay active for audio session)
+    // Clear local app notifications (but DO NOT end CallKit here on iOS, it must stay active for audio session)
     NotificationService().cancelCallNotification();
+    if (GetPlatform.isAndroid) {
+      NotificationService().endCallKitCall(currentChannel);
+    }
 
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
