@@ -74,10 +74,10 @@ class SocketService extends GetxService with WidgetsBindingObserver {
           .disableAutoConnect()
           .setQuery({
             'userId': _currentUserId,
-            if (token != null) 'token': token,
+            'token': ?token,
           })
           .setAuth({
-            if (token != null) 'token': token,
+            'token': ?token,
           })
           .build(),
     );

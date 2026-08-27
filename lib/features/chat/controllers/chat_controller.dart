@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/services/socket_service.dart';
-import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/api_service.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/core/services/media_upload_service.dart';
@@ -599,11 +598,11 @@ class ChatController extends GetxController {
           'senderUid': currentUserId,
           'targetUid': targetUserId,
           'text': text.trim(),
-          if (imageUrl != null) 'imageUrl': imageUrl,
-          if (videoUrl != null) 'videoUrl': videoUrl,
-          if (replyId != null) 'replyToMessageId': replyId,
-          if (replyText != null) 'replyToMessageText': replyText,
-          if (replySender != null) 'replyToMessageSender': replySender,
+          'imageUrl': ?imageUrl,
+          'videoUrl': ?videoUrl,
+          'replyToMessageId': ?replyId,
+          'replyToMessageText': ?replyText,
+          'replyToMessageSender': ?replySender,
         });
       }
 

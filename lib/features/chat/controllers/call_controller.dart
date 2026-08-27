@@ -7,7 +7,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:socket_io_client/socket_io_client.dart' as socket_io;
 import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
