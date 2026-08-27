@@ -380,16 +380,8 @@ class CallController extends GetxController {
       }
     });
 
-    // Send Push Notification
-    NotificationService().sendPush(
-      receiverUid: targetUserId,
-      title: myUser?.name ?? 'User',
-      body: isVideo ? 'Incoming Video Call' : 'Incoming Audio Call',
-      type: 'call',
-      relatedId: currentChannel,
-      senderUid: myUid,
-      senderPhotoUrl: myUser?.photoUrl ?? '',
-    );
+    // Send Push Notification is handled securely by the backend via the 'make_call' socket event
+    // to prevent duplicate CallKit rings and network overhead.
 
     // Emit Signal to Server
     if (Get.isRegistered<SocketService>()) {

@@ -165,6 +165,17 @@ class NotificationService {
           final relatedId = extra['relatedId'];
           final senderUid = extra['senderUid'];
 
+          if (Get.isRegistered<CallController>()) {
+            final callCtrl = Get.find<CallController>();
+            // Ignore if we are already connecting or connected
+            if (callCtrl.currentChannel == relatedId && 
+                (callCtrl.callState.value == CallState.connecting || 
+                 callCtrl.callState.value == CallState.connected)) {
+               debugPrint('Ignoring CallKit Decline event because call is already connected/connecting.');
+               return;
+            }
+          }
+
           // Fallback HTTP request to reject call instantly even if backgrounded
           if (senderUid != null) {
              try {
