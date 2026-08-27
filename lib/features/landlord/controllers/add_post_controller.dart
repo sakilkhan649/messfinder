@@ -125,10 +125,10 @@ class AddPostController extends GetxController {
 
   void submit() {
     if (formKey.currentState!.validate()) {
-      if (!isEditing && pickedLocalImages.isEmpty) {
+      if (!isEditing && pickedLocalImages.isEmpty && pickedLocalVideo.value.isEmpty) {
         Get.snackbar(
-          'Photo Required',
-          'Please select at least 1 real photo of your room from gallery.',
+          'Media Required',
+          'Please select at least 1 real photo or a video of your room from gallery.',
           backgroundColor: Colors.red,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,

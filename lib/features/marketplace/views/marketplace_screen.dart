@@ -12,6 +12,7 @@ import 'add_product_screen.dart';
 import 'product_details_screen.dart';
 import '../../auth/controllers/auth_controller.dart';
 import '../../../core/widgets/profile_avatar_leading.dart';
+import '../../chat/views/widgets/video_player_widget.dart';
 
 class MarketplaceScreen extends StatelessWidget {
   const MarketplaceScreen({super.key});
@@ -438,7 +439,7 @@ class ProductCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image
+            // Image or Video
             Expanded(
               child: ClipRRect(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(12.r)),
@@ -462,15 +463,22 @@ class ProductCard extends StatelessWidget {
                           ),
                         ),
                       )
-                    : Container(
-                        color: Colors.grey.shade200,
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: const Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                        ),
-                      ),
+                    : (product.videoUrl != null && product.videoUrl!.isNotEmpty)
+                        ? Container(
+                            color: Colors.black,
+                            width: double.infinity,
+                            height: double.infinity,
+                            child: VideoPlayerWidget(videoUrl: product.videoUrl!),
+                          )
+                        : Container(
+                            color: Colors.grey.shade200,
+                            width: double.infinity,
+                            height: double.infinity,
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              color: Colors.grey,
+                            ),
+                          ),
               ),
             ),
             // Details

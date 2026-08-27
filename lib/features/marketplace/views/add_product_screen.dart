@@ -169,7 +169,12 @@ class AddProductScreen extends StatelessWidget {
           ),
           backgroundColor: AppTheme.backgroundColor,
           body: SingleChildScrollView(
-            padding: EdgeInsets.all(20.w),
+            padding: EdgeInsets.only(
+              left: 20.w,
+              right: 20.w,
+              top: 20.h,
+              bottom: 20.h + MediaQuery.of(context).viewInsets.bottom,
+            ),
         child: Form(
           key: controller.formKey,
           child: Column(

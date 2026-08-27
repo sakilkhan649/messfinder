@@ -73,7 +73,7 @@ class ProductDetailsScreen extends StatelessWidget {
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  // Image Slider
+                  // Image Slider or Video Header
                   product.images.isNotEmpty
                       ? PageView.builder(
                           itemCount: product.images.length,
@@ -89,10 +89,12 @@ class ProductDetailsScreen extends StatelessWidget {
                             );
                           },
                         )
-                      : Container(
-                          color: Colors.grey.shade100,
-                          child: Icon(Icons.shopping_bag_outlined, size: 80.r, color: Colors.grey.shade400),
-                        ),
+                      : (product.videoUrl != null && product.videoUrl!.isNotEmpty)
+                          ? VideoPlayerWidget(videoUrl: product.videoUrl!)
+                          : Container(
+                              color: Colors.grey.shade100,
+                              child: Icon(Icons.shopping_bag_outlined, size: 80.r, color: Colors.grey.shade400),
+                            ),
                   // Gradient Overlay for smooth transition to content
                   Positioned(
                     bottom: 0,
@@ -209,7 +211,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     ),
                     SizedBox(height: 16.h),
                     
-                    if (product.videoUrl != null && product.videoUrl!.isNotEmpty) ...[
+                    if (product.images.isNotEmpty && product.videoUrl != null && product.videoUrl!.isNotEmpty) ...[
                       Text(
                         'Product Video',
                         style: GoogleFonts.poppins(

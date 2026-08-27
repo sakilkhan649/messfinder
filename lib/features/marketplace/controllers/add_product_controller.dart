@@ -115,8 +115,8 @@ class AddProductController extends GetxController {
 
   Future<void> submit() async {
     if (formKey.currentState!.validate()) {
-      if (!isEditMode && localImages.isEmpty) {
-        Get.snackbar('Error', 'Please select at least one image',
+      if (!isEditMode && localImages.isEmpty && pickedLocalVideo.value.isEmpty) {
+        Get.snackbar('Error', 'Please select at least one image or a video',
             backgroundColor: Colors.red, colorText: Colors.white);
         return;
       }

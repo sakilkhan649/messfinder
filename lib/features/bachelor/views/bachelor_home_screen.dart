@@ -1120,29 +1120,36 @@ class BachelorPostCardState extends State<BachelorPostCard> {
                 ),
 
                 // ── 3. Post Video & Images ──────────────────────────────────────────────────
-                if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
-                  SizedBox(
-                    height: 250.h,
-                    width: double.infinity,
-                    child: VideoPlayerWidget(videoUrl: post.videoUrl!),
-                  ),
-                if (post.videoUrl != null && post.images.isNotEmpty)
-                  SizedBox(height: 8.h),
                 Stack(
                   children: [
-                    SizedBox(
-                      height: 200.h,
-                      width: double.infinity,
-                      child: post.images.isNotEmpty
-                          ? FacebookImageGrid(images: post.images, borderRadius: 0)
-                          : Container(
-                              color: Colors.grey.shade200,
-                              child: Icon(
-                                Icons.home_work_rounded,
-                                size: 48.r,
-                                color: Colors.grey.shade400,
-                              ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty)
+                          ConstrainedBox(
+                            constraints: BoxConstraints(maxHeight: 500.h),
+                            child: VideoPlayerWidget(videoUrl: post.videoUrl!),
+                          ),
+                        if (post.videoUrl != null && post.videoUrl!.isNotEmpty && post.images.isNotEmpty)
+                          SizedBox(height: 4.h),
+                        if (post.images.isNotEmpty)
+                          SizedBox(
+                            height: post.videoUrl != null && post.videoUrl!.isNotEmpty ? 250.h : 300.h,
+                            width: double.infinity,
+                            child: FacebookImageGrid(images: post.images, borderRadius: 0),
+                          ),
+                        if ((post.videoUrl == null || post.videoUrl!.isEmpty) && post.images.isEmpty)
+                          Container(
+                            height: 200.h,
+                            width: double.infinity,
+                            color: Colors.grey.shade200,
+                            child: Icon(
+                              Icons.home_work_rounded,
+                              size: 48.r,
+                              color: Colors.grey.shade400,
                             ),
+                          ),
+                      ],
                     ),
                     Positioned(
                       top: 12.h,

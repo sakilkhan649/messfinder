@@ -40,23 +40,25 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return Container(
-        height: 200.h,
-        width: 200.w,
-        color: Colors.black12,
-        child: const Center(
-          child: Icon(Icons.error_outline, color: Colors.red),
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          color: Colors.black12,
+          child: const Center(
+            child: Icon(Icons.error_outline, color: Colors.red),
+          ),
         ),
       );
     }
 
     if (!_isInitialized) {
-      return Container(
-        height: 200.h,
-        width: 200.w,
-        color: Colors.black12,
-        child: const Center(
-          child: CircularProgressIndicator(),
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          color: Colors.black12,
+          child: const Center(
+            child: CircularProgressIndicator(),
+          ),
         ),
       );
     }
