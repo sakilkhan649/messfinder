@@ -12,6 +12,9 @@ import 'package:mess_finder/features/chat/controllers/call_controller.dart';
 import 'package:mess_finder/features/chat/views/widgets/video_player_widget.dart';
 import 'package:mess_finder/features/chat/views/widgets/media_preview_screen.dart';
 import 'package:mess_finder/features/profile/views/public_profile_screen.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:gal/gal.dart';
 
 class ChatScreen extends StatelessWidget {
   final String chatRoomId;
@@ -1323,6 +1326,19 @@ class ChatScreen extends StatelessWidget {
                             ),
                           ),
 
+                          // Download (if message has image or video)
+                          if (message.imageUrl != null || message.videoUrl != null)
+                            Expanded(
+                              child: _buildMenuAction(
+                                icon: Icons.download_rounded,
+                                label: 'Download',
+                                onTap: () {
+                                  Get.back();
+                                  _downloadMediaDirectly(message.imageUrl ?? message.videoUrl!, message.videoUrl != null);
+                                },
+                              ),
+                            ),
+
                           // Copy Message
                           if (hasText)
                             Expanded(
@@ -1413,6 +1429,59 @@ class ChatScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+  Future<void> _downloadMediaDirectly(String url, bool isVideo) async {
+    Get.snackbar(
+      'Downloading...',
+      'Please wait while media is being saved.',
+      snackPosition: SnackPosition.BOTTOM,
+      backgroundColor: const Color(0xFF0F172A).withValues(alpha: 0.9),
+      colorText: Colors.white,
+      duration: const Duration(seconds: 2),
+      margin: EdgeInsets.all(16.r),
+      borderRadius: 12.r,
+    );
+
+    try {
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
+      }
+
+      final dio = Dio();
+      final ext = isVideo ? 'mp4' : 'jpg';
+      final fileName = 'MessFinder_${DateTime.now().millisecondsSinceEpoch}.$ext';
+      
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName';
+
+      await dio.download(url, tempPath);
+
+      if (isVideo) {
+        await Gal.putVideo(tempPath);
+      } else {
+        await Gal.putImage(tempPath);
+      }
+
+      Get.snackbar(
+        'Downloaded Successfully',
+        'Saved to your gallery.',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: const Color(0xFF059669),
+        colorText: Colors.white,
+        margin: EdgeInsets.all(16.r),
+        borderRadius: 12.r,
+      );
+    } catch (e) {
+      Get.snackbar(
+        'Download Failed',
+        'Could not save media: $e',
+        snackPosition: SnackPosition.BOTTOM,
+        backgroundColor: Colors.red.shade700,
+        colorText: Colors.white,
+        margin: EdgeInsets.all(16.r),
+        borderRadius: 12.r,
+      );
+    }
   }
 
   void _showEditDialog(BuildContext context, MessageModel message) {

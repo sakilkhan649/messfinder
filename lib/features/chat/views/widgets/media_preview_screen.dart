@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
@@ -8,6 +7,7 @@ import 'package:video_player/video_player.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:gal/gal.dart';
 
 class MediaPreviewScreen extends StatefulWidget {
   final String mediaUrl;
@@ -60,27 +60,22 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
     });
 
     try {
+      // 1. Request access from Gal
+      if (!await Gal.hasAccess()) {
+        await Gal.requestAccess();
+      }
+
+      // 2. Download to a temporary directory first
       final dio = Dio();
       final ext = widget.isVideo ? 'mp4' : 'jpg';
       final fileName = 'MessFinder_${DateTime.now().millisecondsSinceEpoch}.$ext';
-
-      Directory? dir;
-      if (Platform.isAndroid) {
-        final downloadDir = Directory('/storage/emulated/0/Download');
-        if (await downloadDir.exists()) {
-          dir = downloadDir;
-        } else {
-          dir = await getExternalStorageDirectory();
-        }
-      } else {
-        dir = await getApplicationDocumentsDirectory();
-      }
-
-      final savePath = '${dir?.path ?? ''}/$fileName';
+      
+      final tempDir = await getTemporaryDirectory();
+      final tempPath = '${tempDir.path}/$fileName';
 
       await dio.download(
         widget.mediaUrl,
-        savePath,
+        tempPath,
         onReceiveProgress: (received, total) {
           if (total != -1) {
             setState(() {
@@ -90,9 +85,16 @@ class _MediaPreviewScreenState extends State<MediaPreviewScreen> {
         },
       );
 
+      // 3. Save to Gallery
+      if (widget.isVideo) {
+        await Gal.putVideo(tempPath);
+      } else {
+        await Gal.putImage(tempPath);
+      }
+
       Get.snackbar(
         'Downloaded Successfully',
-        'Saved to: $fileName',
+        'Saved to your gallery.',
         snackPosition: SnackPosition.BOTTOM,
         backgroundColor: const Color(0xFF059669),
         colorText: Colors.white,

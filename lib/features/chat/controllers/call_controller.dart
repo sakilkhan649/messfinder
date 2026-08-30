@@ -147,11 +147,9 @@ class CallController extends GetxController {
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
 
-      NotificationService().showCallNotification(
-        callerName: peerUserName,
-        isVideo: isVideoCall.value,
-        payload: currentChannel,
-      );
+      // Removed NotificationService().showCallNotification here
+      // because FCM will already show a CallKit notification.
+      // This prevents double notifications.
 
       Get.to(
         () => IncomingCallScreen(
@@ -411,7 +409,11 @@ class CallController extends GetxController {
     // Clear local app notifications (but DO NOT end CallKit here on iOS, it must stay active for audio session)
     NotificationService().cancelCallNotification();
     if (GetPlatform.isAndroid) {
-      NotificationService().endCallKitCall(currentChannel);
+      // Use a slight delay to ensure the native CallKit plugin registers the accept action first
+      // and use endAllCallKitCalls to forcefully remove the lingering notification.
+      Future.delayed(const Duration(milliseconds: 300), () {
+        NotificationService().endAllCallKitCalls();
+      });
     }
 
     final micGranted = await Permission.microphone.request().isGranted;
@@ -482,6 +484,10 @@ class CallController extends GetxController {
     // Dismiss incoming call screen if it's open
     if (Get.currentRoute == '/IncomingCallScreen') {
       Get.back();
+    }
+    
+    if (GetPlatform.isAndroid) {
+      NotificationService().endAllCallKitCalls();
     }
     
     // Use HTTP API to reject call for better reliability

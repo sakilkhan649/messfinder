@@ -73,6 +73,7 @@ dependencies:
   shimmer: ^3.0.0
   carousel_slider: ^5.1.2
   flutter_callkit_incoming: ^3.1.5
+  gal: ^2.3.3
 
 dev_dependencies:
   flutter_test:
