@@ -11,6 +11,7 @@ import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/core/services/socket_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
@@ -107,7 +108,14 @@ class CallController extends GetxController {
     // 1. Incoming Call Listener
     socketService.on('incoming_call', (data) {
       if (callState.value != CallState.idle) {
-        // Send a busy signal back to the caller
+        // If we receive a duplicate event for the SAME call, ignore it.
+        // This prevents false "Busy" signals if the socket fires twice.
+        if (currentChannel == data['channelName']) {
+          AppLogger.i('Ignoring duplicate incoming_call event for the same channel.', tag: 'CALL_CTRL');
+          return;
+        }
+
+        // Send a busy signal back to the caller for a DIFFERENT call
         final callerId = data['callerId'];
         if (callerId != null) {
           socketService.emit('reject_call', {
@@ -146,6 +154,9 @@ class CallController extends GetxController {
       isSpeakerOn.value = isVideoCall.value; // Correct speaker default
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
+
+      // Mark as in call for background handler auto-busy
+      SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', true));
 
       // Removed NotificationService().showCallNotification here
       // because FCM will already show a CallKit notification.
@@ -335,7 +346,10 @@ class CallController extends GetxController {
     isSpeakerOn.value = isVideo; // Default to loudspeaker for video, earpiece for audio
     currentChannel = 'call_${myUid}_${DateTime.now().millisecondsSinceEpoch}';
     callState.value = CallState.outgoing;
-    callStatusText.value = 'Ringing...';
+    callStatusText.value = 'Calling...';
+
+    // Mark as in call for background handler auto-busy
+    SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', true));
 
     // Start Outgoing Ringback Sound
     _startOutgoingRingtone();
@@ -638,6 +652,12 @@ class CallController extends GetxController {
     isVideoDisabled.value = !isVideoDisabled.value;
     try {
       _engine?.muteLocalVideoStream(isVideoDisabled.value);
+      
+      // If turning video ON, ensure speakerphone is enabled (WhatsApp behavior)
+      if (!isVideoDisabled.value && !isSpeakerOn.value) {
+        isSpeakerOn.value = true;
+        _engine?.setEnableSpeakerphone(true);
+      }
     } catch (e) {
       AppLogger.w('toggleVideo notice: $e', tag: 'CALL_CTRL');
     }
@@ -713,6 +733,9 @@ class CallController extends GetxController {
     peerUserId = '';
     peerUserName = '';
     peerUserPhoto = null;
+
+    // Clear active call state for background handler
+    SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', false));
 
     NotificationService().cancelCallNotification();
     NotificationService().endAllCallKitCalls();

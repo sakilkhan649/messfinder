@@ -911,13 +911,17 @@ class ChatController extends GetxController {
       final index = currentMessages.indexWhere((m) => m.id == messageId);
       if (index != -1) {
         final old = currentMessages[index];
-        currentMessages[index] = old.copyWith(
+        currentMessages[index] = MessageModel(
+          id: old.id,
+          senderId: old.senderId,
           text: '',
           isDeleted: true,
-          imageUrl: null,
-          videoUrl: null,
-          stickerUrl: null,
+          createdAt: old.createdAt,
+          isRead: old.isRead,
+          isEdited: old.isEdited,
+          reactions: old.reactions,
         );
+        currentMessages.refresh();
       }
 
       if (Get.isRegistered<SocketService>()) {

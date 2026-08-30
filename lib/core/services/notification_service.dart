@@ -14,6 +14,7 @@ import 'package:mess_finder/features/chat/controllers/call_controller.dart';
 /// ─── Background message handler (top-level function, required by FCM) ────────
 import 'package:flutter_callkit_incoming/entities/entities.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -36,6 +37,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final senderPhotoUrl = message.data['senderPhotoUrl'];
     final relatedId = message.data['relatedId']; 
     final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
+
+    // Auto-Busy Check: Prevent ringing if already in an active call (stored via SharedPreferences)
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final isInCall = prefs.getBool('is_in_call') ?? false;
+      if (isInCall) {
+        debugPrint('🚫 [FCM Background] User is already in a call, rejecting new call...');
+        if (senderUid != null) {
+          final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
+          await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid, 'reason': 'busy'})).timeout(const Duration(seconds: 5));
+        }
+        return; // Do not show CallKit
+      }
+    } catch (e) {
+      debugPrint('Error checking active call state in background: $e');
+    }
 
     final params = CallKitParams(
       id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
@@ -113,6 +130,15 @@ class NotificationService {
       sound: true,
     );
 
+    // Fail-safe: Clear any stuck CallKit notifications & reset in-call state on app start
+    try {
+      await FlutterCallkitIncoming.endAllCalls();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_in_call', false);
+    } catch (e) {
+      debugPrint('Fail-safe clear error: $e');
+    }
+
     // 2. Setup local notifications for foreground
     const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosInit = DarwinInitializationSettings();
@@ -180,7 +206,7 @@ class NotificationService {
           if (senderUid != null) {
              try {
                 final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
-                await http.post(url, body: {'callerId': senderUid, 'reason': 'declined'}).timeout(const Duration(seconds: 5));
+                await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid, 'reason': 'declined'})).timeout(const Duration(seconds: 5));
              } catch (e) {
                 debugPrint('Failed to reject call via API: $e');
              }
@@ -202,7 +228,7 @@ class NotificationService {
   }
 
   // ── Foreground Message Handler ───────────────────────────────────────────────
-  void _handleForegroundMessage(RemoteMessage message) {
+  Future<void> _handleForegroundMessage(RemoteMessage message) async {
     debugPrint('📨 [FCM] Foreground message: ${message.notification?.title}');
 
     // 1. Never show notification if sender is the current logged-in user
@@ -248,6 +274,32 @@ class NotificationService {
       final isVideo = body.toString().toLowerCase().contains('video');
       final senderPhotoUrl = message.data['senderPhotoUrl'];
       final relatedId = message.data['relatedId'];
+      
+      bool isBusy = false;
+      
+      // Check CallController state
+      if (Get.isRegistered<CallController>()) {
+        final callCtrl = Get.find<CallController>();
+        if (callCtrl.callState.value != CallState.idle) {
+          // If the active call is NOT the same as the incoming push, we are busy
+          if (callCtrl.currentChannel != relatedId && callCtrl.peerUserId != senderUid) {
+            isBusy = true;
+          }
+        }
+      }
+
+      if (isBusy) {
+        debugPrint('🚫 [FCM Foreground] User is already in a call, rejecting new call...');
+        if (senderUid != null) {
+          try {
+            final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
+            await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid, 'reason': 'busy'})).timeout(const Duration(seconds: 5));
+          } catch (e) {
+            debugPrint('Failed to reject call via API: $e');
+          }
+        }
+        return; // Do not show CallKit
+      }
 
       final params = CallKitParams(
         id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
