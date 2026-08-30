@@ -49,9 +49,11 @@ class MarketplaceScreen extends StatelessWidget {
               actions: [
                 IconButton(
                   onPressed: () {
-                    Get.bottomSheet(
-                      const AddProductScreen(),
+                    showModalBottomSheet(
+                      context: context,
+                      backgroundColor: Colors.transparent,
                       isScrollControlled: true,
+                      builder: (context) => const AddProductScreen(),
                     );
                   },
                   icon: Icon(

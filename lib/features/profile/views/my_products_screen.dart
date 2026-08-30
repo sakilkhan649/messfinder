@@ -13,8 +13,13 @@ class MyProductsScreen extends StatelessWidget {
 
   const MyProductsScreen({super.key, required this.user});
 
-  void _onAddProductPressed() async {
-    await Get.bottomSheet(const AddProductScreen(), isScrollControlled: true);
+  void _onAddProductPressed(BuildContext context) async {
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const AddProductScreen(),
+    );
     if (Get.isRegistered<MarketplaceController>()) {
       Get.find<MarketplaceController>().fetchMyProducts(user.uid);
     }
@@ -45,7 +50,7 @@ class MyProductsScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _onAddProductPressed,
+        onPressed: () => _onAddProductPressed(context),
         backgroundColor: AppTheme.primaryColor,
         icon: const Icon(Icons.add_shopping_cart_rounded, color: Colors.white),
         label: Text(
