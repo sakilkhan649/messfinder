@@ -157,7 +157,6 @@ class AddProductScreen extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
           appBar: AppBar(
             title: Text(controller.isEditMode ? 'Edit Product' : 'Sell an Item', style: GoogleFonts.poppins(color: Colors.white, fontWeight: FontWeight.bold)),
             backgroundColor: AppTheme.primaryColor,
@@ -174,7 +173,7 @@ class AddProductScreen extends StatelessWidget {
               left: 20.w,
               right: 20.w,
               top: 20.h,
-              bottom: 20.h + MediaQuery.of(context).viewInsets.bottom,
+              bottom: 20.h,
             ),
         child: Form(
           key: controller.formKey,
