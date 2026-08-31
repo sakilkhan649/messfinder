@@ -1,0 +1,1 @@
+const pool = require('./backend/config/db'); pool.query('INSERT INTO notifications (receiver_uid, sender_uid, title, body, type, related_id) VALUES (''testuid'', null, ''test'', ''test'', ''general'', null) RETURNING id').then(res => { console.log('Inserted ID:', res.rows[0].id); process.exit(0); }).catch(err => { console.error(err); process.exit(1); })

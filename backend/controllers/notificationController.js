@@ -195,6 +195,7 @@ exports.getNotifications = async (req, res) => {
       createdAt: row.created_at,
     }));
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     res.status(200).json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);

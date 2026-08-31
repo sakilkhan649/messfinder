@@ -170,6 +170,7 @@ class AdminRequestsTab extends StatelessWidget {
               itemCount: list.length,
               separatorBuilder: (c, i) => SizedBox(height: 12.h),
               itemBuilder: (c, i) => AdminPostCard(
+                key: ValueKey(list[i].postId),
                 post: list[i],
                 onApprove: () => controller.approvePost(list[i]),
                 onReject: () => controller.rejectPost(list[i]),
@@ -212,6 +213,7 @@ class AdminRequestsTab extends StatelessWidget {
               itemCount: list.length,
               separatorBuilder: (c, i) => SizedBox(height: 12.h),
               itemBuilder: (c, i) => AdminBookingCard(
+                key: ValueKey(list[i].bookingId),
                 booking: list[i],
                 onApprove: () => controller.approveBooking(list[i]),
                 onReject: () => controller.rejectBooking(list[i]),

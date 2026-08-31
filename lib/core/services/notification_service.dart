@@ -626,11 +626,13 @@ class NotificationService {
     }
   }
 
-  // ── Fetch notifications from API ──────────────────────────────────
   Future<List<AppNotificationModel>> fetchNotificationsFromApi(String uid) async {
     try {
       final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
-      final response = await apiService.dio.get('/notifications/$uid');
+      final response = await apiService.dio.get(
+        '/notifications/$uid',
+        queryParameters: {'t': DateTime.now().millisecondsSinceEpoch},
+      );
       
       final data = response.data as List<dynamic>;
       final list = data.map((item) => AppNotificationModel.fromMap(item, item['id'])).toList();

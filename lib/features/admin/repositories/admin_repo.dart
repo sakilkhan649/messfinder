@@ -32,6 +32,7 @@ class AdminRepository {
         queryParameters: {
           if (role != null && role != 'all') 'role': role,
           if (search != null && search.isNotEmpty) 'search': search,
+          't': DateTime.now().millisecondsSinceEpoch,
         },
       );
       if (response.statusCode == 200 && response.data is List) {
@@ -85,6 +86,7 @@ class AdminRepository {
         queryParameters: {
           if (status != null && status != 'all') 'status': status,
           if (search != null && search.isNotEmpty) 'search': search,
+          't': DateTime.now().millisecondsSinceEpoch,
         },
       );
       if (response.statusCode == 200 && response.data is List) {
@@ -136,6 +138,7 @@ class AdminRepository {
         queryParameters: {
           if (status != null && status != 'all') 'status': status,
           if (search != null && search.isNotEmpty) 'search': search,
+          't': DateTime.now().millisecondsSinceEpoch,
         },
       );
       if (response.statusCode == 200 && response.data is List) {

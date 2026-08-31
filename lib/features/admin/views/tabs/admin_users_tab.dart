@@ -84,9 +84,10 @@ class AdminUsersTab extends StatelessWidget {
                   itemBuilder: (c, i) {
                     final user = list[i];
                     return AdminUserCard(
+                      key: ValueKey(user.uid),
                       user: user,
                       resolvedPhone: user.phone,
-                      onDelete: () => controller.confirmDeleteUser(user),
+                      onDelete: () => controller.deleteUserByUid(user.uid, user.name),
                     );
                   },
                 );
