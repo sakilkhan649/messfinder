@@ -4,8 +4,9 @@ const pool = require('../config/db');
 exports.getChats = async (req, res) => {
   try {
     const uid = req.user.uid;
-    const result = await pool.query(
-      `SELECT c.*, 
+    const { page, limit } = req.query;
+
+    let query = `SELECT c.*, 
         CASE WHEN c.user1_uid = $1 THEN u2.name ELSE u1.name END as other_user_name,
         CASE WHEN c.user1_uid = $1 THEN u2.profile_image ELSE u1.profile_image END as other_user_image,
         CASE WHEN c.user1_uid = $1 THEN u2.uid ELSE u1.uid END as other_user_uid
@@ -13,9 +14,18 @@ exports.getChats = async (req, res) => {
        JOIN users u1 ON c.user1_uid = u1.uid
        JOIN users u2 ON c.user2_uid = u2.uid
        WHERE c.user1_uid = $1 OR c.user2_uid = $1
-       ORDER BY c.last_message_time DESC`,
-      [uid]
-    );
+       ORDER BY c.last_message_time DESC`;
+    const params = [uid];
+
+    if (page && limit && limit !== 'all') {
+      const parsedLimit = parseInt(limit) || 20;
+      const parsedPage = parseInt(page) || 1;
+      const parsedOffset = (parsedPage - 1) * parsedLimit;
+      query += ` LIMIT $2 OFFSET $3`;
+      params.push(parsedLimit, parsedOffset);
+    }
+
+    const result = await pool.query(query, params);
     res.status(200).json(result.rows);
   } catch (error) {
     console.error('Error fetching chats:', error);
