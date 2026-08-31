@@ -564,13 +564,15 @@ class NotificationService {
 
     // Storage happens automatically on the backend via internalSendPushNotification
 
-    // 2. Send push notification via Vercel API
+    // 2. Send push notification via API
     await sendPush(
       receiverUid: receiverUid,
       title: title,
       body: body,
       type: type.name,
       relatedId: relatedId ?? '',
+      senderUid: senderUid ?? '',
+      senderPhotoUrl: extraData['senderPhotoUrl'] ?? '',
     );
   }
 

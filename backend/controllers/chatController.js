@@ -54,7 +54,7 @@ exports.getMessages = async (req, res) => {
       }
     }
 
-    let query = 'SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at ASC';
+    let query = 'SELECT * FROM messages WHERE chat_id = $1 ORDER BY created_at DESC';
     const params = [chatId];
 
     if (limit && limit !== 'all') {

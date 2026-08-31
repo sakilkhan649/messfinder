@@ -446,7 +446,7 @@ class ChatController extends GetxController {
       if (cached != null) {
         final List<dynamic> decoded = jsonDecode(cached);
         final msgs = decoded.map((e) => MessageModel.fromMap(e)).toList();
-        currentMessages.assignAll(msgs.reversed.toList());
+        currentMessages.assignAll(msgs);
         isLoadingMessages.value = false;
       }
     } catch (e) {
@@ -461,7 +461,7 @@ class ChatController extends GetxController {
       if (response.statusCode == 200) {
         final List<dynamic> data = response.data;
         final msgs = data.map((e) => MessageModel.fromMap(e)).toList();
-        currentMessages.assignAll(msgs.reversed.toList());
+        currentMessages.assignAll(msgs);
 
         if (msgs.length < _messageLimit) {
           hasMoreMessages.value = false;
@@ -546,7 +546,7 @@ class ChatController extends GetxController {
         } else {
           _messageOffset += _messageLimit;
         }
-        currentMessages.addAll(msgs.reversed.toList());
+        currentMessages.addAll(msgs);
       }
     } catch (e) {
       AppLogger.e('Failed to load more messages: $e', e, null, 'CHAT_CTRL');
