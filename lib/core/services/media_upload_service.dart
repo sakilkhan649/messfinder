@@ -4,7 +4,6 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:uuid/uuid.dart';
-
 import '../utils/app_logger.dart';
 import 'api_service.dart';
 
