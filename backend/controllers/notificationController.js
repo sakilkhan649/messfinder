@@ -112,7 +112,7 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
     // 2. Build the payload
     const message = {
       ...(isTopic ? { topic: topicName } : { token: fcmToken }),
-      ...(type !== 'call' && {
+      ...(!['call', 'call_ended'].includes(type) && {
         notification: {
           title: title,
           body: body,
