@@ -708,20 +708,28 @@ class CallController extends GetxController {
   }
 
   Future<void> toggleVideo() async {
-    isVideoDisabled.value = !isVideoDisabled.value;
+    final targetState = !isVideoDisabled.value;
     try {
-      if (!isVideoDisabled.value) {
+      if (!targetState) {
         await _engine?.enableVideo();
         await _engine?.startPreview();
         await _engine?.updateChannelMediaOptions(const ChannelMediaOptions(
           publishCameraTrack: true,
         ));
+      } else {
+        await _engine?.updateChannelMediaOptions(const ChannelMediaOptions(
+          publishCameraTrack: false,
+        ));
+        await _engine?.stopPreview();
       }
       
-      await _engine?.muteLocalVideoStream(isVideoDisabled.value);
+      await _engine?.muteLocalVideoStream(targetState);
+      
+      // Update state AFTER engine is ready, so AgoraVideoView builds correctly
+      isVideoDisabled.value = targetState;
 
       // If turning video ON, ensure speakerphone is enabled (WhatsApp behavior)
-      if (!isVideoDisabled.value && !isSpeakerOn.value) {
+      if (!targetState && !isSpeakerOn.value) {
         isSpeakerOn.value = true;
         _engine?.setEnableSpeakerphone(true);
       }

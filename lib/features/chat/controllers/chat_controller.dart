@@ -427,12 +427,18 @@ class ChatController extends GetxController {
     }
   }
 
+  String? _lastFetchedChatId;
+
   Future<void> fetchMessages(String chatId) async {
     isLoadingMessages.value = true;
     hasMoreMessages.value = true;
     _messageOffset = 0;
-    currentMessages.clear();
-    seenMessageIds.remove(chatId);
+    
+    if (_lastFetchedChatId != chatId) {
+      currentMessages.clear();
+      seenMessageIds.remove(chatId);
+    }
+    _lastFetchedChatId = chatId;
 
     try {
       final prefs = await SharedPreferences.getInstance();
