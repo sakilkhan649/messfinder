@@ -135,18 +135,6 @@ class EditProfileScreen extends StatelessWidget {
                       keyboardType: TextInputType.phone,
                       validatorMsg: 'Please enter phone number',
                     ),
-                    SizedBox(height: 24.h),
-
-                    _buildLabel('Email Address'),
-                    SizedBox(height: 8.h),
-                    _buildTextField(
-                      controller: controller.emailController,
-                      hint: 'e.g. example@email.com',
-                      icon: Icons.email_outlined,
-                      primaryColor: primaryColor,
-                      keyboardType: TextInputType.emailAddress,
-                      validatorMsg: 'Please enter your email',
-                    ),
                   ],
                 ),
                 
@@ -215,7 +203,8 @@ class EditProfileScreen extends StatelessWidget {
     required String hint,
     required IconData icon,
     required Color primaryColor,
-    required String validatorMsg,
+    String? validatorMsg,
+    bool isOptional = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return TextFormField(
@@ -246,7 +235,10 @@ class EditProfileScreen extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
       ),
-      validator: (v) => v == null || v.trim().isEmpty ? validatorMsg : null,
+      validator: (v) {
+        if (isOptional) return null;
+        return v == null || v.trim().isEmpty ? (validatorMsg ?? 'This field is required') : null;
+      },
     );
   }
 }
