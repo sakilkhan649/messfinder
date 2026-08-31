@@ -1,5 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import '../../../core/theme/app_theme.dart';
 import 'package:get/get.dart';
 import '../../../core/services/notification_service.dart';
 import '../../../core/utils/app_logger.dart';
@@ -330,14 +332,43 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
-    await NotificationService().clearNotificationsOnLogout();
+    if (isLoading.value) return; // Prevent multiple clicks
+    isLoading.value = true;
+    
+    // Close any open dialogs (like the confirmation dialog)
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+    
+    // Show a loading overlay
+    Get.dialog(
+      const Center(
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
+      ),
+      barrierDismissible: false,
+    );
+    
+    try {
+      await NotificationService().clearNotificationsOnLogout().timeout(const Duration(seconds: 5), onTimeout: () {});
+    } catch (e) {
+      AppLogger.e('Error clearing notifications during logout: $e', e, null, 'AUTH_CTRL');
+    }
+
     await _authRepo.logout();
     currentUser.value = null;
+    
     if (Get.isRegistered<SocketService>()) {
       Get.find<SocketService>().disconnect();
     }
-    Get.offAll(() => const LoginScreen(),
-        transition: Transition.fadeIn);
+    
+    isLoading.value = false;
+    
+    // Close the loading overlay
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+    
+    Get.offAll(() => const LoginScreen(), transition: Transition.fadeIn);
   }
 
   Future<void> deleteMyAccount() async {
