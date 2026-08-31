@@ -183,6 +183,7 @@ class ChatController extends GetxController {
         currentMessages[index] = currentMessages[index].copyWith(
           reactions: reactions,
         );
+        currentMessages.refresh();
       }
     });
 
@@ -197,6 +198,7 @@ class ChatController extends GetxController {
           text: text,
           isEdited: true,
         );
+        currentMessages.refresh();
       }
     });
 
@@ -213,6 +215,7 @@ class ChatController extends GetxController {
           videoUrl: null,
           stickerUrl: null,
         );
+        currentMessages.refresh();
       }
     });
 

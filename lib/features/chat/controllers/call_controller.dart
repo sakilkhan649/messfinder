@@ -57,7 +57,7 @@ class CallController extends GetxController {
 
   Timer? _timer;
   Timer? _ringingTimeoutTimer;
-  
+
   bool _pendingAcceptCall = false;
 
   @override
@@ -68,7 +68,8 @@ class CallController extends GetxController {
       if (user != null && user.uid.isNotEmpty) {
         if (!Get.isRegistered<SocketService>()) return;
         final socketService = Get.find<SocketService>();
-        if (socketService.socket == null || socketService.socket?.connected != true) {
+        if (socketService.socket == null ||
+            socketService.socket?.connected != true) {
           _initSocketSignaling();
         }
       } else {
@@ -88,7 +89,7 @@ class CallController extends GetxController {
 
   void _initSocketSignaling() {
     if (!Get.isRegistered<SocketService>()) return;
-    
+
     final socketService = Get.find<SocketService>();
     final authCtrl = Get.find<AuthController>();
     final currentUid = authCtrl.currentUser.value?.uid;
@@ -96,7 +97,7 @@ class CallController extends GetxController {
 
     // The SocketService handles connection, we just need to emit/listen
     socketService.emit(ApiConstants.socketJoinUserRoom, currentUid);
-    
+
     if (_pendingAcceptCall) {
       _pendingAcceptCall = false;
       socketService.emit('accept_call', {
@@ -111,7 +112,10 @@ class CallController extends GetxController {
         // If we receive a duplicate event for the SAME call, ignore it.
         // This prevents false "Busy" signals if the socket fires twice.
         if (currentChannel == data['channelName']) {
-          AppLogger.i('Ignoring duplicate incoming_call event for the same channel.', tag: 'CALL_CTRL');
+          AppLogger.i(
+            'Ignoring duplicate incoming_call event for the same channel.',
+            tag: 'CALL_CTRL',
+          );
           return;
         }
 
@@ -122,24 +126,27 @@ class CallController extends GetxController {
             'callerId': callerId,
             'reason': 'busy',
           });
-          
+
           // Store a missed call notification for the busy user
           final callerName = data['callerName'] ?? 'Someone';
           final authCtrl = Get.find<AuthController>();
           final myUid = authCtrl.currentUser.value?.uid ?? '';
-          NotificationService().storeNotification(AppNotificationModel(
-            id: '',
-            title: '📞 Missed Call (Busy)',
-            body: 'Missed call from $callerName while you were on another call.',
-            type: NotificationType.call,
-            receiverUid: myUid,
-            senderUid: callerId,
-            createdAt: DateTime.now(),
-          ));
+          NotificationService().storeNotification(
+            AppNotificationModel(
+              id: '',
+              title: '📞 Missed Call (Busy)',
+              body:
+                  'Missed call from $callerName while you were on another call.',
+              type: NotificationType.call,
+              receiverUid: myUid,
+              senderUid: callerId,
+              createdAt: DateTime.now(),
+            ),
+          );
         }
         return; // Already in a call
       }
-      
+
       // Ignore if I am the caller (backend might be broadcasting)
       if (data['callerId'] == currentUid) {
         return;
@@ -156,7 +163,9 @@ class CallController extends GetxController {
       callStatusText.value = 'Incoming Call...';
 
       // Mark as in call for background handler auto-busy
-      SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', true));
+      SharedPreferences.getInstance().then(
+        (prefs) => prefs.setBool('is_in_call', true),
+      );
 
       // Removed NotificationService().showCallNotification here
       // because FCM will already show a CallKit notification.
@@ -187,8 +196,9 @@ class CallController extends GetxController {
 
     // 2. Call Accepted Listener (Caller side)
     socketService.on('call_accepted', (data) async {
-      if (callState.value == CallState.connected) return; // Prevent double-join (-17 error)
-      
+      if (callState.value == CallState.connected)
+        return; // Prevent double-join (-17 error)
+
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -197,7 +207,7 @@ class CallController extends GetxController {
       callState.value = CallState.connected;
       callStatusText.value = 'Connected';
       _startCallTimer();
-      
+
       // Join channel now that we have the token (if caller)
       if (isCaller && currentRtcToken.isNotEmpty && currentChannel.isNotEmpty) {
         try {
@@ -211,18 +221,26 @@ class CallController extends GetxController {
               publishCameraTrack: isVideoCall.value,
               publishMicrophoneTrack: true,
               autoSubscribeAudio: true,
-              autoSubscribeVideo: isVideoCall.value,
+              autoSubscribeVideo: true,
             ),
           );
         } catch (e) {
-          AppLogger.e('Caller delayed join channel error: $e', e, null, 'CALL_CTRL');
+          AppLogger.e(
+            'Caller delayed join channel error: $e',
+            e,
+            null,
+            'CALL_CTRL',
+          );
         }
       }
     });
 
     // 2.5 Call Token Received (Receiver side)
     socketService.on('call_joined_receiver', (data) async {
-      AppLogger.i('Token received for receiver from background', tag: 'CALL_CTRL');
+      AppLogger.i(
+        'Token received for receiver from background',
+        tag: 'CALL_CTRL',
+      );
       currentRtcToken = data['token'] ?? '';
       _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
     });
@@ -298,7 +316,7 @@ class CallController extends GetxController {
       Get.find<SocketService>().on('end_call', (data) {
         AppLogger.i('End call fallback received', tag: 'CALL_CTRL');
       });
-    }  
+    }
     socketService.on('call_ended', (data) {
       AppLogger.i('Call ended by peer', tag: 'CALL_CTRL');
       _stopRingtone();
@@ -321,14 +339,20 @@ class CallController extends GetxController {
   }) async {
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
-      Get.snackbar('Permission Required', 'Microphone permission is needed to make calls.');
+      Get.snackbar(
+        'Permission Required',
+        'Microphone permission is needed to make calls.',
+      );
       return;
     }
 
     if (isVideo) {
       final camGranted = await Permission.camera.request().isGranted;
       if (!camGranted) {
-        Get.snackbar('Permission Required', 'Camera permission is needed for video calls.');
+        Get.snackbar(
+          'Permission Required',
+          'Camera permission is needed for video calls.',
+        );
         return;
       }
     }
@@ -343,13 +367,16 @@ class CallController extends GetxController {
     peerUserName = targetUserName;
     peerUserPhoto = targetUserPhoto;
     isVideoCall.value = isVideo;
-    isSpeakerOn.value = isVideo; // Default to loudspeaker for video, earpiece for audio
+    isSpeakerOn.value =
+        isVideo; // Default to loudspeaker for video, earpiece for audio
     currentChannel = 'call_${myUid}_${DateTime.now().millisecondsSinceEpoch}';
     callState.value = CallState.outgoing;
     callStatusText.value = 'Calling...';
 
     // Mark as in call for background handler auto-busy
-    SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', true));
+    SharedPreferences.getInstance().then(
+      (prefs) => prefs.setBool('is_in_call', true),
+    );
 
     // Start Outgoing Ringback Sound
     _startOutgoingRingtone();
@@ -375,7 +402,8 @@ class CallController extends GetxController {
         NotificationService().sendAndStore(
           receiverUid: targetUserId,
           title: '📞 Missed Call',
-          body: 'Missed ${isVideo ? "video" : "audio"} call from ${myUser?.name ?? "Someone"}.',
+          body:
+              'Missed ${isVideo ? "video" : "audio"} call from ${myUser?.name ?? "Someone"}.',
           type: NotificationType.call,
           senderUid: myUid,
         );
@@ -410,16 +438,18 @@ class CallController extends GetxController {
 
   // ── Accept Call (Receiver) ──────────────────────────────────────────
   Future<void> acceptCall() async {
-    if (callState.value == CallState.connected || callState.value == CallState.connecting) {
+    if (callState.value == CallState.connected ||
+        callState.value == CallState.connecting) {
       return; // Prevent double-accept race conditions (avoids Agora error -17)
     }
-    
-    callState.value = CallState.connecting; // Set immediately before any awaits!
+
+    callState.value =
+        CallState.connecting; // Set immediately before any awaits!
 
     _stopRingtone();
     isCaller = false;
     _hasLoggedCall = false;
-    
+
     // Clear local app notifications (but DO NOT end CallKit here on iOS, it must stay active for audio session)
     NotificationService().cancelCallNotification();
     if (GetPlatform.isAndroid) {
@@ -467,15 +497,18 @@ class CallController extends GetxController {
     // Use HTTP API to accept call and get token instantly
     try {
       final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/accept_call');
-      final response = await http.post(url, body: {
-        'callerId': peerUserId,
-        'channelName': currentChannel,
-      });
+      final response = await http.post(
+        url,
+        body: {'callerId': peerUserId, 'channelName': currentChannel},
+      );
       if (response.statusCode == 200) {
         final resData = jsonDecode(response.body);
         if (resData['success'] == true) {
           if (callState.value == CallState.idle || currentChannel.isEmpty) {
-            AppLogger.w('Call ended while waiting for accept API response', tag: 'CALL_CTRL');
+            AppLogger.w(
+              'Call ended while waiting for accept API response',
+              tag: 'CALL_CTRL',
+            );
             return; // Abort joining if the call was already ended
           }
 
@@ -494,27 +527,24 @@ class CallController extends GetxController {
   // ── Reject Call (Receiver) ──────────────────────────────────────────
   void rejectCall() {
     _stopRingtone();
-    
+
     // Dismiss incoming call screen if it's open
     if (Get.currentRoute == '/IncomingCallScreen') {
       Get.back();
     }
-    
+
     if (GetPlatform.isAndroid) {
       NotificationService().endAllCallKitCalls();
     }
-    
+
     // Use HTTP API to reject call for better reliability
     try {
       final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
-      http.post(url, body: {
-        'callerId': peerUserId,
-        'reason': 'declined'
-      });
+      http.post(url, body: {'callerId': peerUserId, 'reason': 'declined'});
     } catch (e) {
       AppLogger.e('Failed to reject call via API: $e', e, null, 'CALL_CTRL');
     }
-    
+
     _cleanupCall();
   }
 
@@ -529,18 +559,21 @@ class CallController extends GetxController {
     }
     if (notifyPeer && peerUserId.isNotEmpty) {
       if (Get.isRegistered<SocketService>()) {
-        Get.find<SocketService>().emit('end_call', {'targetUserId': peerUserId, 'channelName': currentChannel});
+        Get.find<SocketService>().emit('end_call', {
+          'targetUserId': peerUserId,
+          'channelName': currentChannel,
+        });
       }
     }
 
     final bool wasRingingOrConnected = callState.value != CallState.idle;
-    
+
     _cleanupCall();
 
     if (wasRingingOrConnected) {
       // Safely close the call screen without relying on fragile route names
       Get.back(); // Pops the CallScreen or IncomingCallScreen
-      
+
       // If the app was launched from a terminated state, the user will be left on the Splash screen
       // We must route them to the Home screen after the call ends.
       Future.delayed(const Duration(milliseconds: 300), () {
@@ -557,15 +590,20 @@ class CallController extends GetxController {
     try {
       final engine = createAgoraRtcEngine();
       _engine = engine;
-      await engine.initialize(RtcEngineContext(
-        appId: agoraAppId,
-        channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
-      ));
+      await engine.initialize(
+        RtcEngineContext(
+          appId: agoraAppId,
+          channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+        ),
+      );
 
       engine.registerEventHandler(
         RtcEngineEventHandler(
           onJoinChannelSuccess: (RtcConnection connection, int elapsed) {
-            AppLogger.i('Joined Agora channel: ${connection.channelId}', tag: 'CALL_CTRL');
+            AppLogger.i(
+              'Joined Agora channel: ${connection.channelId}',
+              tag: 'CALL_CTRL',
+            );
           },
           onUserJoined: (RtcConnection connection, int uid, int elapsed) {
             AppLogger.i('Remote user joined: $uid', tag: 'CALL_CTRL');
@@ -575,15 +613,27 @@ class CallController extends GetxController {
             callStatusText.value = 'Connected';
             _startCallTimer();
           },
-          onUserOffline: (RtcConnection connection, int uid, UserOfflineReasonType reason) {
-            AppLogger.i('Remote user offline: $uid', tag: 'CALL_CTRL');
-            _stopRingtone();
-            endCall(notifyPeer: false);
-          },
-          onUserMuteVideo: (RtcConnection connection, int remoteUid, bool muted) {
-            AppLogger.i('Remote user muted video: $muted', tag: 'CALL_CTRL');
-            isRemoteVideoDisabled.value = muted;
-          },
+          onUserOffline:
+              (
+                RtcConnection connection,
+                int uid,
+                UserOfflineReasonType reason,
+              ) {
+                AppLogger.i('Remote user offline: $uid', tag: 'CALL_CTRL');
+                _stopRingtone();
+                endCall(notifyPeer: false);
+              },
+          onUserMuteVideo:
+              (RtcConnection connection, int remoteUid, bool muted) {
+                AppLogger.i(
+                  'Remote user muted video: $muted',
+                  tag: 'CALL_CTRL',
+                );
+                isRemoteVideoDisabled.value = muted;
+                if (!muted && !isVideoCall.value) {
+                  isVideoCall.value = true;
+                }
+              },
           onLeaveChannel: (RtcConnection connection, RtcStats stats) {
             AppLogger.i('Left Agora channel', tag: 'CALL_CTRL');
           },
@@ -598,7 +648,10 @@ class CallController extends GetxController {
           await engine.enableVideo();
           await engine.startPreview();
         } catch (videoError) {
-          AppLogger.w('Failed to enable video/preview: $videoError', tag: 'CALL_CTRL');
+          AppLogger.w(
+            'Failed to enable video/preview: $videoError',
+            tag: 'CALL_CTRL',
+          );
         }
       }
 
@@ -614,7 +667,7 @@ class CallController extends GetxController {
             publishCameraTrack: isVideo,
             publishMicrophoneTrack: true,
             autoSubscribeAudio: true,
-            autoSubscribeVideo: isVideo,
+            autoSubscribeVideo: true,
           ),
         );
       }
@@ -623,11 +676,17 @@ class CallController extends GetxController {
       try {
         await engine.setEnableSpeakerphone(isSpeakerOn.value);
       } catch (speakerError) {
-        AppLogger.w('Speakerphone routing notice: $speakerError', tag: 'CALL_CTRL');
+        AppLogger.w(
+          'Speakerphone routing notice: $speakerError',
+          tag: 'CALL_CTRL',
+        );
       }
 
       if (_engine == null) {
-        AppLogger.w('Engine was cancelled during initialization.', tag: 'CALL_CTRL');
+        AppLogger.w(
+          'Engine was cancelled during initialization.',
+          tag: 'CALL_CTRL',
+        );
         return;
       }
 
@@ -648,11 +707,19 @@ class CallController extends GetxController {
     }
   }
 
-  void toggleVideo() {
+  Future<void> toggleVideo() async {
     isVideoDisabled.value = !isVideoDisabled.value;
     try {
-      _engine?.muteLocalVideoStream(isVideoDisabled.value);
+      if (!isVideoDisabled.value) {
+        await _engine?.enableVideo();
+        await _engine?.startPreview();
+        await _engine?.updateChannelMediaOptions(const ChannelMediaOptions(
+          publishCameraTrack: true,
+        ));
+      }
       
+      await _engine?.muteLocalVideoStream(isVideoDisabled.value);
+
       // If turning video ON, ensure speakerphone is enabled (WhatsApp behavior)
       if (!isVideoDisabled.value && !isSpeakerOn.value) {
         isSpeakerOn.value = true;
@@ -727,7 +794,7 @@ class CallController extends GetxController {
     isEngineReady.value = false;
     callState.value = CallState.idle;
     callStatusText.value = '';
-    
+
     currentRtcToken = '';
     currentChannel = '';
     peerUserId = '';
@@ -735,14 +802,16 @@ class CallController extends GetxController {
     peerUserPhoto = null;
 
     // Clear active call state for background handler
-    SharedPreferences.getInstance().then((prefs) => prefs.setBool('is_in_call', false));
+    SharedPreferences.getInstance().then(
+      (prefs) => prefs.setBool('is_in_call', false),
+    );
 
     NotificationService().cancelCallNotification();
     NotificationService().endAllCallKitCalls();
 
     final oldEngine = _engine;
     _engine = null;
-    
+
     if (oldEngine != null) {
       Future.microtask(() async {
         try {
@@ -771,18 +840,24 @@ class CallController extends GetxController {
     try {
       if (Get.isRegistered<ChatController>()) {
         final chatCtrl = Get.find<ChatController>();
-        chatCtrl.createOrGetChatRoom(targetUid, targetName, targetPhoto).then((chatId) {
-          chatCtrl.sendMessage(chatId, logText, targetUid);
-        }).catchError((e) {
-          AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
-        });
+        chatCtrl
+            .createOrGetChatRoom(targetUid, targetName, targetPhoto)
+            .then((chatId) {
+              chatCtrl.sendMessage(chatId, logText, targetUid);
+            })
+            .catchError((e) {
+              AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
+            });
       } else {
         final chatCtrl = Get.put(ChatController());
-        chatCtrl.createOrGetChatRoom(targetUid, targetName, targetPhoto).then((chatId) {
-          chatCtrl.sendMessage(chatId, logText, targetUid);
-        }).catchError((e) {
-          AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
-        });
+        chatCtrl
+            .createOrGetChatRoom(targetUid, targetName, targetPhoto)
+            .then((chatId) {
+              chatCtrl.sendMessage(chatId, logText, targetUid);
+            })
+            .catchError((e) {
+              AppLogger.w('Failed to log call message: $e', tag: 'CALL_CTRL');
+            });
       }
     } catch (e) {
       AppLogger.w('Log call to chat error: $e', tag: 'CALL_CTRL');
