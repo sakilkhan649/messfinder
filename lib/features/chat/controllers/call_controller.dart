@@ -403,7 +403,7 @@ class CallController extends GetxController {
         'isVideo': isVideo,
         'callerId': myUid,
         'callerName': myUser?.name ?? 'User',
-        'callerPhoto': null,
+        'callerPhoto': myUser?.photoUrl,
       });
     }
   }
