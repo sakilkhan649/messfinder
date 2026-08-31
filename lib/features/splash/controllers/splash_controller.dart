@@ -20,21 +20,20 @@ class SplashController extends GetxController {
   }
 
   void _navigateToNext() async {
-    // Immediately check if launched from a CallKit incoming call
+    bool hasActiveCall = false;
     try {
       final activeCalls = await FlutterCallkitIncoming.activeCalls();
       if (activeCalls.isNotEmpty) {
-        // App was launched by accepting a call. 
-        // Do NOT wait 2.5s. The NotificationService will push the CallScreen instantly.
-        // We pause the splash navigation so it doesn't overwrite the CallScreen.
-        return;
+        hasActiveCall = true;
       }
     } catch (e) {
       // ignore
     }
 
-    // Normal splash delay
-    await Future.delayed(const Duration(milliseconds: 2500));
+    if (!hasActiveCall) {
+      // Normal splash delay
+      await Future.delayed(const Duration(milliseconds: 2500));
+    }
     
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;

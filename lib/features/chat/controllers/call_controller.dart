@@ -328,6 +328,26 @@ class CallController extends GetxController {
       }
       endCall(notifyPeer: false);
     });
+
+    // 6. Call handled elsewhere Listener (Multi-device sync)
+    socketService.on('call_handled_elsewhere', (data) {
+      if (data == null) return;
+      final channel = data['channelName'];
+      if (currentChannel == channel && callState.value == CallState.incoming) {
+        AppLogger.i('Call was handled on another device: ${data['action']}', tag: 'CALL_CTRL');
+        _stopRingtone();
+        NotificationService().cancelCallNotification();
+        if (GetPlatform.isAndroid) {
+          NotificationService().endAllCallKitCalls();
+        }
+        
+        callState.value = CallState.idle;
+        
+        if (Get.currentRoute == '/IncomingCallScreen') {
+          Get.back();
+        }
+      }
+    });
   }
 
   // ── Make Call (Caller) ───────────────────────────────────────────────

@@ -484,6 +484,26 @@ class NotificationService {
     debugPrint('✅ [FCM] Unsubscribed from topic: $topic');
   }
 
+  Future<void> clearNotificationsOnLogout() async {
+    try {
+      await unsubscribeFromTopic('all_users');
+      final authCtrl = Get.isRegistered<AuthController>() ? Get.find<AuthController>() : null;
+      if (authCtrl?.currentUser.value != null && authCtrl!.currentUser.value!.role.isNotEmpty) {
+        await unsubscribeFromTopic(authCtrl.currentUser.value!.role.toLowerCase());
+      }
+      
+      final apiService = Get.isRegistered<ApiService>() ? Get.find<ApiService>() : ApiService();
+      await apiService.dio.put(
+        ApiConstants.authUpdateFcmToken,
+        data: {'fcmToken': ''},
+      );
+      await _fcm.deleteToken();
+      debugPrint('✅ [FCM] Token & topics cleared on logout');
+    } catch (e) {
+      debugPrint('❌ [FCM] Clear on logout error: $e');
+    }
+  }
+
   // ── (Deprecated) Store notification in Firestore ──────────
   Future<void> storeNotification(AppNotificationModel notification) async {
     // We now store directly via the API backend or it stores automatically when sending push

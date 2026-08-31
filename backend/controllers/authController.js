@@ -325,13 +325,13 @@ exports.updateProfile = async (req, res) => {
 // Update FCM Token
 exports.updateFcmToken = async (req, res) => {
   const { fcmToken } = req.body;
-  if (!fcmToken) {
+  if (fcmToken === undefined) {
     return res.status(400).json({ error: 'fcmToken is required' });
   }
   try {
     await pool.query(
       'UPDATE users SET fcm_token = $1, updated_at = NOW() WHERE uid = $2',
-      [fcmToken, req.user.uid]
+      [fcmToken || null, req.user.uid]
     );
     res.status(200).json({ message: 'FCM Token updated successfully' });
   } catch (error) {

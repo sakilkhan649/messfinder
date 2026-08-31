@@ -15,6 +15,8 @@ import '../repositories/auth_repo.dart';
 import '../views/login_screen.dart';
 import '../../chat/controllers/call_controller.dart';
 import '../../chat/views/call_screen.dart';
+import '../../chat/views/incoming_call_screen.dart';
+import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 
 class AuthController extends GetxController {
   final AuthRepository _authRepo = AuthRepository();
@@ -206,6 +208,56 @@ class AuthController extends GetxController {
         }
       }
     }
+
+    // Check if launched from background with an active CallKit call
+    try {
+      final activeCalls = await FlutterCallkitIncoming.activeCalls();
+      if (activeCalls.isNotEmpty) {
+        final call = activeCalls[0];
+        final extra = call.extra;
+        if (extra != null && Get.isRegistered<CallController>()) {
+          final callCtrl = Get.find<CallController>();
+          
+          if (callCtrl.callState.value == CallState.idle) {
+            // Restore call state from notification
+            callCtrl.currentChannel = extra['relatedId'] ?? '';
+            callCtrl.isVideoCall.value = extra['isVideo'] == true;
+            callCtrl.peerUserId = extra['senderUid'] ?? '';
+            callCtrl.peerUserName = call.nameCaller ?? 'Unknown Caller';
+            callCtrl.peerUserPhoto = call.avatar;
+            callCtrl.callState.value = CallState.incoming;
+            callCtrl.callStatusText.value = 'Incoming Call...';
+            
+            await Future.delayed(const Duration(milliseconds: 300));
+            Get.to(
+              () => IncomingCallScreen(
+                callerName: callCtrl.peerUserName,
+                callerPhoto: callCtrl.peerUserPhoto,
+                isVideo: callCtrl.isVideoCall.value,
+                onAccept: () {
+                   NotificationService().cancelCallNotification();
+                   Get.back();
+                   callCtrl.acceptCall();
+                },
+                onDecline: () {
+                   NotificationService().cancelCallNotification();
+                   Get.back();
+                   callCtrl.rejectCall();
+                },
+              ),
+              transition: Transition.fadeIn,
+              routeName: '/IncomingCallScreen',
+            );
+          } else if (callCtrl.callState.value == CallState.connecting || callCtrl.callState.value == CallState.connected) {
+             // If already accepted via CallKit, re-push CallScreen
+             await Future.delayed(const Duration(milliseconds: 300));
+             Get.to(() => const CallScreen(), routeName: '/CallScreen');
+          }
+        }
+      }
+    } catch (e) {
+      AppLogger.w('Failed to check active CallKit calls: $e', tag: 'AUTH_CTRL');
+    }
   }
 
   Future<void> _setupNotificationsForUser(UserModel user) async {
@@ -278,6 +330,7 @@ class AuthController extends GetxController {
   }
 
   Future<void> logout() async {
+    await NotificationService().clearNotificationsOnLogout();
     await _authRepo.logout();
     currentUser.value = null;
     if (Get.isRegistered<SocketService>()) {

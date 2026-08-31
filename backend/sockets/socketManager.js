@@ -2,8 +2,6 @@ const { Server } = require('socket.io');
 const { RtcTokenBuilder, RtcRole } = require('agora-token');
 
 let io;
-const onlineUsers = new Map(); // uid -> socket.id
-
 const initSocket = (server, app) => {
   io = new Server(server, {
     cors: { origin: '*' }
@@ -40,7 +38,6 @@ const initSocket = (server, app) => {
     const queryUid = socket.handshake.query?.userId;
     if (queryUid) {
       socket.join(queryUid);
-      onlineUsers.set(queryUid, socket.id);
       console.log(`User auto-joined room from query: ${queryUid}`);
       socket.broadcast.emit('user_online', { userId: queryUid });
     }
@@ -173,11 +170,21 @@ const initSocket = (server, app) => {
       console.log(`Call accepted by ${socket.id} for caller ${data.callerId} [Token generated]`);
       io.to(data.callerId).emit('call_accepted', payload);
       socket.emit('call_joined_receiver', { token: token });
+      
+      // Stop ringing on receiver's other devices
+      if (queryUid) {
+        socket.broadcast.to(queryUid).emit('call_handled_elsewhere', { channelName: data.channelName, action: 'accepted' });
+      }
     });
 
     socket.on('reject_call', (data) => {
       console.log(`Call rejected for caller ${data.callerId}`);
       io.to(data.callerId).emit('call_rejected', data);
+      
+      // Stop ringing on receiver's other devices
+      if (queryUid) {
+        socket.broadcast.to(queryUid).emit('call_handled_elsewhere', { channelName: data.channelName, action: 'rejected' });
+      }
     });
 
     socket.on('end_call', async (data) => {
@@ -220,7 +227,10 @@ const initSocket = (server, app) => {
         } else if (typeof uids === 'string') {
           uidsArray = [uids];
         }
-        const onlineUids = uidsArray.filter(uid => onlineUsers.has(uid));
+        const onlineUids = uidsArray.filter(uid => {
+          const room = io.sockets.adapter.rooms.get(uid);
+          return room && room.size > 0;
+        });
         socket.emit('online_users_list', onlineUids);
       } catch (error) {
         console.error('Socket get_online_users error:', error);
@@ -230,8 +240,10 @@ const initSocket = (server, app) => {
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
       if (queryUid) {
-        onlineUsers.delete(queryUid);
-        socket.broadcast.emit('user_offline', { userId: queryUid });
+        const room = io.sockets.adapter.rooms.get(queryUid);
+        if (!room || room.size === 0) {
+          socket.broadcast.emit('user_offline', { userId: queryUid });
+        }
       }
     });
   });
