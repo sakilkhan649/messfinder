@@ -70,7 +70,7 @@ class BachelorHomeScreen extends StatelessWidget {
                   children: [
                     Container(
                       height: 48.h,
-                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 8.w, 8.h),
                       child: Row(
                         children: [
                           Expanded(
