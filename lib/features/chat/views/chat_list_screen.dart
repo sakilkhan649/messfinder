@@ -23,7 +23,7 @@ class ChatListScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF8FAFC),
       // ── App Brand Emerald AppBar ──────────────────────────────────────
       appBar: AppBar(
-        toolbarHeight: 45.h,
+        toolbarHeight: 40.h,
         backgroundColor: primaryColor,
         elevation: 0,
         centerTitle: true,
@@ -43,7 +43,7 @@ class ChatListScreen extends StatelessWidget {
           SizedBox(width: 8),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(56.h),
+          preferredSize: Size.fromHeight(48.h),
           child: Padding(
             padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
             child: Container(

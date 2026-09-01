@@ -41,8 +41,8 @@ class BachelorHomeScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             SliverAppBar(
-              toolbarHeight: 45.h,
-              expandedHeight: 45.h + 50.h, // Total height
+              toolbarHeight: 40.h,
+              expandedHeight: 40.h + 48.h, // Total height
               pinned: true,
               floating: false,
               snap: false,
@@ -69,7 +69,7 @@ class BachelorHomeScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Container(
-                      height: 50.h,
+                      height: 48.h,
                       padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
                       child: Row(
                         children: [
