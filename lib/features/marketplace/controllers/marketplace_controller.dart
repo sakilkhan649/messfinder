@@ -90,12 +90,16 @@ class MarketplaceController extends GetxController {
         }
 
         if (isRefresh) {
-          products.value = newProducts;
+          products.assignAll(newProducts);
         } else {
-          products.addAll(newProducts);
+          for (var p in newProducts) {
+            if (!products.any((element) => element.productId == p.productId)) {
+              products.add(p);
+            }
+          }
         }
 
-        _currentOffset += newProducts.length;
+        _currentOffset = products.length;
       }
     } on DioException catch (e) {
       hasError.value = true;
