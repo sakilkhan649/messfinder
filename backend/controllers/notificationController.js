@@ -83,6 +83,25 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [receiverUid, senderUid || null, title, body, type || 'general', relatedId || null]
       );
+    } else {
+      // It's a topic broadcast. Insert a notification for every matching user.
+      const topicName = receiverUid.replace('/topics/', '');
+      let userQuery = 'SELECT uid FROM users';
+      const userParams = [];
+      if (topicName !== 'all_users' && topicName !== 'all') {
+        userQuery += ' WHERE LOWER(TRIM(role)) = $1';
+        userParams.push(topicName.toLowerCase());
+      }
+      
+      const usersRes = await pool.query(userQuery, userParams);
+      for (const u of usersRes.rows) {
+        if (senderUid && senderUid === u.uid) continue; // Skip sender
+        await pool.query(
+          `INSERT INTO notifications (receiver_uid, sender_uid, title, body, type, related_id)
+           VALUES ($1, $2, $3, $4, $5, $6)`,
+          [u.uid, senderUid || null, title, body, type || 'general', relatedId || null]
+        ).catch(() => {}); // Ignore individual insert errors
+      }
     }
   } catch (dbError) {
     console.error('Error saving notification to DB:', dbError);

@@ -42,7 +42,7 @@ class BachelorHomeScreen extends StatelessWidget {
           slivers: [
             SliverAppBar(
               toolbarHeight: 40.h,
-              expandedHeight: 40.h + 48.h, // Total height
+              expandedHeight: 40.h + 48.h + 2.h, // Total height with gap
               pinned: true,
               floating: false,
               snap: false,

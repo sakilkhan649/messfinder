@@ -43,9 +43,9 @@ class ChatListScreen extends StatelessWidget {
           SizedBox(width: 8),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(48.h),
+          preferredSize: Size.fromHeight(48.h + 2.h),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+            padding: EdgeInsets.fromLTRB(16.w, 2.h, 16.w, 8.h),
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.15),

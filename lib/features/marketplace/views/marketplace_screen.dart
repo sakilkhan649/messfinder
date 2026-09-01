@@ -32,7 +32,7 @@ class MarketplaceScreen extends StatelessWidget {
           slivers: [
             SliverAppBar(
               toolbarHeight: 40.h,
-              expandedHeight: 40.h + 48.h,
+              expandedHeight: 40.h + 48.h + 2.h,
               pinned: true,
               floating: false,
               snap: false,
