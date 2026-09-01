@@ -231,25 +231,9 @@ class AuthController extends GetxController {
             callCtrl.callStatusText.value = 'Incoming Call...';
             
             await Future.delayed(const Duration(milliseconds: 300));
-            Get.to(
-              () => IncomingCallScreen(
-                callerName: callCtrl.peerUserName,
-                callerPhoto: callCtrl.peerUserPhoto,
-                isVideo: callCtrl.isVideoCall.value,
-                onAccept: () {
-                   NotificationService().cancelCallNotification();
-                   Get.back();
-                   callCtrl.acceptCall();
-                },
-                onDecline: () {
-                   NotificationService().cancelCallNotification();
-                   Get.back();
-                   callCtrl.rejectCall();
-                },
-              ),
-              transition: Transition.fadeIn,
-              routeName: '/IncomingCallScreen',
-            );
+            // No longer pushing IncomingCallScreen here. 
+            // CallKit's native UI will handle the accept/decline action, and our notification_service 
+            // will route to CallScreen upon acceptance.
           } else if (callCtrl.callState.value == CallState.connecting || callCtrl.callState.value == CallState.connected) {
              // If already accepted via CallKit, re-push CallScreen
              await Future.delayed(const Duration(milliseconds: 300));

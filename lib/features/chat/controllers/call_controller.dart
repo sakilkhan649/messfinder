@@ -173,27 +173,9 @@ class CallController extends GetxController {
       // because FCM will already show a CallKit notification.
       // This prevents double notifications.
 
-      Get.to(
-        () => IncomingCallScreen(
-          callerName: peerUserName,
-          callerPhoto: peerUserPhoto,
-          isVideo: isVideoCall.value,
-          onAccept: () {
-            _stopRingtone();
-            NotificationService().cancelCallNotification();
-            Get.back(); // close incoming call screen
-            acceptCall();
-          },
-          onDecline: () {
-            _stopRingtone();
-            NotificationService().cancelCallNotification();
-            Get.back(); // close incoming call screen
-            rejectCall();
-          },
-        ),
-        transition: Transition.fadeIn,
-        routeName: '/IncomingCallScreen',
-      );
+      // Removed IncomingCallScreen navigation. 
+      // We now rely entirely on FlutterCallkitIncoming (FCM Push) to show the incoming call UI,
+      // which prevents duplicate ringing, duplicate UI, and ensures perfect native integration.
     });
 
     // 2. Call Accepted Listener (Caller side)
