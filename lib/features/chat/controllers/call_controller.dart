@@ -158,6 +158,7 @@ class CallController extends GetxController {
       peerUserName = data['callerName'] ?? 'Unknown User';
       peerUserPhoto = data['callerPhoto'];
       isVideoCall.value = data['isVideo'] == true;
+      isVideoDisabled.value = !isVideoCall.value; // Initialize video state properly
       isSpeakerOn.value = isVideoCall.value; // Correct speaker default
       callState.value = CallState.incoming;
       callStatusText.value = 'Incoming Call...';
@@ -388,6 +389,7 @@ class CallController extends GetxController {
     peerUserName = targetUserName;
     peerUserPhoto = targetUserPhoto;
     isVideoCall.value = isVideo;
+    isVideoDisabled.value = !isVideo; // Initialize video state properly
     isSpeakerOn.value =
         isVideo; // Default to loudspeaker for video, earpiece for audio
     currentChannel = 'call_${myUid}_${DateTime.now().millisecondsSinceEpoch}';
