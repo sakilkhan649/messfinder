@@ -61,10 +61,10 @@ const initSocket = (server, app) => {
           [chatId, senderUid, text, imageUrl, videoUrl, replyToMessageId, replyToMessageText, replyToMessageSender]
         );
 
-        await pool.query(
+        pool.query(
           'UPDATE chats SET last_message = $1, last_message_time = CURRENT_TIMESTAMP WHERE chat_id = $2',
           [text || 'Media', chatId]
-        );
+        ).catch(err => console.error('Error updating chats last_message:', err));
 
         io.to(chatId).emit('receive_message', newMsg.rows[0]);
         if (targetUid) {
