@@ -22,8 +22,16 @@ class AdminDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final adminController = Get.find<AdminController>();
-    return Scaffold(
-      backgroundColor: AdminColors.pageBg,
+    return Obx(() {
+      final isHome = adminController.currentNavIndex.value == 0;
+      return PopScope(
+        canPop: isHome,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          adminController.changeNavIndex(0);
+        },
+        child: Scaffold(
+          backgroundColor: AdminColors.pageBg,
       appBar: _buildAppBar(adminController),
       body: Obx(() {
         final currentNav = adminController.currentNavIndex.value;
@@ -37,8 +45,10 @@ class AdminDashboardScreen extends StatelessWidget {
           ],
         );
       }),
-      bottomNavigationBar: _buildBottomNav(adminController),
-    );
+        bottomNavigationBar: _buildBottomNav(adminController),
+        ),
+      );
+    });
   }
 
   PreferredSizeWidget _buildAppBar(AdminController adminController) {

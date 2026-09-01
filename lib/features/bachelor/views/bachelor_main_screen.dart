@@ -26,8 +26,16 @@ class BachelorMainScreen extends StatelessWidget {
       const MarketplaceScreen(),
     ];
 
-    return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+    return Obx(() {
+      final isHome = controller.currentIndex.value == 0;
+      return PopScope(
+        canPop: isHome,
+        onPopInvokedWithResult: (didPop, result) {
+          if (didPop) return;
+          controller.setIndex(0);
+        },
+        child: Scaffold(
+          backgroundColor: AppTheme.backgroundColor,
       body: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -150,7 +158,9 @@ class BachelorMainScreen extends StatelessWidget {
               ))), // Ends AnimatedSlide, Obx, Positioned
           ], // Ends Stack children
         ), // Ends Stack
-      ); // Ends Scaffold
+      ), // Ends Scaffold
+      ); // Ends PopScope
+    }); // Ends Obx
   }
 
   Widget _buildNavItem({
