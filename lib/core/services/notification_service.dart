@@ -175,15 +175,20 @@ class NotificationService {
           final isVideo = extra['isVideo'] == true;
           final senderUid = extra['senderUid'];
           
-          if (Get.isRegistered<CallController>()) {
-            final callCtrl = Get.find<CallController>();
-            callCtrl.currentChannel = relatedId;
-            callCtrl.isVideoCall.value = isVideo;
-            if (senderUid != null) {
-              callCtrl.peerUserId = senderUid;
-            }
-            callCtrl.acceptCall();
+          final callCtrl = Get.isRegistered<CallController>() 
+              ? Get.find<CallController>() 
+              : Get.put(CallController(), permanent: true);
+
+          callCtrl.currentChannel = relatedId;
+          callCtrl.isVideoCall.value = isVideo;
+          if (senderUid != null) {
+            callCtrl.peerUserId = senderUid;
           }
+          
+          // Delay to ensure Flutter UI is fully mounted before navigating
+          Future.delayed(const Duration(milliseconds: 1500), () {
+            callCtrl.acceptCall();
+          });
         }
       } else if (event is CallEventActionCallDecline) {
         final extra = event.callKitParams.extra;
@@ -211,14 +216,15 @@ class NotificationService {
              }
           }
 
-          if (Get.isRegistered<CallController>()) {
-            final callCtrl = Get.find<CallController>();
-            callCtrl.currentChannel = relatedId;
-            if (senderUid != null) {
-              callCtrl.peerUserId = senderUid;
-            }
-            callCtrl.rejectCall();
+          final callCtrl = Get.isRegistered<CallController>() 
+              ? Get.find<CallController>() 
+              : Get.put(CallController(), permanent: true);
+              
+          callCtrl.currentChannel = relatedId;
+          if (senderUid != null) {
+            callCtrl.peerUserId = senderUid;
           }
+          callCtrl.rejectCall();
         }
       }
     });

@@ -477,11 +477,7 @@ class CallController extends GetxController {
     // Clear local app notifications (but DO NOT end CallKit here on iOS, it must stay active for audio session)
     NotificationService().cancelCallNotification();
     if (GetPlatform.isAndroid) {
-      // Use a slight delay to ensure the native CallKit plugin registers the accept action first
-      // and use endAllCallKitCalls to forcefully remove the lingering notification.
-      Future.delayed(const Duration(milliseconds: 300), () {
-        NotificationService().endAllCallKitCalls();
-      });
+      NotificationService().endAllCallKitCalls();
     }
 
     final micGranted = await Permission.microphone.request().isGranted;
@@ -827,6 +823,9 @@ class CallController extends GetxController {
 
   void _cleanupCall() {
     _stopRingtone();
+    if (GetPlatform.isAndroid) {
+      NotificationService().endAllCallKitCalls();
+    }
     _ringingTimeoutTimer?.cancel();
     _ringingTimeoutTimer = null;
     _timer?.cancel();

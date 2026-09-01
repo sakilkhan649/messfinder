@@ -131,9 +131,11 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
     }
 
     // 2. Build the payload
+    const isCallType = ['call', 'call_ended'].includes(type);
+
     const message = {
       ...(isTopic ? { topic: topicName } : { token: fcmToken }),
-      ...(!['call', 'call_ended'].includes(type) && {
+      ...(!isCallType && {
         notification: {
           title: title,
           body: body,
@@ -150,15 +152,18 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
       },
       android: {
         priority: 'high',
-        notification: {
-          sound: 'default',
-          channelId: 'high_importance_channel'
-        }
+        ...(!isCallType && {
+          notification: {
+            sound: 'default',
+            channelId: 'high_importance_channel'
+          }
+        })
       },
       apns: {
         payload: {
           aps: {
-            sound: 'default'
+            sound: 'default',
+            contentAvailable: isCallType ? true : undefined,
           }
         }
       }
