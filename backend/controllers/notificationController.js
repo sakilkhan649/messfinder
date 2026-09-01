@@ -155,8 +155,8 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
 };
 
 exports.sendPushNotification = async (req, res) => {
-  const { receiverUid, title, body, type, relatedId, senderUid } = req.body;
-  const result = await exports.internalSendPushNotification({ receiverUid, title, body, type, relatedId, senderUid });
+  const { receiverUid, title, body, type, relatedId, senderUid, senderPhotoUrl } = req.body;
+  const result = await exports.internalSendPushNotification({ receiverUid, title, body, type, relatedId, senderUid, senderPhotoUrl });
   
   if (result.success) {
     return res.status(200).json(result);

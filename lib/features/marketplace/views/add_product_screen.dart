@@ -170,7 +170,7 @@ class AddProductScreen extends StatelessWidget {
               left: 20.w,
               right: 20.w,
               top: 20.h,
-              bottom: 20.h,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20.h,
             ),
         child: Form(
           key: controller.formKey,
@@ -181,6 +181,7 @@ class AddProductScreen extends StatelessWidget {
               SizedBox(height: 8.h),
               TextFormField(
                 controller: controller.titleController,
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   hintText: 'e.g. Study Table, Office Chair...',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
@@ -194,6 +195,7 @@ class AddProductScreen extends StatelessWidget {
               TextFormField(
                 controller: controller.priceController,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
                   hintText: 'e.g. 1500',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),

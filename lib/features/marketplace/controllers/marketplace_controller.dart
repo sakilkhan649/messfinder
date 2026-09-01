@@ -6,6 +6,9 @@ import '../../../core/services/api_service.dart';
 import '../../../core/services/media_upload_service.dart';
 import '../../../core/utils/api_constants.dart';
 import '../models/product_model.dart';
+import '../../../core/services/notification_service.dart';
+import '../../notifications/models/app_notification_model.dart';
+import '../../auth/controllers/auth_controller.dart';
 
 class MarketplaceController extends GetxController {
   final ApiService _apiService = ApiService();
@@ -189,6 +192,9 @@ class MarketplaceController extends GetxController {
         final newProduct = ProductModel.fromJson(response.data);
         products.insert(0, newProduct);
         myProducts.insert(0, newProduct);
+        
+        _sendProductNotifications(title, price, category, division, district);
+        
         return true;
       }
       return false;
@@ -293,6 +299,64 @@ class MarketplaceController extends GetxController {
       Get.snackbar('Error', 'Failed to delete product',
           backgroundColor: Colors.red, colorText: Colors.white);
       return false;
+    }
+  }
+
+  void _sendProductNotifications(String title, double price, String category, String division, String district) {
+    try {
+      if (!Get.isRegistered<AuthController>()) return;
+      final auth = Get.find<AuthController>();
+      final user = auth.currentUser.value;
+      if (user == null) return;
+
+      // 1. Personal upload complete notification for author
+      final authorTitle = 'Product Posted Successfully! 🎉';
+      final authorBody = 'Your product "$title" is now live on the marketplace.';
+
+      NotificationService().storeNotification(
+        AppNotificationModel(
+          id: '',
+          title: authorTitle,
+          body: authorBody,
+          type: NotificationType.general,
+          receiverUid: user.uid,
+          senderUid: 'system',
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      NotificationService().showLocalNotification(
+        title: authorTitle,
+        body: authorBody,
+        imageUrl: user.photoUrl,
+      );
+
+      // 2. Broadcast push notification to all users about the new product
+      final titleStr = 'New Item in Marketplace! 🛒';
+      final bodyStr = '$title is available for Tk $price in $district, $division.';
+
+      NotificationService().storeNotification(
+        AppNotificationModel(
+          id: '',
+          title: titleStr,
+          body: bodyStr,
+          type: NotificationType.newPost,
+          receiverUid: 'all_users',
+          senderUid: user.uid,
+          createdAt: DateTime.now(),
+        ),
+      );
+
+      NotificationService().sendPushToTopic(
+        topic: 'all_users',
+        title: titleStr,
+        body: bodyStr,
+        senderUid: user.uid,
+        senderPhotoUrl: user.photoUrl ?? '',
+        data: {'type': 'new_product', 'senderUid': user.uid},
+      );
+    } catch (e) {
+      debugPrint('Error sending product notifications: $e');
     }
   }
 }

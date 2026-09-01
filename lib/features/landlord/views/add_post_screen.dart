@@ -179,6 +179,7 @@ class AddPostScreen extends StatelessWidget {
                     TextFormField(
                       controller: controller.titleController,
                       keyboardType: TextInputType.text,
+                      textInputAction: TextInputAction.next,
                       textCapitalization: TextCapitalization.words,
                       decoration: _buildInputDecoration(
                         hintText: 'e.g. Spacious Single Room in Mirpur 10',
@@ -210,6 +211,7 @@ class AddPostScreen extends StatelessWidget {
                               TextFormField(
                                 controller: controller.rentController,
                                 keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.next,
                                 decoration: _buildInputDecoration(
                                   hintText: '4500',
                                   prefixText: 'Tk. ',
@@ -431,6 +433,7 @@ class AddPostScreen extends StatelessWidget {
                     TextFormField(
                       controller: controller.addressController,
                       keyboardType: TextInputType.streetAddress,
+                      textInputAction: TextInputAction.next,
                       textCapitalization: TextCapitalization.words,
                       maxLines: 2,
                       decoration: _buildInputDecoration(
@@ -501,6 +504,7 @@ class AddPostScreen extends StatelessWidget {
                     TextFormField(
                       controller: controller.phoneController,
                       keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.done,
                       decoration: _buildInputDecoration(
                         hintText: 'e.g. 01712345678',
                         prefixIcon: Icons.phone_rounded,
