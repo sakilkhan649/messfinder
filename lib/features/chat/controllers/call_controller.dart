@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,6 +12,7 @@ import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/core/services/socket_service.dart';
 import 'package:mess_finder/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
@@ -58,6 +58,7 @@ class CallController extends GetxController {
 
   Timer? _timer;
   Timer? _ringingTimeoutTimer;
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   bool _pendingAcceptCall = false;
 
@@ -718,6 +719,8 @@ class CallController extends GetxController {
     }
   }
 
+
+
   // ── Call Controls ────────────────────────────────────────────────────
   void toggleMute() {
     isMuted.value = !isMuted.value;
@@ -786,22 +789,38 @@ class CallController extends GetxController {
   }
 
   // ── Ringtone Sounds Helpers ─────────────────────────────────────────
-  void _startOutgoingRingtone() {
+  void _startOutgoingRingtone() async {
     try {
-      FlutterRingtonePlayer().play(
-        android: AndroidSounds.notification,
-        ios: IosSounds.glass,
-        looping: true,
-        volume: 0.3, // Lower volume for outgoing beep
-      );
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      
+      // Set audio context to use voice call stream (so hardware buttons control in-call volume)
+      await _audioPlayer.setAudioContext(AudioContext(
+        android: const AudioContextAndroid(
+          isSpeakerphoneOn: false,
+          stayAwake: true,
+          contentType: AndroidContentType.speech,
+          usageType: AndroidUsageType.voiceCommunication,
+          audioFocus: AndroidAudioFocus.gainTransient,
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playAndRecord,
+          options: const {
+            AVAudioSessionOptions.allowBluetooth,
+            AVAudioSessionOptions.allowBluetoothA2DP,
+          },
+        ),
+      ));
+
+      await _audioPlayer.play(AssetSource('audio/ringback.wav'));
     } catch (e) {
       AppLogger.w('Outgoing ringtone notice: $e', tag: 'CALL_CTRL');
     }
   }
 
-  void _stopRingtone() {
+  void _stopRingtone() async {
     try {
-      FlutterRingtonePlayer().stop();
+      await _audioPlayer.stop();
+      FlutterRingtonePlayer().stop(); // Keep this just in case anything else was ringing
     } catch (e) {
       AppLogger.w('Stop ringtone notice: $e', tag: 'CALL_CTRL');
     }
