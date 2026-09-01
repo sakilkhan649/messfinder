@@ -73,7 +73,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'senderUid': senderUid,
       },
       android: const AndroidParams(
-        isCustomNotification: true,
+        isCustomNotification: false,
         isShowLogo: false,
         ringtonePath: 'system_ringtone_default',
         backgroundColor: '#0955fa',
@@ -205,8 +205,7 @@ class NotificationService {
           // Fallback HTTP request to reject call instantly even if backgrounded
           if (senderUid != null) {
              try {
-                final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
-                await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid, 'reason': 'declined'})).timeout(const Duration(seconds: 5));
+                await ApiService().dio.post('/reject_call', data: {'callerId': senderUid, 'reason': 'declined'});
              } catch (e) {
                 debugPrint('Failed to reject call via API: $e');
              }

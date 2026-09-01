@@ -11,6 +11,7 @@ import 'package:mess_finder/core/utils/app_logger.dart';
 import 'package:mess_finder/core/utils/api_constants.dart';
 import 'package:mess_finder/core/services/notification_service.dart';
 import 'package:mess_finder/core/services/socket_service.dart';
+import 'package:mess_finder/core/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
@@ -517,15 +518,13 @@ class CallController extends GetxController {
       );
     }
 
-    // Use HTTP API to accept call and get token instantly
     try {
-      final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/accept_call');
-      final response = await http.post(
-        url,
-        body: {'callerId': peerUserId, 'channelName': currentChannel},
+      final response = await ApiService().dio.post(
+        '/accept_call',
+        data: {'callerId': peerUserId, 'channelName': currentChannel},
       );
       if (response.statusCode == 200) {
-        final resData = jsonDecode(response.body);
+        final resData = response.data;
         if (resData['success'] == true) {
           if (callState.value == CallState.idle || currentChannel.isEmpty) {
             AppLogger.w(
@@ -562,8 +561,7 @@ class CallController extends GetxController {
 
     // Use HTTP API to reject call for better reliability
     try {
-      final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
-      http.post(url, body: {'callerId': peerUserId, 'reason': 'declined'});
+      ApiService().dio.post('/reject_call', data: {'callerId': peerUserId, 'reason': 'declined'});
     } catch (e) {
       AppLogger.e('Failed to reject call via API: $e', e, null, 'CALL_CTRL');
     }
