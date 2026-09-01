@@ -34,21 +34,7 @@ class BachelorMainScreen extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           // Main content
-          NotificationListener<UserScrollNotification>(
-            onNotification: (notification) {
-              if (notification.direction == ScrollDirection.reverse) {
-                if (controller.isBottomNavVisible.value) {
-                  controller.setNavVisible(false);
-                }
-              } else if (notification.direction == ScrollDirection.forward) {
-                if (!controller.isBottomNavVisible.value) {
-                  controller.setNavVisible(true);
-                }
-              }
-              return false;
-            },
-            child: Obx(() => IndexedStack(index: controller.currentIndex.value, children: screens)),
-          ),
+          Obx(() => IndexedStack(index: controller.currentIndex.value, children: screens)),
 
           // Floating bottom navbar
           Positioned(

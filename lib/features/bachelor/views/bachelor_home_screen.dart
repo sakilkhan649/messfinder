@@ -41,11 +41,17 @@ class BachelorHomeScreen extends StatelessWidget {
           physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             SliverAppBar(
-              floating: true,
-              snap: true,
+              toolbarHeight: 45.h,
+              expandedHeight: 45.h + 50.h, // Total height
+              pinned: true,
+              floating: false,
+              snap: false,
+              forceElevated: false,
               backgroundColor: primaryColor,
               elevation: 0,
-              surfaceTintColor: primaryColor,
+              scrolledUnderElevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
               automaticallyImplyLeading: false,
               leading: const ProfileAvatarLeading(),
               titleSpacing: 16.w,
@@ -58,47 +64,66 @@ class BachelorHomeScreen extends StatelessWidget {
                 ),
               ),
               actions: const [NotificationBellAction()],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(56.h),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(50.r),
-                    ),
-                    child: TextField(
-                      textAlignVertical: TextAlignVertical.center,
-                      onChanged: (val) => postController.updateSearchQuery(val),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.sp,
-                        color: Colors.white,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      height: 50.h,
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(50.r),
+                              ),
+                              child: TextField(
+                                textAlignVertical: TextAlignVertical.center,
+                                onChanged: (val) => postController.updateSearchQuery(val),
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13.sp,
+                                  color: Colors.white,
+                                ),
+                                cursorColor: Colors.white,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.transparent,
+                                  hintText: 'Search rooms, areas...',
+                                  hintStyle: GoogleFonts.poppins(
+                                    fontSize: 13.sp,
+                                    color: Colors.white70,
+                                  ),
+                                  prefixIcon: Icon(
+                                    Icons.search_rounded,
+                                    color: Colors.white70,
+                                    size: 20.r,
+                                  ),
+                                  border: InputBorder.none,
+                                  enabledBorder: InputBorder.none,
+                                  focusedBorder: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: 12.w,
+                                    vertical: 10.h,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12.w),
+                          _buildBudgetFilterButton(
+                            context,
+                            postController,
+                            primaryColor,
+                            accentColor,
+                          ),
+                        ],
                       ),
-                      cursorColor: Colors.white,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        hintText: 'Search rooms, areas...',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          color: Colors.white70,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: Colors.white70,
-                          size: 20.r,
-                        ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 12.h,
-                        ),
-                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -122,13 +147,7 @@ class BachelorHomeScreen extends StatelessWidget {
               physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  _buildBudgetFilterButton(
-                    context,
-                    postController,
-                    primaryColor,
-                    accentColor,
-                  ),
-                  SizedBox(width: 8.w),
+
                   _buildLocationFilterButton(
                     context,
                     postController,
@@ -251,6 +270,7 @@ class BachelorHomeScreen extends StatelessWidget {
                       return const SizedBox.shrink();
                     }),
                   ),
+                  SliverToBoxAdapter(child: SizedBox(height: 100.h)), // Bottom Navbar gap
           ],
         ),
       ),
@@ -318,21 +338,21 @@ class BachelorHomeScreen extends StatelessWidget {
         ),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          padding: EdgeInsets.all(14.r),
+          padding: EdgeInsets.all(12.r),
           decoration: BoxDecoration(
             color: isFiltered ? accentColor : Colors.white,
             borderRadius: BorderRadius.circular(16.r),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10.r,
-                offset: Offset(0, 4.h),
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4.r,
+                offset: Offset(0, 2.h),
               ),
             ],
           ),
           child: Icon(
             Icons.tune_rounded,
-            size: 22.r,
+            size: 20.r,
             color: isFiltered ? Colors.white : primaryColor,
           ),
         ),

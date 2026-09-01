@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
@@ -27,10 +28,7 @@ class UserHomeScreen extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           // 1. The Main Content
-          NotificationListener<UserScrollNotification>(
-            onNotification: controller.handleScrollNotification,
-            child: Obx(() => IndexedStack(index: controller.currentIndex.value, children: controller.screens!)),
-          ),
+          Obx(() => IndexedStack(index: controller.currentIndex.value, children: controller.screens!)),
 
           // 2. The Custom Bottom Navbar & FAB with absolute positioning
           Positioned(
@@ -46,15 +44,17 @@ class UserHomeScreen extends StatelessWidget {
                 children: [
                   // Navbar Background, Shadow, Border, and Icons
                   Padding(
-                    padding: const EdgeInsets.only(top: 36),
+                    padding: EdgeInsets.only(top: 30.h),
                     child: CustomPaint(
                       painter: BottomNavBorderPainter(
+                        fabSize: 60.r,
+                        notchMargin: 10.r,
                         borderColor: Colors.grey.shade400,
                         shadowColor: Colors.black.withValues(alpha: 0.15),
                       ),
                       child: Container(
-                        height: 85, // Slightly taller to give breathing room
-                        padding: const EdgeInsets.only(bottom: 15), // Pushes icons up away from the gesture bar
+                        height: 70.h, // Responsive height
+                        padding: EdgeInsets.only(bottom: 8.h), // Responsive padding
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -81,7 +81,7 @@ class UserHomeScreen extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 75), // Notch gap
+                            SizedBox(width: 75.w), // Notch gap
                             Expanded(
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -121,10 +121,10 @@ class UserHomeScreen extends StatelessWidget {
                       child: InkWell(
                         customBorder: const CircleBorder(),
                         onTap: () => controller.onTabSelected(2),
-                        child: const SizedBox(
-                          height: 72,
-                          width: 72,
-                          child: Icon(Icons.add, color: Colors.white, size: 36),
+                        child: SizedBox(
+                          height: 60.r,
+                          width: 60.r,
+                          child: Icon(Icons.add, color: Colors.white, size: 30.r),
                         ),
                       ),
                     ),
@@ -148,29 +148,29 @@ class UserHomeScreen extends StatelessWidget {
   }) {
     return InkWell(
       onTap: () => controller.onTabSelected(index),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(12.r),
       splashColor: activeColor.withValues(alpha: 0.1),
       highlightColor: activeColor.withValues(alpha: 0.05),
       child: Obx(() {
         final isSelected = controller.currentIndex.value == index;
         return Container(
-          width: 65,
+          width: 65.w,
           color: Colors.transparent,
-          padding: const EdgeInsets.symmetric(vertical: 4),
+          padding: EdgeInsets.symmetric(vertical: 4.h),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 isSelected ? activeIcon : icon,
-                size: 28, // Increased icon size
+                size: 24.r, // Responsive icon size
                 color: isSelected ? activeColor : Colors.black54,
               ),
-              const SizedBox(height: 4),
+              SizedBox(height: 4.h),
               AnimatedDefaultTextStyle(
                 duration: const Duration(milliseconds: 200),
                 style: GoogleFonts.poppins(
-                  fontSize: 12, // Increased text size
+                  fontSize: 11.sp, // Responsive text size
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                   color: isSelected ? activeColor : Colors.black54,
                 ),

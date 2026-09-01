@@ -34,6 +34,7 @@ class MessMapScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 45.h,
         backgroundColor: primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -55,7 +56,7 @@ class MessMapScreen extends StatelessWidget {
           const NotificationBellAction(),
         ],
         bottom: PreferredSize(
-          preferredSize: Size.fromHeight(56.h),
+          preferredSize: Size.fromHeight(50.h),
           child: Padding(
             padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
             child: Container(

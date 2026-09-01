@@ -28,14 +28,20 @@ class MarketplaceScreen extends StatelessWidget {
         color: AppTheme.primaryColor,
         child: CustomScrollView(
           controller: controller.scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             SliverAppBar(
-              floating: true,
-              snap: true,
+              toolbarHeight: 45.h,
+              expandedHeight: 45.h + 50.h,
+              pinned: true,
+              floating: false,
+              snap: false,
+              forceElevated: false,
               backgroundColor: AppTheme.primaryColor,
               elevation: 0,
-              surfaceTintColor: AppTheme.primaryColor,
+              scrolledUnderElevation: 0,
+              shadowColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
               automaticallyImplyLeading: false,
               leading: const ProfileAvatarLeading(),
               title: Text(
@@ -63,47 +69,53 @@ class MarketplaceScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(56.h),
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(50.r),
-                    ),
-                    child: TextField(
-                      textAlignVertical: TextAlignVertical.center,
-                      onChanged: (value) => controller.searchProducts(value),
-                      style: GoogleFonts.poppins(
-                        fontSize: 13.sp,
-                        color: Colors.white,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Container(
+                      height: 50.h, // Adjusted height for perfect centering
+                      padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 8.h),
+                      child: Container(
+                        alignment: Alignment.center, // Ensures the TextField stays centered
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(50.r),
+                        ),
+                        child: TextField(
+                          textAlignVertical: TextAlignVertical.center,
+                          onChanged: (value) => controller.searchProducts(value),
+                          style: GoogleFonts.poppins(
+                            fontSize: 13.sp,
+                            color: Colors.white,
+                          ),
+                          cursorColor: Colors.white,
+                          decoration: InputDecoration(
+                            isDense: true,
+                            filled: true,
+                            fillColor: Colors.transparent,
+                            hintText: 'Search products...',
+                            hintStyle: GoogleFonts.poppins(
+                              fontSize: 13.sp,
+                              color: Colors.white70,
+                            ),
+                            prefixIcon: Icon(
+                              Icons.search_rounded,
+                              color: Colors.white70,
+                              size: 20.r,
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12.w,
+                              vertical: 10.h, // Reduced padding to fit in smaller height
+                            ),
+                          ),
+                        ),
                       ),
-                      cursorColor: Colors.white,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        hintText: 'Search products...',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 13.sp,
-                          color: Colors.white70,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.search_rounded,
-                          color: Colors.white70,
-                          size: 20.r,
-                        ),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12.w,
-                          vertical: 12.h,
-                        ),
-                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ),
@@ -385,7 +397,6 @@ class MarketplaceScreen extends StatelessWidget {
               );
             }),
 
-            // Loading indicator at bottom
             Obx(() {
               if (controller.isLoadingMore.value) {
                 return SliverToBoxAdapter(
@@ -401,6 +412,11 @@ class MarketplaceScreen extends StatelessWidget {
               }
               return const SliverToBoxAdapter(child: SizedBox.shrink());
             }),
+
+            // Gap for Bottom Navbar
+            SliverToBoxAdapter(
+              child: SizedBox(height: 100.h),
+            ),
           ],
         ),
       ),
