@@ -136,6 +136,7 @@ const initSql = `
   CREATE INDEX IF NOT EXISTS idx_chats_user1_user2 ON chats(user1_uid, user2_uid);
   CREATE INDEX IF NOT EXISTS idx_chats_last_time ON chats(last_message_time DESC);
   CREATE INDEX IF NOT EXISTS idx_notifications_receiver ON notifications(receiver_uid, is_read);
+  CREATE INDEX IF NOT EXISTS idx_posts_filter ON posts(district, division, bachelor_type);
 
   CREATE TABLE IF NOT EXISTS products (
     product_id SERIAL PRIMARY KEY,
@@ -155,6 +156,7 @@ const initSql = `
 
   CREATE INDEX IF NOT EXISTS idx_products_active ON products(status, created_at DESC);
   CREATE INDEX IF NOT EXISTS idx_products_seller ON products(seller_uid);
+  CREATE INDEX IF NOT EXISTS idx_products_filter ON products(division, district, category);
 `;
 
 const setupDatabase = async () => {
