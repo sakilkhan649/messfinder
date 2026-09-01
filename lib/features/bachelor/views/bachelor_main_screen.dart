@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../auth/models/user_model.dart';
@@ -8,7 +7,6 @@ import 'mess_map_screen.dart';
 import '../../chat/views/chat_list_screen.dart';
 import '../../marketplace/views/marketplace_screen.dart';
 import 'package:get/get.dart';
-
 import '../controllers/bachelor_main_controller.dart';
 
 class BachelorMainScreen extends StatelessWidget {

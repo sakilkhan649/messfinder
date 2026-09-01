@@ -196,8 +196,9 @@ class CallController extends GetxController {
 
     // 2. Call Accepted Listener (Caller side)
     socketService.on('call_accepted', (data) async {
-      if (callState.value == CallState.connected)
+      if (callState.value == CallState.connected) {
         return; // Prevent double-join (-17 error)
+      }
 
       AppLogger.i('Call accepted by peer', tag: 'CALL_CTRL');
       _stopRingtone();
