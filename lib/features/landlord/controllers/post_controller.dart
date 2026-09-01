@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -501,13 +502,20 @@ class PostController extends GetxController {
 
       final storageService = MediaUploadService();
       final List<String> finalImageUrls = [];
+      final List<File> localFilesToUpload = [];
 
       for (String path in images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
         } else {
-          final url = await storageService.uploadImage(path);
-          if (url != null) finalImageUrls.add(url);
+          localFilesToUpload.add(File(path));
+        }
+      }
+
+      if (localFilesToUpload.isNotEmpty) {
+        final uploadResponse = await MediaUploadService.uploadMultipleImages(localFilesToUpload);
+        if (uploadResponse != null && uploadResponse['urls'] != null) {
+          finalImageUrls.addAll(List<String>.from(uploadResponse['urls']));
         }
       }
 
@@ -632,18 +640,23 @@ class PostController extends GetxController {
 
       final storageService = MediaUploadService();
       final List<String> finalImageUrls = [];
+      final List<File> localFilesToUpload = [];
       bool anyLocalUploadFailed = false;
 
       for (String path in updatedPost.images) {
         if (path.startsWith('http://') || path.startsWith('https://')) {
           finalImageUrls.add(path);
         } else {
-          final url = await storageService.uploadImage(path);
-          if (url != null) {
-            finalImageUrls.add(url);
-          } else {
-            anyLocalUploadFailed = true;
-          }
+          localFilesToUpload.add(File(path));
+        }
+      }
+
+      if (localFilesToUpload.isNotEmpty) {
+        final uploadResponse = await MediaUploadService.uploadMultipleImages(localFilesToUpload);
+        if (uploadResponse != null && uploadResponse['urls'] != null) {
+          finalImageUrls.addAll(List<String>.from(uploadResponse['urls']));
+        } else {
+          anyLocalUploadFailed = true;
         }
       }
 
