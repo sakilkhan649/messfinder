@@ -27,6 +27,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     } else {
       await FlutterCallkitIncoming.endAllCalls();
     }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_in_call', false);
+    } catch (e) {
+      debugPrint('Error clearing in-call state: $e');
+    }
     return;
   }
   
@@ -185,26 +191,25 @@ class NotificationService {
       if (event == null) return;
       if (event is CallEventActionCallAccept) {
         final extra = event.callKitParams.extra;
-        if (extra != null) {
-          final relatedId = extra['relatedId'];
-          final isVideo = extra['isVideo'] == true;
-          final senderUid = extra['senderUid'];
-          
-          final callCtrl = Get.isRegistered<CallController>() 
-              ? Get.find<CallController>() 
-              : Get.put(CallController(), permanent: true);
+        final relatedId = extra != null && extra['relatedId'] != null ? extra['relatedId'] : event.callKitParams.id;
+        final isVideo = extra != null && extra['isVideo'] == true;
+        final senderUid = extra != null ? extra['senderUid'] : null;
+        
+        final callCtrl = Get.isRegistered<CallController>() 
+            ? Get.find<CallController>() 
+            : Get.put(CallController(), permanent: true);
 
-          callCtrl.currentChannel = relatedId;
-          callCtrl.isVideoCall.value = isVideo;
-          if (senderUid != null) {
-            callCtrl.peerUserId = senderUid;
-          }
-          
-          // Delay to ensure Flutter UI is fully mounted before navigating
-          Future.delayed(const Duration(milliseconds: 1500), () {
-            callCtrl.acceptCall();
-          });
+        callCtrl.currentChannel = relatedId ?? '';
+        callCtrl.isVideoCall.value = isVideo;
+        callCtrl.callState.value = CallState.incoming; // Mark as active early to block AuthController navigation
+        if (senderUid != null) {
+          callCtrl.peerUserId = senderUid;
         }
+          
+        // Delay to ensure Flutter UI is fully mounted before navigating
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          callCtrl.acceptCall();
+        });
       } else if (event is CallEventActionCallDecline) {
         final extra = event.callKitParams.extra;
         if (extra != null) {
@@ -284,6 +289,15 @@ class NotificationService {
         FlutterCallkitIncoming.endCall(relatedId);
       } else {
         FlutterCallkitIncoming.endAllCalls();
+      }
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('is_in_call', false);
+      } catch (e) {
+        debugPrint('Error clearing in-call state: $e');
+      }
+      if (Get.isRegistered<CallController>()) {
+        Get.find<CallController>().endCall(notifyPeer: false);
       }
       return;
     }
