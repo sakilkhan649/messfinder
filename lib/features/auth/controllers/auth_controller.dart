@@ -185,9 +185,6 @@ class AuthController extends GetxController {
     // Save FCM token & subscribe to role-based topic
     _setupNotificationsForUser(user);
 
-    final currentRoute = Get.currentRoute;
-    final isCallActive = currentRoute == '/CallScreen' || currentRoute == '/IncomingCallScreen';
-
     // Always use the actual user role from Firestore, NOT selectedRole
     if (user.isAdmin) {
       Get.offAll(() => const AdminDashboardScreen(),
@@ -199,14 +196,13 @@ class AuthController extends GetxController {
           transition: Transition.rightToLeft);
     }
 
-    if (isCallActive) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      if (Get.isRegistered<CallController>()) {
-        final callCtrl = Get.find<CallController>();
-        if (callCtrl.callState.value != CallState.idle) {
-          if (currentRoute == '/CallScreen') {
-            Get.to(() => const CallScreen(), routeName: '/CallScreen');
-          }
+    // Safety check: Ensure we don't trap the user out of the CallScreen if a call was accepted during launch
+    await Future.delayed(const Duration(milliseconds: 500));
+    if (Get.isRegistered<CallController>()) {
+      final callCtrl = Get.find<CallController>();
+      if (callCtrl.callState.value == CallState.connected || callCtrl.callState.value == CallState.connecting) {
+        if (Get.currentRoute != '/CallScreen') {
+          Get.to(() => const CallScreen(), routeName: '/CallScreen');
         }
       }
     }
@@ -234,10 +230,6 @@ class AuthController extends GetxController {
             // No longer pushing IncomingCallScreen here. 
             // CallKit's native UI will handle the accept/decline action, and our notification_service 
             // will route to CallScreen upon acceptance.
-          } else if (callCtrl.callState.value == CallState.connecting || callCtrl.callState.value == CallState.connected) {
-             // If already accepted via CallKit, re-push CallScreen
-             await Future.delayed(const Duration(milliseconds: 300));
-             Get.to(() => const CallScreen(), routeName: '/CallScreen');
           }
         }
       }
