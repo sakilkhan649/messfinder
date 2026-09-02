@@ -605,6 +605,46 @@ class CallController extends GetxController {
   }
 
   // ── Agora Engine Setup ───────────────────────────────────────────────
+  // Handle call accepted via FCM Push Notification (Fallback if socket is disconnected)
+  void handleCallAcceptedFcm(String token) async {
+    if (callState.value == CallState.connected) return;
+    
+    AppLogger.i('Handling call accepted via FCM Fallback', tag: 'CALL_CTRL');
+    _stopRingback();
+    _stopRingtone();
+    _ringingTimeoutTimer?.cancel();
+    NotificationService().cancelCallNotification();
+    
+    currentRtcToken = token;
+    callState.value = CallState.connected;
+    callStatusText.value = 'Connected';
+    _startCallTimer();
+
+    if (isCaller && currentRtcToken.isNotEmpty && currentChannel.isNotEmpty) {
+      if (!isEngineReady.value) {
+        await _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
+      } else {
+        try {
+          await _engine?.joinChannel(
+            token: currentRtcToken,
+            channelId: currentChannel,
+            uid: 0,
+            options: ChannelMediaOptions(
+              clientRoleType: ClientRoleType.clientRoleBroadcaster,
+              channelProfile: ChannelProfileType.channelProfileLiveBroadcasting,
+              publishCameraTrack: isVideoCall.value,
+              publishMicrophoneTrack: true,
+              autoSubscribeAudio: true,
+              autoSubscribeVideo: true,
+            ),
+          );
+        } catch (e) {
+          AppLogger.w('Fcm join channel warning: $e', tag: 'CALL_CTRL');
+        }
+      }
+    }
+  }
+
   Future<void> _initAgoraEngine(bool isVideo, {String token = ''}) async {
     try {
       final engine = createAgoraRtcEngine();
@@ -825,9 +865,6 @@ class CallController extends GetxController {
 
   void _cleanupCall() {
     _stopRingtone();
-    if (GetPlatform.isAndroid) {
-      NotificationService().endAllCallKitCalls();
-    }
     _ringingTimeoutTimer?.cancel();
     _ringingTimeoutTimer = null;
     _timer?.cancel();

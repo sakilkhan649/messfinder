@@ -20,6 +20,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   debugPrint('📨 [FCM] Background message: ${message.messageId}');
   
+  if (message.data['type'] == 'call_accepted') {
+    debugPrint('📞 [FCM Background] Call Accepted. Saving token for caller.');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('pending_agora_token', message.data['token'] ?? '');
+    } catch (e) {
+      debugPrint('Error saving pending_agora_token: $e');
+    }
+    return;
+  }
+  
   if (message.data['type'] == 'call_ended') {
     final relatedId = message.data['relatedId'];
     if (relatedId != null && relatedId.toString().isNotEmpty) {
@@ -293,6 +304,18 @@ class NotificationService {
     }
 
     final type = message.data['type'];
+
+    if (type == 'call_accepted') {
+      debugPrint('📞 [FCM Foreground] Call Accepted. Notifying CallController.');
+      if (Get.isRegistered<CallController>()) {
+        final callCtrl = Get.find<CallController>();
+        final token = message.data['token'];
+        if (token != null && token.isNotEmpty && callCtrl.isCaller && callCtrl.callState.value == CallState.ringing) {
+           callCtrl.handleCallAcceptedFcm(token);
+        }
+      }
+      return;
+    }
     
     if (type == 'call_ended') {
       final relatedId = message.data['relatedId'];

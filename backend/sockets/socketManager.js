@@ -265,12 +265,28 @@ const initSocket = (server, app) => {
     res.json({ success: true });
   });
 
-  app.post('/api/accept_call', (req, res) => {
+  app.post('/api/accept_call', async (req, res) => {
     const { callerId, channelName } = req.body;
     const token = generateAgoraToken(channelName, 0);
     if (callerId) {
       io.to(callerId).emit('call_accepted', { callerId, channelName, token });
       console.log(`Call accepted via API for caller ${callerId} [Token generated]`);
+      
+      try {
+        const { internalSendPushNotification } = require('../controllers/notificationController');
+        await internalSendPushNotification({
+          receiverUid: callerId,
+          title: 'Call Accepted',
+          body: 'Your call has been accepted',
+          type: 'call_accepted',
+          relatedId: channelName,
+          senderUid: '',
+          senderPhotoUrl: '',
+          token: token
+        });
+      } catch (e) {
+        console.error('Failed to send call_accepted push notification:', e);
+      }
     }
     res.json({ success: true, token });
   });

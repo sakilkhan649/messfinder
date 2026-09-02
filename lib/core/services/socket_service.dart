@@ -84,6 +84,9 @@ class SocketService extends GetxService with WidgetsBindingObserver {
 
     _socket!.onConnect((_) {
       debugPrint('✅ [SocketService] Connected via: ${_socket!.io.engine?.transport?.name}');
+      if (_currentUserId.isNotEmpty) {
+        _socket!.emit(ApiConstants.socketJoinUserRoom, _currentUserId);
+      }
     });
 
     _socket!.onDisconnect((_) {
