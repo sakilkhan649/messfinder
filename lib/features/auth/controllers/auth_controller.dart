@@ -185,6 +185,52 @@ class AuthController extends GetxController {
     // Save FCM token & subscribe to role-based topic
     _setupNotificationsForUser(user);
 
+    // Check if a call is currently active or incoming
+    bool isCallActive = false;
+    
+    // 1. Check our internal CallController state
+    if (Get.isRegistered<CallController>()) {
+      final callCtrl = Get.find<CallController>();
+      if (callCtrl.callState.value != CallState.idle) {
+        isCallActive = true;
+      }
+    }
+    
+    // 2. Check native CallKit state in case CallController hasn't updated yet
+    try {
+      final activeCalls = await FlutterCallkitIncoming.activeCalls();
+      if (activeCalls.isNotEmpty) {
+        isCallActive = true;
+        
+        // Ensure CallController is initialized with the CallKit data
+        final call = activeCalls[0];
+        final extra = call.extra;
+        if (extra != null && Get.isRegistered<CallController>()) {
+          final callCtrl = Get.find<CallController>();
+          if (callCtrl.callState.value == CallState.idle) {
+            callCtrl.currentChannel = extra['relatedId'] ?? '';
+            callCtrl.isVideoCall.value = extra['isVideo'] == true;
+            callCtrl.peerUserId = extra['senderUid'] ?? '';
+            callCtrl.peerUserName = call.nameCaller ?? 'Unknown Caller';
+            callCtrl.peerUserPhoto = call.avatar;
+            callCtrl.callState.value = CallState.incoming;
+            callCtrl.callStatusText.value = 'Incoming Call...';
+          }
+        }
+      }
+    } catch (e) {
+      AppLogger.w('Failed to check active CallKit calls: $e', tag: 'AUTH_CTRL');
+    }
+
+    if (isCallActive) {
+      // Abort navigation to Home Screen!
+      // The app will remain on Splash Screen, and CallScreen will be pushed on top of it.
+      // When the call ends, CallController will automatically trigger AuthMiddleware 
+      // to route the user to the Home Screen.
+      AppLogger.i('Call is active during launch. Deferring Home Screen navigation.', tag: 'AUTH_CTRL');
+      return;
+    }
+
     // Always use the actual user role from Firestore, NOT selectedRole
     if (user.isAdmin) {
       Get.offAll(() => const AdminDashboardScreen(),
@@ -194,47 +240,6 @@ class AuthController extends GetxController {
       selectedRole.value = user.role;
       Get.offAll(() => UserHomeScreen(user: user),
           transition: Transition.rightToLeft);
-    }
-
-    // Safety check: Ensure we don't trap the user out of the CallScreen if a call was accepted during launch
-    await Future.delayed(const Duration(milliseconds: 500));
-    if (Get.isRegistered<CallController>()) {
-      final callCtrl = Get.find<CallController>();
-      if (callCtrl.callState.value == CallState.connected || callCtrl.callState.value == CallState.connecting) {
-        if (Get.currentRoute != '/CallScreen') {
-          Get.to(() => const CallScreen(), routeName: '/CallScreen');
-        }
-      }
-    }
-
-    // Check if launched from background with an active CallKit call
-    try {
-      final activeCalls = await FlutterCallkitIncoming.activeCalls();
-      if (activeCalls.isNotEmpty) {
-        final call = activeCalls[0];
-        final extra = call.extra;
-        if (extra != null && Get.isRegistered<CallController>()) {
-          final callCtrl = Get.find<CallController>();
-          
-          if (callCtrl.callState.value == CallState.idle) {
-            // Restore call state from notification
-            callCtrl.currentChannel = extra['relatedId'] ?? '';
-            callCtrl.isVideoCall.value = extra['isVideo'] == true;
-            callCtrl.peerUserId = extra['senderUid'] ?? '';
-            callCtrl.peerUserName = call.nameCaller ?? 'Unknown Caller';
-            callCtrl.peerUserPhoto = call.avatar;
-            callCtrl.callState.value = CallState.incoming;
-            callCtrl.callStatusText.value = 'Incoming Call...';
-            
-            await Future.delayed(const Duration(milliseconds: 300));
-            // No longer pushing IncomingCallScreen here. 
-            // CallKit's native UI will handle the accept/decline action, and our notification_service 
-            // will route to CallScreen upon acceptance.
-          }
-        }
-      }
-    } catch (e) {
-      AppLogger.w('Failed to check active CallKit calls: $e', tag: 'AUTH_CTRL');
     }
   }
 

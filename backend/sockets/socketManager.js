@@ -208,6 +208,13 @@ const initSocket = (server, app) => {
       }
     });
 
+    socket.on('call_ringing', (data) => {
+      console.log(`Call ringing for caller ${data.callerId}`);
+      if (data.callerId) {
+        io.to(data.callerId).emit('call_ringing', data);
+      }
+    });
+
     socket.on('typing_start', (data) => {
       socket.to(data.chatId).emit('user_typing', { chatId: data.chatId, userId: data.userId });
     });
@@ -266,6 +273,15 @@ const initSocket = (server, app) => {
       console.log(`Call accepted via API for caller ${callerId} [Token generated]`);
     }
     res.json({ success: true, token });
+  });
+
+  app.post('/api/call_ringing', (req, res) => {
+    const { callerId } = req.body;
+    if (callerId) {
+      io.to(callerId).emit('call_ringing', { callerId });
+      console.log(`Call ringing via API for caller ${callerId}`);
+    }
+    res.json({ success: true });
   });
 
   return io;

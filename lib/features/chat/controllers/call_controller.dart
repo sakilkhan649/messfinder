@@ -19,7 +19,7 @@ import 'package:mess_finder/features/chat/views/call_screen.dart';
 import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
 import 'package:mess_finder/core/middlewares/auth_middleware.dart';
 
-enum CallState { idle, outgoing, incoming, connecting, connected, ended }
+enum CallState { idle, outgoing, ringing, incoming, connecting, connected, ended }
 
 class CallController extends GetxController {
   static CallController get to => Get.find<CallController>();
@@ -58,6 +58,7 @@ class CallController extends GetxController {
   Timer? _timer;
   Timer? _ringingTimeoutTimer;
   final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _isPlayingRingback = false;
 
   bool _pendingAcceptCall = false;
 
@@ -88,6 +89,25 @@ class CallController extends GetxController {
     super.onClose();
   }
 
+  Future<void> _playRingback() async {
+    if (_isPlayingRingback) return;
+    try {
+      _isPlayingRingback = true;
+      await _audioPlayer.setReleaseMode(ReleaseMode.loop);
+      await _audioPlayer.play(AssetSource('audio/ringback.wav'));
+    } catch (e) {
+      AppLogger.w('Failed to play ringback: $e', tag: 'CALL_CTRL');
+      _isPlayingRingback = false;
+    }
+  }
+
+  void _stopRingback() {
+    if (_isPlayingRingback) {
+      _audioPlayer.stop();
+      _isPlayingRingback = false;
+    }
+  }
+
   void _initSocketSignaling() {
     if (!Get.isRegistered<SocketService>()) return;
 
@@ -109,6 +129,7 @@ class CallController extends GetxController {
 
     // 1. Incoming Call Listener
     socketService.on('incoming_call', (data) {
+      _stopRingback();
       if (callState.value != CallState.idle) {
         // If we receive a duplicate event for the SAME call, ignore it.
         // This prevents false "Busy" signals if the socket fires twice.
@@ -178,8 +199,19 @@ class CallController extends GetxController {
       // which prevents duplicate ringing, duplicate UI, and ensures perfect native integration.
     });
 
+    // 1.5 Call Ringing Listener (Target device is ringing)
+    socketService.on('call_ringing', (data) {
+      if (callState.value == CallState.outgoing) {
+        AppLogger.i('Target device is ringing', tag: 'CALL_CTRL');
+        callState.value = CallState.ringing;
+        callStatusText.value = 'Ringing...';
+        _playRingback();
+      }
+    });
+
     // 2. Call Accepted Listener (Caller side)
     socketService.on('call_accepted', (data) async {
+      _stopRingback();
       if (callState.value == CallState.connected) {
         return; // Prevent double-join (-17 error)
       }
@@ -232,6 +264,7 @@ class CallController extends GetxController {
 
     // 3. Call Rejected / Busy Listener
     socketService.on('call_rejected', (data) {
+      _stopRingback();
       AppLogger.i('Call rejected by peer: $data', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -303,6 +336,7 @@ class CallController extends GetxController {
       });
     }
     socketService.on('call_ended', (data) {
+      _stopRingback();
       AppLogger.i('Call ended by peer', tag: 'CALL_CTRL');
       _stopRingtone();
       _ringingTimeoutTimer?.cancel();
@@ -392,6 +426,7 @@ class CallController extends GetxController {
       () => const CallScreen(),
       routeName: '/CallScreen',
       transition: Transition.fadeIn,
+      preventDuplicates: true,
     );
 
     // 2. Initialize Agora in background without blocking UI thread
@@ -488,13 +523,12 @@ class CallController extends GetxController {
     _startCallTimer();
 
     // Open screen immediately
-    if (Get.currentRoute != '/CallScreen') {
-      Get.to(
-        () => const CallScreen(),
-        routeName: '/CallScreen',
-        transition: Transition.fadeIn,
-      );
-    }
+    Get.to(
+      () => const CallScreen(),
+      routeName: '/CallScreen',
+      transition: Transition.fadeIn,
+      preventDuplicates: true,
+    );
 
     try {
       final response = await ApiService().dio.post(
@@ -550,6 +584,7 @@ class CallController extends GetxController {
   // ── End Call (Either participant) ──────────────────────────────────
   Future<void> endCall({bool notifyPeer = true}) async {
     _stopRingtone();
+    _stopRingback();
     _ringingTimeoutTimer?.cancel();
     if (callDuration.value > 0) {
       _logCallToChat(status: 'completed', duration: callDuration.value);

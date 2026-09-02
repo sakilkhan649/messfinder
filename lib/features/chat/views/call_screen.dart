@@ -134,19 +134,19 @@ class CallScreen extends StatelessWidget {
     );
   }
 
-  // ── Clean Lightweight Audio Background ─────────────────────────────────
+  // ── WhatsApp Style Dark Teal Background ────────────────────────────────
   Widget _buildAudioBackground(CallController callCtrl, bool isConnected) {
     return Positioned.fill(
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF0F172A), // Slate 900
-              Color(0xFF1E293B), // Slate 800
-              Color(0xFF0F172A), // Slate 900
+              Color(0xFF075E54), // WhatsApp Dark Teal
+              Color(0xFF128C7E), // WhatsApp Teal
+              Color(0xFF075E54),
             ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
         ),
       ),
@@ -158,48 +158,82 @@ class CallScreen extends StatelessWidget {
     final statusText = isConnected
         ? _formatDuration(callCtrl.callDuration.value)
         : callCtrl.callStatusText.value;
+    
+    final isRinging = callCtrl.callState.value == CallState.outgoing || callCtrl.callState.value == CallState.ringing;
+    final uiCtrl = Get.find<CallUIController>();
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        // Avatar with subtle double ring
-        Container(
-          width: 150.r,
-          height: 150.r,
-          padding: EdgeInsets.all(4.r),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: isVideo ? Colors.white.withValues(alpha: 0.3) : AppTheme.primaryColor.withValues(alpha: 0.4),
-              width: 2,
-            ),
-            boxShadow: isVideo ? [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.5),
-                blurRadius: 20,
-              )
-            ] : null,
+        // WhatsApp style status text ABOVE avatar
+        Text(
+          statusText,
+          style: GoogleFonts.poppins(
+            color: Colors.white70,
+            fontSize: 16.sp,
+            fontWeight: FontWeight.w400,
           ),
-          child: ClipOval(
-            child: callCtrl.peerUserPhoto != null && callCtrl.peerUserPhoto!.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: callCtrl.peerUserPhoto!,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Center(
-                      child: SizedBox(
-                        width: 24.r,
-                        height: 24.r,
-                        child: const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+        ),
+        SizedBox(height: 30.h),
+        
+        // Avatar with pulse animation
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            if (isRinging && !isVideo)
+              AnimatedBuilder(
+                animation: uiCtrl.pulseAnimation,
+                builder: (context, child) {
+                  return Transform.scale(
+                    scale: uiCtrl.pulseAnimation.value,
+                    child: Container(
+                      width: 140.r,
+                      height: 140.r,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 1.0 - (uiCtrl.pulseAnimation.value - 0.8) / 0.7),
                       ),
                     ),
-                    errorWidget: (context, url, error) => Icon(
-                      Icons.person_rounded,
-                      size: 68.r,
-                      color: Colors.white70,
-                    ),
+                  );
+                },
+              ),
+            Container(
+              width: 140.r,
+              height: 140.r,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    blurRadius: 20,
+                    spreadRadius: 5,
                   )
-                : Icon(Icons.person_rounded, size: 68.r, color: Colors.white70),
-          ),
+                ],
+              ),
+              child: ClipOval(
+                child: callCtrl.peerUserPhoto != null && callCtrl.peerUserPhoto!.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: callCtrl.peerUserPhoto!,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => Center(
+                          child: SizedBox(
+                            width: 24.r,
+                            height: 24.r,
+                            child: const CircularProgressIndicator(color: Colors.white70, strokeWidth: 2),
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => Container(
+                          color: Colors.grey.shade400,
+                          child: Icon(Icons.person_rounded, size: 68.r, color: Colors.white),
+                        ),
+                      )
+                    : Container(
+                        color: Colors.grey.shade400,
+                        child: Icon(Icons.person_rounded, size: 68.r, color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
         ),
         SizedBox(height: 24.h),
 
@@ -211,50 +245,14 @@ class CallScreen extends StatelessWidget {
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 24.sp,
+              fontWeight: FontWeight.w500,
+              fontSize: 28.sp,
               shadows: isVideo ? [
                 Shadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 10)
               ] : null,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        SizedBox(height: 8.h),
-
-        // Status Badge
-        Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 5.h),
-          decoration: BoxDecoration(
-            color: isVideo ? Colors.black.withValues(alpha: 0.4) : Colors.white.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20.r),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 7.r,
-                height: 7.r,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isConnected
-                      ? const Color(0xFF10B981)
-                      : (callCtrl.callStatusText.value == 'User is Offline'
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFFF59E0B)),
-                ),
-              ),
-              SizedBox(width: 7.w),
-              Text(
-                statusText,
-                style: GoogleFonts.poppins(
-                  color: isConnected ? const Color(0xFF34D399) : Colors.white70,
-                  fontSize: 13.sp,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
           ),
         ),
       ],
@@ -374,23 +372,14 @@ class CallScreen extends StatelessWidget {
     );
   }
 
-  // ── Clean Bottom Controls Dock ─────────────────────────────────────────
+  // ── WhatsApp Style Bottom Controls ─────────────────────────────────────
   Widget _buildControls(CallController callCtrl) {
     final isVideo = callCtrl.isVideoCall.value;
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 14.h),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 20.h),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B).withValues(alpha: 0.95),
-        borderRadius: BorderRadius.circular(32.r),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        color: Colors.transparent, // Fully transparent, relying on the background
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -400,9 +389,9 @@ class CallScreen extends StatelessWidget {
             icon: callCtrl.isMuted.value
                 ? Icons.mic_off_rounded
                 : Icons.mic_rounded,
-            label: callCtrl.isMuted.value ? 'Unmute' : 'Mute',
             isActive: callCtrl.isMuted.value,
-            activeColor: const Color(0xFFEF4444),
+            activeColor: Colors.white,
+            activeIconColor: Colors.black,
             onTap: callCtrl.toggleMute,
           ),
 
@@ -412,9 +401,9 @@ class CallScreen extends StatelessWidget {
               icon: callCtrl.isVideoDisabled.value
                   ? Icons.videocam_off_rounded
                   : Icons.videocam_rounded,
-              label: callCtrl.isVideoDisabled.value ? 'Cam Off' : 'Cam On',
-              isActive: !callCtrl.isVideoDisabled.value,
-              activeColor: AppTheme.primaryColor,
+              isActive: callCtrl.isVideoDisabled.value,
+              activeColor: Colors.white,
+              activeIconColor: Colors.black,
               onTap: callCtrl.toggleVideo,
             )
           else
@@ -422,27 +411,22 @@ class CallScreen extends StatelessWidget {
               icon: callCtrl.isSpeakerOn.value
                   ? Icons.volume_up_rounded
                   : Icons.volume_down_rounded,
-              label: 'Speaker',
               isActive: callCtrl.isSpeakerOn.value,
-              activeColor: AppTheme.primaryColor,
+              activeColor: Colors.white,
+              activeIconColor: Colors.black,
               onTap: callCtrl.toggleSpeaker,
             ),
 
           // 3. Switch to Audio/Video
           if (isVideo)
             _buildActionButton(
-              icon: Icons.phone_rounded,
-              label: 'Audio Only',
+              icon: Icons.flip_camera_ios_rounded,
               isActive: false,
-              onTap: () {
-                callCtrl.isVideoCall.value = false;
-                callCtrl.toggleVideo(); // Disables video when switching to audio
-              },
+              onTap: callCtrl.switchCamera,
             )
           else
             _buildActionButton(
               icon: Icons.videocam_rounded,
-              label: 'Video',
               isActive: false,
               onTap: () {
                 callCtrl.isVideoCall.value = true;
@@ -450,42 +434,28 @@ class CallScreen extends StatelessWidget {
               },
             ),
 
-          // 4. End Call Button
+          // 4. End Call Button (Large Red)
           GestureDetector(
             onTap: () => callCtrl.endCall(),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 52.r,
-                  height: 52.r,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF4444),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0x55EF4444),
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
+            child: Container(
+              width: 60.r,
+              height: 60.r,
+              decoration: const BoxDecoration(
+                color: Color(0xFFEF4444),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x55EF4444),
+                    blurRadius: 10,
+                    offset: Offset(0, 3),
                   ),
-                  child: const Icon(
-                    Icons.call_end_rounded,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
-                SizedBox(height: 5.h),
-                Text(
-                  'End',
-                  style: GoogleFonts.poppins(
-                    color: Colors.white70,
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+                ],
+              ),
+              child: Icon(
+                Icons.call_end_rounded,
+                color: Colors.white,
+                size: 28.r,
+              ),
             ),
           ),
         ],
@@ -495,39 +465,28 @@ class CallScreen extends StatelessWidget {
 
   Widget _buildActionButton({
     required IconData icon,
-    required String label,
     required bool isActive,
     Color? activeColor,
+    Color? activeIconColor,
     required VoidCallback onTap,
   }) {
     final bg = isActive
-        ? (activeColor ?? AppTheme.primaryColor)
-        : Colors.white.withValues(alpha: 0.1);
+        ? (activeColor ?? Colors.white)
+        : Colors.white.withValues(alpha: 0.15);
+    final fg = isActive
+        ? (activeIconColor ?? Colors.black)
+        : Colors.white;
 
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 48.r,
-            height: 48.r,
-            decoration: BoxDecoration(
-              color: bg,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: Colors.white, size: 22.sp),
-          ),
-          SizedBox(height: 5.h),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: Colors.white70,
-              fontSize: 11.sp,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+      child: Container(
+        width: 54.r,
+        height: 54.r,
+        decoration: BoxDecoration(
+          color: bg,
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: fg, size: 26.sp),
       ),
     );
   }

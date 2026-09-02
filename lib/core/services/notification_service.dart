@@ -59,6 +59,16 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       debugPrint('Error checking active call state in background: $e');
     }
 
+    // Send ringing status to backend so caller UI changes to "Ringing..."
+    if (senderUid != null) {
+      try {
+        final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/call_ringing');
+        http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid})).timeout(const Duration(seconds: 3));
+      } catch (e) {
+        debugPrint('Failed to send call ringing status: $e');
+      }
+    }
+
     final params = CallKitParams(
       id: relatedId ?? DateTime.now().millisecondsSinceEpoch.toString(),
       nameCaller: callerName,
@@ -321,6 +331,16 @@ class NotificationService {
           }
         }
         return; // Do not show CallKit
+      }
+
+      // Send ringing status to backend so caller UI changes to "Ringing..."
+      if (senderUid != null) {
+        try {
+          final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/call_ringing');
+          http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid})).timeout(const Duration(seconds: 3));
+        } catch (e) {
+          debugPrint('Failed to send call ringing status: $e');
+        }
       }
 
       final params = CallKitParams(
