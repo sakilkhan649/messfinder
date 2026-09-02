@@ -164,8 +164,14 @@ class NotificationService {
     playSound: true,
   );
 
+  bool _initialized = false;
+
   // ── Initialize ──────────────────────────────────────────────────────────────
   Future<void> initialize() async {
+    // Guard: only initialize once — SplashController and other callers may call this
+    if (_initialized) return;
+    _initialized = true;
+
     // 1. Request permission
     await _fcm.requestPermission(
       alert: true,
@@ -173,11 +179,16 @@ class NotificationService {
       sound: true,
     );
 
-    // Fail-safe: Clear any stuck CallKit notifications & reset in-call state on app start
+    // Fail-safe: Clear stuck CallKit notifications ONLY if there are NO active calls.
+    // If there IS an active call (terminated app launched via CallKit accept), we must
+    // NOT end it here — doing so killed incoming calls before they could be answered.
     try {
-      await FlutterCallkitIncoming.endAllCalls();
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('is_in_call', false);
+      final activeCalls = await FlutterCallkitIncoming.activeCalls();
+      if (activeCalls.isEmpty) {
+        // No real active call — safe to clear stale state
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('is_in_call', false);
+      }
     } catch (e) {
       debugPrint('Fail-safe clear error: $e');
     }
@@ -236,10 +247,15 @@ class NotificationService {
         callCtrl.callState.value = CallState.incoming;
         callCtrl.callStatusText.value = 'Incoming Call...';
           
-        // Reduced from 1500ms: just enough to ensure Flutter engine is mounted.
-        // The previous 1500ms gap was long enough for SplashController to navigate
-        // to Home before acceptCall() ran, causing the Splash→Home flash bug.
-        Future.delayed(const Duration(milliseconds: 300), () {
+        // Small delay to allow the auth flow (API call) to settle before we push CallScreen.
+        // SplashController now initializes NotificationService synchronously, so the Flutter
+        // engine is already mounted when this fires — 200ms is sufficient.
+        Future.delayed(const Duration(milliseconds: 200), () {
+          // Guard: don't double-accept if already connecting/connected
+          if (callCtrl.callState.value == CallState.connecting ||
+              callCtrl.callState.value == CallState.connected) {
+            return;
+          }
           callCtrl.acceptCall();
         });
       } else if (event is CallEventActionCallDecline) {
