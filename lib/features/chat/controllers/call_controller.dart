@@ -16,7 +16,6 @@ import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
-import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
 import 'package:mess_finder/core/middlewares/auth_middleware.dart';
 
 enum CallState { idle, outgoing, ringing, incoming, connecting, connected, ended }

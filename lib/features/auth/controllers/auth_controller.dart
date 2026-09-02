@@ -16,8 +16,6 @@ import '../models/user_model.dart';
 import '../repositories/auth_repo.dart';
 import '../views/login_screen.dart';
 import '../../chat/controllers/call_controller.dart';
-import '../../chat/views/call_screen.dart';
-import '../../chat/views/incoming_call_screen.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 
 class AuthController extends GetxController {
