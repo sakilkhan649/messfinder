@@ -490,11 +490,8 @@ class CallController extends GetxController {
     isCaller = false;
     _hasLoggedCall = false;
 
-    // Clear local app notifications (but DO NOT end CallKit here on iOS, it must stay active for audio session)
+    // Clear local app notifications (CallKit handles its own dismissal on accept)
     NotificationService().cancelCallNotification();
-    if (GetPlatform.isAndroid) {
-      NotificationService().endAllCallKitCalls();
-    }
 
     final micGranted = await Permission.microphone.request().isGranted;
     if (!micGranted) {
@@ -547,14 +544,21 @@ class CallController extends GetxController {
 
           final token = resData['token'];
           currentRtcToken = token;
+          
+          // Initialize Agora engine ONLY if API call succeeds and call is still active
+          _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
+        } else {
+          AppLogger.w('API returned success=false for accept_call', tag: 'CALL_CTRL');
+          endCall(notifyPeer: false);
         }
+      } else {
+        AppLogger.w('API returned status ${response.statusCode} for accept_call', tag: 'CALL_CTRL');
+        endCall(notifyPeer: false);
       }
     } catch (e) {
       AppLogger.e('Failed to accept call via API: $e', e, null, 'CALL_CTRL');
+      endCall(notifyPeer: false);
     }
-
-    // Initialize Agora engine
-    _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
   }
 
   // ── Reject Call (Receiver) ──────────────────────────────────────────
