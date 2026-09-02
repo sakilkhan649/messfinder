@@ -118,14 +118,6 @@ class CallController extends GetxController {
     // The SocketService handles connection, we just need to emit/listen
     socketService.emit(ApiConstants.socketJoinUserRoom, currentUid);
 
-    if (_pendingAcceptCall) {
-      _pendingAcceptCall = false;
-      socketService.emit('accept_call', {
-        'channelName': currentChannel,
-        'targetUserId': peerUserId,
-      });
-    }
-
     // 1. Incoming Call Listener
     socketService.on('incoming_call', (data) {
       _stopRingback();
@@ -249,16 +241,6 @@ class CallController extends GetxController {
           );
         }
       }
-    });
-
-    // 2.5 Call Token Received (Receiver side)
-    socketService.on('call_joined_receiver', (data) async {
-      AppLogger.i(
-        'Token received for receiver from background',
-        tag: 'CALL_CTRL',
-      );
-      currentRtcToken = data['token'] ?? '';
-      _initAgoraEngine(isVideoCall.value, token: currentRtcToken);
     });
 
     // 3. Call Rejected / Busy Listener
