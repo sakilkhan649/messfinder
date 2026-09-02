@@ -49,12 +49,23 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final relatedId = message.data['relatedId']; 
     final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
 
-    // Auto-Busy Check: Prevent ringing if already in an active call (stored via SharedPreferences)
+    // Auto-Busy Check: Prevent ringing if already in an active call
     try {
       final prefs = await SharedPreferences.getInstance();
-      final isInCall = prefs.getBool('is_in_call') ?? false;
+      bool isInCall = prefs.getBool('is_in_call') ?? false;
+      
+      // Self-heal stale state: Verify with CallKit
       if (isInCall) {
-        debugPrint('🚫 [FCM Background] User is already in a call, rejecting new call...');
+        final activeCalls = await FlutterCallkitIncoming.activeCalls();
+        if (activeCalls.isEmpty) {
+          debugPrint('🔄 [FCM Background] Stale is_in_call state detected. Resetting to false.');
+          await prefs.setBool('is_in_call', false);
+          isInCall = false;
+        }
+      }
+
+      if (isInCall) {
+        debugPrint('🚫 [FCM Background] User is actually in a call, rejecting new call...');
         if (senderUid != null) {
           final url = Uri.parse('${ApiConstants.serverBaseUrl}/api/reject_call');
           await http.post(url, headers: {'Content-Type': 'application/json'}, body: jsonEncode({'callerId': senderUid, 'reason': 'busy'})).timeout(const Duration(seconds: 5));
