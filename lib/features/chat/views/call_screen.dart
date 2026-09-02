@@ -4,37 +4,12 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:agora_rtc_engine/agora_rtc_engine.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:mess_finder/core/theme/app_theme.dart';
 import 'package:mess_finder/features/chat/controllers/call_controller.dart';
 
-class CallScreen extends StatefulWidget {
+import 'package:mess_finder/features/chat/controllers/call_ui_controller.dart';
+class CallScreen extends StatelessWidget {
   const CallScreen({super.key});
-
-  @override
-  State<CallScreen> createState() => _CallScreenState();
-}
-
-class _CallScreenState extends State<CallScreen> {
-  bool _showControls = true;
-  Offset _pipPosition = Offset(20, 100);
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final size = MediaQuery.of(context).size;
-      setState(() {
-        _pipPosition = Offset(size.width - 110.w, 80.h);
-      });
-    });
-  }
-
-  void _toggleControls() {
-    setState(() {
-      _showControls = !_showControls;
-    });
-  }
 
   String _formatDuration(int seconds) {
     final minutes = (seconds / 60).floor().toString().padLeft(2, '0');
@@ -45,6 +20,14 @@ class _CallScreenState extends State<CallScreen> {
   @override
   Widget build(BuildContext context) {
     final callCtrl = CallController.to;
+    final uiCtrl = Get.put(CallUIController());
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (uiCtrl.pipPosition.value == null) {
+        final size = MediaQuery.of(context).size;
+        uiCtrl.pipPosition.value = Offset(size.width - 110.w, 80.h);
+      }
+    });
 
     return PopScope(
       canPop: false,
@@ -56,7 +39,7 @@ class _CallScreenState extends State<CallScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF0F172A),
         body: GestureDetector(
-          onTap: _toggleControls,
+          onTap: uiCtrl.toggleControls,
           behavior: HitTestBehavior.opaque,
           child: Obx(() {
             final isVideo = callCtrl.isVideoCall.value;
@@ -115,22 +98,20 @@ class _CallScreenState extends State<CallScreen> {
                   // ── 3. Top Minimal Bar ─────────────────────────────────
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 300),
-                    top: _showControls ? 50.h : -100.h,
+                    top: uiCtrl.showControls.value ? 50.h : -100.h,
                     left: 20.w,
                     right: isVideo ? 120.w : 20.w,
                     child: _buildTopBar(callCtrl),
                   ),
 
                   // ── 4. Local Camera PiP (Video Calls only, Connected) ──
-                  if (isVideo && isConnected && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value)
+                  if (isVideo && isConnected && callCtrl.engine != null && callCtrl.isEngineReady.value && !callCtrl.isVideoDisabled.value && uiCtrl.pipPosition.value != null)
                     Positioned(
-                      left: _pipPosition.dx,
-                      top: _pipPosition.dy,
+                      left: uiCtrl.pipPosition.value!.dx,
+                      top: uiCtrl.pipPosition.value!.dy,
                       child: GestureDetector(
                         onPanUpdate: (details) {
-                          setState(() {
-                            _pipPosition += details.delta;
-                          });
+                          uiCtrl.updatePipPosition(details.delta);
                         },
                         child: _buildPipCamera(callCtrl),
                       ),
@@ -139,7 +120,7 @@ class _CallScreenState extends State<CallScreen> {
                   // ── 5. Bottom Controls Bar ────────────────────────────
                   AnimatedPositioned(
                     duration: const Duration(milliseconds: 300),
-                    bottom: _showControls ? 40.h : -120.h,
+                    bottom: uiCtrl.showControls.value ? 40.h : -120.h,
                     left: 20.w,
                     right: 20.w,
                     child: _buildControls(callCtrl),
