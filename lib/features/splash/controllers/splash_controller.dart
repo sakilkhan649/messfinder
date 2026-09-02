@@ -52,10 +52,11 @@ class SplashController extends GetxController {
 
     if (hasActiveCall) {
       // App was launched because user accepted/declined a call.
-      // Do NOT navigate to home. The CallKit event handler in NotificationService
-      // will call acceptCall() which navigates to CallScreen.
-      // We just wait here by doing auth check (which will detect call & abort home nav).
-      await Future.delayed(const Duration(milliseconds: 500));
+      // Do NOT navigate to home. The CallKit event handler in NotificationService will
+      // call acceptCall() (after 1200ms) which navigates to CallScreen.
+      // We wait 800ms here so the auth API call completes and handleNavigation() can
+      // detect callState != idle and abort Home navigation, all BEFORE CallScreen is pushed.
+      await Future.delayed(const Duration(milliseconds: 800));
       // Fall through to auth check — handleNavigation() will detect callState != idle
       // and abort Home navigation automatically.
     } else {

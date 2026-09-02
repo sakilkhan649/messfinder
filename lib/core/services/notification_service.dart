@@ -246,14 +246,19 @@ class NotificationService {
         // Set callState LAST so AuthController sees a fully-populated call state
         callCtrl.callState.value = CallState.incoming;
         callCtrl.callStatusText.value = 'Incoming Call...';
-          
-        // Small delay to allow the auth flow (API call) to settle before we push CallScreen.
-        // SplashController now initializes NotificationService synchronously, so the Flutter
-        // engine is already mounted when this fires — 200ms is sufficient.
-        Future.delayed(const Duration(milliseconds: 200), () {
+
+        // Delay long enough for SplashController → AuthMiddleware → handleNavigation() to
+        // fully complete. handleNavigation() will detect callState != idle and ABORT home
+        // navigation. After that delay, we safely navigate to CallScreen via acceptCall().
+        // 1200ms covers: 500ms splash active-call delay + auth API roundtrip + render.
+        Future.delayed(const Duration(milliseconds: 1200), () {
           // Guard: don't double-accept if already connecting/connected
           if (callCtrl.callState.value == CallState.connecting ||
               callCtrl.callState.value == CallState.connected) {
+            return;
+          }
+          // Guard: ignore if call was cancelled/ended while waiting
+          if (callCtrl.callState.value == CallState.idle) {
             return;
           }
           callCtrl.acceptCall();

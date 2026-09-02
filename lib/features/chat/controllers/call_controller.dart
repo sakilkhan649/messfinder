@@ -16,6 +16,7 @@ import 'package:mess_finder/features/auth/controllers/auth_controller.dart';
 import 'package:mess_finder/features/notifications/models/app_notification_model.dart';
 import 'package:mess_finder/features/chat/controllers/chat_controller.dart';
 import 'package:mess_finder/features/chat/views/call_screen.dart';
+import 'package:mess_finder/features/chat/views/incoming_call_screen.dart';
 import 'package:mess_finder/core/middlewares/auth_middleware.dart';
 
 enum CallState { idle, outgoing, ringing, incoming, connecting, connected, ended }
@@ -181,13 +182,26 @@ class CallController extends GetxController {
         (prefs) => prefs.setBool('is_in_call', true),
       );
 
-      // Removed NotificationService().showCallNotification here
-      // because FCM will already show a CallKit notification.
-      // This prevents double notifications.
-
-      // Removed IncomingCallScreen navigation. 
-      // We now rely entirely on FlutterCallkitIncoming (FCM Push) to show the incoming call UI,
-      // which prevents duplicate ringing, duplicate UI, and ensures perfect native integration.
+      // When the app is in the FOREGROUND, show our custom IncomingCallScreen.
+      // When the app is in the BACKGROUND or TERMINATED, the CallKit push notification
+      // (firebaseMessagingBackgroundHandler) already shows the native incoming call UI.
+      // We check if the app is actively rendering (has a route) to decide.
+      final currentRoute = Get.currentRoute;
+      final isAppInForeground = currentRoute.isNotEmpty && currentRoute != '/';
+      if (isAppInForeground) {
+        Get.to(
+          () => IncomingCallScreen(
+            callerName: peerUserName,
+            callerPhoto: peerUserPhoto,
+            isVideo: isVideoCall.value,
+            onAccept: acceptCall,
+            onDecline: rejectCall,
+          ),
+          routeName: '/IncomingCallScreen',
+          transition: Transition.fadeIn,
+          preventDuplicates: true,
+        );
+      }
     });
 
     // 1.5 Call Ringing Listener (Target device is ringing)
