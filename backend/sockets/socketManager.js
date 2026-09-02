@@ -190,22 +190,12 @@ const initSocket = (server, app) => {
 
     socket.on('end_call', async (data) => {
       console.log(`Call ended for ${data.targetUserId}`);
+      // Emit socket event — this is sufficient for foreground/background cases.
+      // We intentionally do NOT send an FCM push here because:
+      //   1. The socket 'call_ended' event already triggers endCall() on the receiver.
+      //   2. Sending a 'call_ended' FCM push additionally causes a double-endCall()
+      //      in the Flutter foreground handler, which auto-disconnects active calls.
       io.to(data.targetUserId).emit('call_ended', data);
-      
-      try {
-        const { internalSendPushNotification } = require('../controllers/notificationController');
-        await internalSendPushNotification({
-          receiverUid: data.targetUserId,
-          title: 'Call Ended',
-          body: 'The call has ended',
-          type: 'call_ended',
-          relatedId: data.channelName || '',
-          senderUid: '',
-          senderPhotoUrl: ''
-        });
-      } catch (e) {
-        console.error('Failed to send call_ended push notification:', e);
-      }
     });
 
     socket.on('call_ringing', (data) => {
@@ -272,6 +262,7 @@ const initSocket = (server, app) => {
       io.to(callerId).emit('call_accepted', { callerId, channelName, token });
       console.log(`Call accepted via API for caller ${callerId} [Token generated]`);
       
+      // Also send FCM push as a fallback for when the caller's socket might be disconnected
       try {
         const { internalSendPushNotification } = require('../controllers/notificationController');
         await internalSendPushNotification({

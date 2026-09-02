@@ -221,15 +221,25 @@ class NotificationService {
             ? Get.find<CallController>() 
             : Get.put(CallController(), permanent: true);
 
+        // IMPORTANT: Set ALL call data BEFORE changing callState.
+        // AuthController.handleNavigation() checks callState to decide whether to navigate.
+        // If callState is set to 'incoming' before data is ready, a race condition occurs
+        // where handleNavigation() sees a call but finds no channel/uid to work with.
         callCtrl.currentChannel = relatedId ?? '';
         callCtrl.isVideoCall.value = isVideo;
-        callCtrl.callState.value = CallState.incoming; // Mark as active early to block AuthController navigation
         if (senderUid != null) {
           callCtrl.peerUserId = senderUid;
         }
+        callCtrl.peerUserName = event.callKitParams.nameCaller ?? 'Unknown Caller';
+        callCtrl.peerUserPhoto = event.callKitParams.avatar;
+        // Set callState LAST so AuthController sees a fully-populated call state
+        callCtrl.callState.value = CallState.incoming;
+        callCtrl.callStatusText.value = 'Incoming Call...';
           
-        // Delay to ensure Flutter UI is fully mounted before navigating
-        Future.delayed(const Duration(milliseconds: 1500), () {
+        // Reduced from 1500ms: just enough to ensure Flutter engine is mounted.
+        // The previous 1500ms gap was long enough for SplashController to navigate
+        // to Home before acceptCall() ran, causing the Splash→Home flash bug.
+        Future.delayed(const Duration(milliseconds: 300), () {
           callCtrl.acceptCall();
         });
       } else if (event is CallEventActionCallDecline) {
@@ -330,9 +340,10 @@ class NotificationService {
       } catch (e) {
         debugPrint('Error clearing in-call state: $e');
       }
-      if (Get.isRegistered<CallController>()) {
-        Get.find<CallController>().endCall(notifyPeer: false);
-      }
+      // NOTE: We do NOT call callCtrl.endCall() here.
+      // The socket 'call_ended' event is the primary trigger for endCall() on the receiver.
+      // Calling endCall() again from FCM causes a double-disconnect (auto-hangup bug).
+      // This FCM handler only needs to clear CallKit UI for terminated-app scenarios.
       return;
     }
     

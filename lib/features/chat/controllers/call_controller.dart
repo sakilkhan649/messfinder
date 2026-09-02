@@ -59,7 +59,7 @@ class CallController extends GetxController {
   final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlayingRingback = false;
 
-  bool _pendingAcceptCall = false;
+
 
   @override
   void onInit() {
@@ -590,15 +590,24 @@ class CallController extends GetxController {
     _cleanupCall();
 
     if (wasRingingOrConnected) {
-      // Safely close the call screen without relying on fragile route names
-      Get.back(); // Pops the CallScreen or IncomingCallScreen
+      // Safely close the call screen / incoming call screen
+      Get.back();
 
-      // If the app was launched from a terminated state, the user will be left on the Splash screen
-      // We must route them to the Home screen after the call ends.
+      // If the app was launched from a terminated/background state, the user might
+      // land on the Splash screen after the call ends. Navigate them to Home directly
+      // WITHOUT going through the splash flow (which would show the splash screen).
       Future.delayed(const Duration(milliseconds: 300), () {
         final route = Get.currentRoute;
         if (route == '/SplashScreen' || route == '/' || route == '') {
-          AuthMiddleware.checkAuthAndNavigate();
+          // Navigate directly using the already-loaded user data — no splash needed.
+          final authCtrl = Get.find<AuthController>();
+          final user = authCtrl.currentUser.value;
+          if (user != null) {
+            authCtrl.handleNavigation(user);
+          } else {
+            // Fallback: run full auth check (only when user data is genuinely missing)
+            AuthMiddleware.checkAuthAndNavigate();
+          }
         }
       });
     }
