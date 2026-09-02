@@ -64,7 +64,7 @@ function initFirebase() {
 initFirebase();
 
 // Internal function to send push notification from other backend modules (e.g. sockets)
-exports.internalSendPushNotification = async ({ receiverUid, title, body, type, relatedId, senderUid, senderPhotoUrl }) => {
+exports.internalSendPushNotification = async ({ receiverUid, title, body, type, relatedId, senderUid, senderPhotoUrl, isVideo }) => {
   if (!receiverUid || !title || !body) {
     return { success: false, error: 'receiverUid, title, and body are required' };
   }
@@ -148,6 +148,7 @@ exports.internalSendPushNotification = async ({ receiverUid, title, body, type, 
         relatedId: relatedId || '',
         senderUid: senderUid || '',
         senderPhotoUrl: senderPhotoUrl || '',
+        isVideo: isVideo !== undefined ? String(isVideo) : '',
         click_action: 'FLUTTER_NOTIFICATION_CLICK'
       },
       android: {

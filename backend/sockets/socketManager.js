@@ -157,7 +157,8 @@ const initSocket = (server, app) => {
           type: 'call',
           relatedId: data.channelName,
           senderUid: data.callerId,
-          senderPhotoUrl: data.callerPhoto
+          senderPhotoUrl: data.callerPhoto,
+          isVideo: data.isVideo
         });
       } catch (e) {
         console.error('Failed to send call push notification:', e);

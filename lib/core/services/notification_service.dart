@@ -31,9 +31,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
   
   if (message.data['type'] == 'call') {
-    final callerName = message.data['title'] ?? 'Unknown Caller';
+    final title = message.data['title'] ?? 'Unknown Caller';
     final body = message.data['body'] ?? '';
-    final isVideo = body.toString().toLowerCase().contains('video');
+    String callerName = title;
+    if (body.toString().startsWith('Incoming call from ')) {
+      callerName = body.toString().replaceAll('Incoming call from ', '');
+    }
+    final isVideoStr = message.data['isVideo'];
+    final isVideo = (isVideoStr == 'true') || title.toString().toLowerCase().contains('video');
     final senderPhotoUrl = message.data['senderPhotoUrl'];
     final relatedId = message.data['relatedId']; 
     final senderUid = message.data['senderUid'] ?? message.data['sender_uid'];
@@ -281,9 +286,14 @@ class NotificationService {
     }
     
     if (type == 'call') {
-      final callerName = message.data['title'] ?? 'Unknown Caller';
+      final title = message.data['title'] ?? 'Unknown Caller';
       final body = message.data['body'] ?? '';
-      final isVideo = body.toString().toLowerCase().contains('video');
+      String callerName = title;
+      if (body.toString().startsWith('Incoming call from ')) {
+        callerName = body.toString().replaceAll('Incoming call from ', '');
+      }
+      final isVideoStr = message.data['isVideo'];
+      final isVideo = (isVideoStr == 'true') || title.toString().toLowerCase().contains('video');
       final senderPhotoUrl = message.data['senderPhotoUrl'];
       final relatedId = message.data['relatedId'];
       
